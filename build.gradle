@@ -23,6 +23,9 @@ dependencies {
 
     // ModMenu
     api "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+    // Testing
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
 base {
@@ -34,6 +37,14 @@ def fabric_api_version = project.fabric_api_version.tokenize('+')[0]
 
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "fabric.side", "client"
+    testLogging {
+        events "passed", "failed", "skipped", "standardOut", "standardError"
+    }
 }
 
 java {
