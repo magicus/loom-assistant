@@ -7,9 +7,11 @@ package se.icus.mag.loomassistant.data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import se.icus.mag.loomassistant.types.BannerDesign;
 
 /**
  * Represents a saved banner design with all its pattern layers.
@@ -101,6 +103,25 @@ public class SavedBanner {
             case RED -> Items.BANNER.red();
             case BLACK -> Items.BANNER.black();
         };
+    }
+
+    public BannerDesign toType() {
+        List<se.icus.mag.loomassistant.types.BannerDesignLayer> convertedLayers = layers == null
+                ? new ArrayList<>()
+                : layers.stream().map(BannerPatternLayer::toType).collect(Collectors.toCollection(ArrayList::new));
+        return new BannerDesign(id, name, null, null, baseColor, convertedLayers);
+    }
+
+    public static SavedBanner fromType(BannerDesign design) {
+        List<BannerPatternLayer> convertedLayers = design.layers() == null
+                ? new ArrayList<>()
+                : design.layers().stream()
+                        .map(BannerPatternLayer::fromType)
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+        SavedBanner banner = new SavedBanner(design.description(), design.getBannerColorEnum(), convertedLayers);
+        banner.setId(design.id());
+        return banner;
     }
 
     public static Item getDyeItem(DyeColor color) {

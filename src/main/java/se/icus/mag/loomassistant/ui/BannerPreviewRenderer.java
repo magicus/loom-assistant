@@ -4,7 +4,6 @@
  */
 package se.icus.mag.loomassistant.ui;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
@@ -15,13 +14,12 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.LoomMenu;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerDesign;
 
 /**
  * Renders banner preview thumbnails in the side panel.
@@ -100,43 +98,7 @@ public class BannerPreviewRenderer {
     }
 
     public static SavedBanner extractBannerData(ItemStack stack) {
-        if (stack.isEmpty()) return null;
-
-        DyeColor baseColor = getBannerColor(stack);
-        if (baseColor == null) return null;
-
-        List<BannerPatternLayer> layers = new ArrayList<>();
-        BannerPatternLayers patterns = stack.get(DataComponents.BANNER_PATTERNS);
-
-        if (patterns != null) {
-            for (var layer : patterns.layers()) {
-                String patternId = layer.pattern().getRegisteredName();
-                DyeColor dyeColor = layer.color();
-                layers.add(BannerPatternLayer.of(patternId, dyeColor));
-            }
-        }
-
-        return new SavedBanner(null, baseColor, layers);
-    }
-
-    private static DyeColor getBannerColor(ItemStack stack) {
-        var item = stack.getItem();
-        if (item == Items.BANNER.white()) return DyeColor.WHITE;
-        if (item == Items.BANNER.orange()) return DyeColor.ORANGE;
-        if (item == Items.BANNER.magenta()) return DyeColor.MAGENTA;
-        if (item == Items.BANNER.lightBlue()) return DyeColor.LIGHT_BLUE;
-        if (item == Items.BANNER.yellow()) return DyeColor.YELLOW;
-        if (item == Items.BANNER.lime()) return DyeColor.LIME;
-        if (item == Items.BANNER.pink()) return DyeColor.PINK;
-        if (item == Items.BANNER.gray()) return DyeColor.GRAY;
-        if (item == Items.BANNER.lightGray()) return DyeColor.LIGHT_GRAY;
-        if (item == Items.BANNER.cyan()) return DyeColor.CYAN;
-        if (item == Items.BANNER.purple()) return DyeColor.PURPLE;
-        if (item == Items.BANNER.blue()) return DyeColor.BLUE;
-        if (item == Items.BANNER.brown()) return DyeColor.BROWN;
-        if (item == Items.BANNER.green()) return DyeColor.GREEN;
-        if (item == Items.BANNER.red()) return DyeColor.RED;
-        if (item == Items.BANNER.black()) return DyeColor.BLACK;
-        return null;
+        BannerDesign design = BannerDesign.fromItem(stack);
+        return design == null ? null : SavedBanner.fromType(design);
     }
 }
