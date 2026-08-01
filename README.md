@@ -21,4 +21,3 @@ Minecraft.)
 ## Support
 
 Do you have any problems with the mod? Please open an issue here on GitHub.
-
