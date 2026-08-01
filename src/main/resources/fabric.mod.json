@@ -17,14 +17,19 @@
   "entrypoints": {
     "main": [
       "se.icus.mag.loomassistant.LoomAssistantMod"
+    ],
+    "modmenu": [
+      "se.icus.mag.loomassistant.config.LoomAssistantModMenuIntegration"
     ]
   },
   "mixins": [
     "loom-assistant.mixins.json"
   ],
   "depends": {
+    "cloth-config": ">=${cloth_version}",
     "fabric-api": ">=${fabric_api_version}",
     "fabricloader": ">=${loader_version}",
-    "minecraft": "${supported_minecraft_versions}"
+    "minecraft": "${supported_minecraft_versions}",
+    "modmenu": ">=${modmenu_version}"
   }
 }

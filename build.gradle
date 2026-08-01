@@ -3,6 +3,11 @@ plugins {
     id "com.diffplug.spotless" version "${spotless_version}"
 }
 
+repositories {
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+}
+
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -10,6 +15,14 @@ dependencies {
 
     // Fabric API
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    // Cloth Config
+    api("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
+    // ModMenu
+    api "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 base {
@@ -37,17 +50,21 @@ jar {
 
 processResources {
     inputs.properties([
+        "cloth_version": project.cloth_version,
         "fabric_api_version": fabric_api_version,
         "loader_version": project.loader_version,
         "mod_version": project.mod_version,
+        "modmenu_version": project.modmenu_version,
         "supported_minecraft_versions": project.supported_minecraft_versions,
     ])
 
     filesMatching("fabric.mod.json") {
         expand([
+            cloth_version: project.cloth_version,
             fabric_api_version: fabric_api_version,
             loader_version: project.loader_version,
             mod_version: project.mod_version,
+            modmenu_version: project.modmenu_version,
             supported_minecraft_versions: project.supported_minecraft_versions,
         ])
     }

@@ -4,9 +4,12 @@
  */
 package se.icus.mag.loomassistant;
 
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.icus.mag.loomassistant.config.LoomAssistantConfig;
 import se.icus.mag.loomassistant.data.BannerStorage;
 
 public class LoomAssistantMod implements ModInitializer {
@@ -20,6 +23,7 @@ public class LoomAssistantMod implements ModInitializer {
     @Override
     public void onInitialize() {
         LoomAssistantMod.LOGGER.info("Initializing LoomAssistantMod");
+        AutoConfig.register(LoomAssistantConfig.class, GsonConfigSerializer::new);
         BannerStorage.getInstance().load();
     }
 }
