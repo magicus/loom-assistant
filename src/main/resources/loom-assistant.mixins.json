@@ -1,0 +1,13 @@
+{
+  "compatibilityLevel": "JAVA_25",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8",
+  "mixins": [
+    "LoomScreenAccessor",
+    "LoomScreenMixin"
+  ],
+  "package": "se.icus.mag.loomassistant.mixin",
+  "required": true
+}

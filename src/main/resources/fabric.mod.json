@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "loom-assistant",
+  "version": "${mod_version}",
+  "name": "Loom Assistant",
+  "description": "Makes banner crafting easier",
+  "authors": [
+    "magicus", "dogwhale65"
+  ],
+  "contact": {
+    "homepage": "https://github.com/magicus/loom-assistant",
+    "sources": "https://github.com/magicus/loom-assistant"
+  },
+  "license": "MIT",
+  "icon": "assets/loom-assistant/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "se.icus.mag.loomassistant.LoomAssistantMod"
+    ]
+  },
+  "mixins": [
+    "loom-assistant.mixins.json"
+  ],
+  "depends": {
+    "fabric-api": ">=${fabric_api_version}",
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${supported_minecraft_versions}"
+  }
+}
