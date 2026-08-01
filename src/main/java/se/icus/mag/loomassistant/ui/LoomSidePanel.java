@@ -132,9 +132,29 @@ public class LoomSidePanel {
                 0xFFFFFFFF,
                 true);
 
+        // Draw "Browse all banners" button
+        int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
+        boolean browseHovered = isInBrowseButton(mouseX, mouseY);
+        int browseButtonColor = browseHovered ? 0xFF5C7CFA : 0xFF2D3A6E;
+        context.fill(
+                x + PADDING,
+                browseButtonY,
+                x + PANEL_WIDTH - PADDING,
+                browseButtonY + BUTTON_HEIGHT,
+                browseButtonColor);
+        String browseText = "Browse all banners...";
+        int browseTextWidth = textRenderer.width(browseText);
+        context.text(
+                textRenderer,
+                Component.literal(browseText),
+                x + PANEL_WIDTH / 2 - browseTextWidth / 2,
+                browseButtonY + 1,
+                0xFFCCCCFF,
+                true);
+
         // Draw saved patterns
         List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
-        int listStartY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int listStartY = browseButtonY + BUTTON_HEIGHT + PADDING;
         int visibleHeight = PANEL_HEIGHT - (listStartY - y) - PADDING;
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
 
@@ -296,11 +316,18 @@ public class LoomSidePanel {
             return true;
         }
 
+        // Check browse button
+        if (isInBrowseButton(mx, my)) {
+            Minecraft.getInstance().gui.setScreen(new BannerBrowserScreen(screen));
+            return true;
+        }
+
         // Check pattern entries
         List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
-        int listStartY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int listStartY = browseButtonY + BUTTON_HEIGHT + PADDING;
         int visibleHeight = PANEL_HEIGHT - (listStartY - y) - PADDING;
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
 
@@ -387,7 +414,8 @@ public class LoomSidePanel {
         List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
-        int listStartY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int listStartY = browseButtonY + BUTTON_HEIGHT + PADDING;
         int visibleHeight = PANEL_HEIGHT - (listStartY - y) - PADDING;
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
         int maxScroll = Math.max(0, banners.size() - maxVisible);
@@ -498,6 +526,16 @@ public class LoomSidePanel {
                 && mouseY < importButtonY + BUTTON_HEIGHT;
     }
 
+    private boolean isInBrowseButton(int mouseX, int mouseY) {
+        int saveButtonY = y + HEADER_HEIGHT + PADDING;
+        int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
+        int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
+        return mouseX >= x + PADDING
+                && mouseX < x + PANEL_WIDTH - PADDING
+                && mouseY >= browseButtonY
+                && mouseY < browseButtonY + BUTTON_HEIGHT;
+    }
+
     private boolean isInCraftButton(int mouseX, int mouseY) {
         int craftButtonY = y + PANEL_HEIGHT - BUTTON_HEIGHT - PADDING;
         return mouseX >= x + PADDING
@@ -575,7 +613,8 @@ public class LoomSidePanel {
         List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
-        int listStartY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
+        int listStartY = browseButtonY + BUTTON_HEIGHT + PADDING;
         int visibleHeight = PANEL_HEIGHT - (listStartY - y) - PADDING;
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
 

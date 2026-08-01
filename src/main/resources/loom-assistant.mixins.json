@@ -5,7 +5,9 @@
   },
   "minVersion": "0.8",
   "mixins": [
-    "LoomScreenAccessor",
+    "AbstractContainerScreenKeyPressedMixin",
+    "AbstractContainerEventHandlerInputMixin",
+    "ClientTooltipComponentMixin",
     "LoomScreenMixin"
   ],
   "package": "se.icus.mag.loomassistant.mixin",
