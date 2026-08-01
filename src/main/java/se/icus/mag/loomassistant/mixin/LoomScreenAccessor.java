@@ -1,6 +1,6 @@
 /*
  * Copyright © Magnus Ihse Bursie 2026.
- * This file is released under LGPLv3. See LICENSE for full license details.
+ * This file is released under MIT. See LICENSE for full license details.
  */
 package se.icus.mag.loomassistant.mixin;
 

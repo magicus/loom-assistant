@@ -77,7 +77,7 @@ spotless {
         }
         licenseHeader("/*\n" +
                 " * Copyright © Magnus Ihse Bursie \$YEAR.\n" +
-                " * This file is released under LGPLv3. See LICENSE for full license details.\n" +
+                " * This file is released under MIT. See LICENSE for full license details.\n" +
                 " */")
                 .updateYearWithLatest(true)
     }
