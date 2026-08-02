@@ -511,7 +511,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                             LOOMASSISTANT_ACTIVE_SLOT_CLEAR_SOUND,
                             SoundSource.PLAYERS,
                             0.42F,
-                            0.78F,
+                            1.0F,
                             false);
         }
     }
