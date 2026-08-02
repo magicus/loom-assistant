@@ -15,8 +15,6 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -565,20 +563,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             CallbackInfoReturnable<Boolean> cir) {
         if (loomassistant$panel != null
                 && loomassistant$panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            cir.setReturnValue(true);
-        }
-    }
-
-    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (loomassistant$panel != null && loomassistant$panel.keyPressed(event)) {
-            cir.setReturnValue(true);
-        }
-    }
-
-    @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (loomassistant$panel != null && loomassistant$panel.charTyped(event)) {
             cir.setReturnValue(true);
         }
     }

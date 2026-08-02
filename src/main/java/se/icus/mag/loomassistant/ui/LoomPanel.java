@@ -572,6 +572,14 @@ public class LoomPanel {
     }
 
     public boolean keyPressed(KeyEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (searchBox.canConsumeInput()
+                && mc != null
+                && mc.options != null
+                && mc.options.keyInventory.matches(event)) {
+            return true;
+        }
+
         if (searchBox.keyPressed(event)) {
             page = 0;
             return true;
