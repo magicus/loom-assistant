@@ -15,6 +15,8 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -430,6 +432,12 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             this.loomassistant$saveButton.visible = true;
             hasActiveBanner = !loomassistant$activeBannerStack.isEmpty();
             if (hasActiveBanner && loomassistant$craftabilityProbe != null) {
+                if (this.minecraft != null
+                        && this.minecraft.player != null
+                        && this.minecraft.player.hasInfiniteMaterials()) {
+                    canCraftActiveBanner = true;
+                    craftDisabledMessage = null;
+                } else {
                 SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
                 if (activeBanner != null) {
                     canCraftActiveBanner = loomassistant$craftabilityProbe.canCraft(activeBanner);
@@ -437,6 +445,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                         craftDisabledMessage = loomassistant$buildMissingMaterialsMessage(
                                 activeBanner, loomassistant$craftabilityProbe);
                     }
+                }
                 }
             }
             this.loomassistant$saveButton.active = hasActiveBanner;
@@ -556,6 +565,20 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             CallbackInfoReturnable<Boolean> cir) {
         if (loomassistant$panel != null
                 && loomassistant$panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void loomassistant$onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+        if (loomassistant$panel != null && loomassistant$panel.keyPressed(event)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
+    private void loomassistant$onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
+        if (loomassistant$panel != null && loomassistant$panel.charTyped(event)) {
             cir.setReturnValue(true);
         }
     }

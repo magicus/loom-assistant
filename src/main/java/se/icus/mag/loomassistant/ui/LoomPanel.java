@@ -651,6 +651,9 @@ public class LoomPanel {
     }
 
     private boolean isCraftableNow(SavedBanner banner) {
+        if (isCreativeMode()) {
+            return true;
+        }
         return autoCraft.canCraft(banner);
     }
 
@@ -688,6 +691,10 @@ public class LoomPanel {
     public void craftSelectedBanner() {
         SavedBanner selectedBanner = getSelectedBanner();
         if (selectedBanner != null) {
+            if (isCreativeMode()) {
+                giveBannerToCreativePlayer(selectedBanner);
+                return;
+            }
             autoCraft.start(selectedBanner);
         }
     }
@@ -697,6 +704,9 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return false;
         }
+        if (isCreativeMode()) {
+            return true;
+        }
         return autoCraft.canCraft(selectedBanner);
     }
 
@@ -705,12 +715,33 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return Component.translatable("loom-assistant.active.select_banner").getString();
         }
+        if (isCreativeMode()) {
+            return null;
+        }
 
         List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(selectedBanner);
         if (missingMaterials.isEmpty()) {
             return null;
         }
         return Component.translatable("loom-assistant.active.missing_header").getString() + "\n" + String.join("\n", missingMaterials);
+    }
+
+    private boolean isCreativeMode() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc != null && mc.player != null && mc.player.hasInfiniteMaterials();
+    }
+
+    private void giveBannerToCreativePlayer(SavedBanner banner) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.player == null || mc.gameMode == null) {
+            return;
+        }
+
+        ItemStack result = BannerPreviewRenderer.createBannerWithPatterns(banner);
+        int selectedHotbarSlot = mc.player.getInventory().getSelectedSlot();
+        int creativeSlot = 36 + selectedHotbarSlot;
+        mc.player.getInventory().setItem(selectedHotbarSlot, result.copy());
+        mc.gameMode.handleCreativeModeItemAdd(result.copy(), creativeSlot);
     }
 
     public void editSelectedBanner() {
