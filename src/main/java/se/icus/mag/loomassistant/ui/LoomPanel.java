@@ -401,6 +401,14 @@ public class LoomPanel {
         int mx = (int) event.x();
         int my = (int) event.y();
 
+        int searchX = x + SEARCH_X;
+        int searchY = y + SEARCH_Y;
+        if (isIn(mx, my, searchX, searchY, SEARCH_W, SEARCH_H)) {
+            searchBox.setFocused(true);
+            searchBox.mouseClicked(event, false);
+            return true;
+        }
+
         if (clickTabs(mx, my)) {
             return true;
         }
