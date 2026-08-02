@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import se.icus.mag.loomassistant.types.BannerDesign;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 /**
- * Represents a saved banner design with all its pattern layers.
+ * Represents a saved banner recipe with all its pattern layers.
  */
 public class SavedBanner {
     private String id;
@@ -105,22 +105,22 @@ public class SavedBanner {
         };
     }
 
-    public BannerDesign toType() {
-        List<se.icus.mag.loomassistant.types.BannerDesignLayer> convertedLayers = layers == null
+    public BannerRecipe toType() {
+        List<se.icus.mag.loomassistant.types.BannerRecipeLayer> convertedLayers = layers == null
                 ? new ArrayList<>()
                 : layers.stream().map(BannerPatternLayer::toType).collect(Collectors.toCollection(ArrayList::new));
-        return new BannerDesign(id, name, null, null, baseColor, convertedLayers);
+        return new BannerRecipe(id, name, null, null, baseColor, convertedLayers);
     }
 
-    public static SavedBanner fromType(BannerDesign design) {
-        List<BannerPatternLayer> convertedLayers = design.layers() == null
+    public static SavedBanner fromType(BannerRecipe recipe) {
+        List<BannerPatternLayer> convertedLayers = recipe.layers() == null
                 ? new ArrayList<>()
-                : design.layers().stream()
+                : recipe.layers().stream()
                         .map(BannerPatternLayer::fromType)
                         .collect(Collectors.toCollection(ArrayList::new));
 
-        SavedBanner banner = new SavedBanner(design.description(), design.getBannerColorEnum(), convertedLayers);
-        banner.setId(design.id());
+        SavedBanner banner = new SavedBanner(recipe.description(), recipe.getBannerColorEnum(), convertedLayers);
+        banner.setId(recipe.id());
         return banner;
     }
 

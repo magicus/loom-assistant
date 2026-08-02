@@ -30,7 +30,7 @@ public class BannerDetailsScreen extends Screen {
     private final SavedBanner banner;
 
     public BannerDetailsScreen(Screen previousScreen, SavedBanner banner) {
-        super(Component.literal("Details"));
+        super(Component.translatable("loom-assistant.screen.banner_details.title"));
         this.previousScreen = previousScreen;
         this.banner = banner;
     }
@@ -88,7 +88,7 @@ public class BannerDetailsScreen extends Screen {
         int btnW = PANEL_W - PADDING * 2;
         boolean hov = mouseX >= btnX && mouseX < btnX + btnW && mouseY >= btnY && mouseY < btnY + BTN_H;
         ctx.fill(btnX, btnY, btnX + btnW, btnY + BTN_H, hov ? 0xFF5C7CFA : 0xFF1E40AF);
-        String cl = "Close";
+        String cl = Component.translatable("loom-assistant.common.close").getString();
         ctx.text(
                 this.font,
                 Component.literal(cl),

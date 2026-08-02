@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.BannerDesign;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.types.BannerPack;
 import se.icus.mag.loomassistant.types.BannerPackRepository;
 
@@ -63,7 +63,7 @@ public class BannerStorage {
         ensureRepositoryLoaded();
         BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
         try {
-            BannerDesign created = rootPack.addBannerDesign(banner.toType());
+            BannerRecipe created = rootPack.addBannerRecipe(banner.toType());
             LoomAssistantMod.LOGGER.debug("Added banner {} to root", created.id());
             refreshBannerCache();
         } catch (IOException e) {
@@ -73,14 +73,14 @@ public class BannerStorage {
 
     public void removeBanner(String id) {
         ensureRepositoryLoaded();
-        String packId = repository.getBannerDesignPackId(id);
+        String packId = repository.getBannerRecipePackId(id);
         if (packId == null) {
             return;
         }
 
         BannerPack pack = requirePack(packId);
         try {
-            pack.removeBannerDesign(id);
+            pack.removeBannerRecipe(id);
             refreshBannerCache();
         } catch (IOException e) {
             throw new IllegalStateException("Failed to remove banner " + id, e);
@@ -97,19 +97,19 @@ public class BannerStorage {
 
     public void renameBanner(String id, String newName) {
         ensureRepositoryLoaded();
-        String packId = repository.getBannerDesignPackId(id);
+        String packId = repository.getBannerRecipePackId(id);
         if (packId == null) {
             return;
         }
 
-        BannerDesign existing = repository.getBannerDesignById(id);
+        BannerRecipe existing = repository.getBannerRecipeById(id);
         if (existing == null) {
             return;
         }
 
         BannerPack pack = requirePack(packId);
         try {
-            pack.updateBannerDesign(existing.withDescription(newName));
+            pack.updateBannerRecipe(existing.withDescription(newName));
             refreshBannerCache();
         } catch (IOException e) {
             throw new IllegalStateException("Failed to rename banner " + id, e);
@@ -118,20 +118,20 @@ public class BannerStorage {
 
     public String exportBannerToJson(String bannerId) {
         ensureRepositoryLoaded();
-        BannerDesign design = repository.getBannerDesignById(bannerId);
-        if (design == null) {
+        BannerRecipe recipe = repository.getBannerRecipeById(bannerId);
+        if (recipe == null) {
             return null;
         }
-        return design.toJson();
+        return recipe.toJson();
     }
 
     public String exportBannerToGiveCommand(String bannerId) {
         ensureRepositoryLoaded();
-        BannerDesign design = repository.getBannerDesignById(bannerId);
-        if (design == null) {
+        BannerRecipe recipe = repository.getBannerRecipeById(bannerId);
+        if (recipe == null) {
             return null;
         }
-        return design.toCommand();
+        return recipe.toCommand();
     }
 
     public SavedBanner importBannerFromJson(String input) {
@@ -142,11 +142,11 @@ public class BannerStorage {
 
         String trimmed = input.trim();
 
-        BannerDesign fromGive = BannerDesign.fromCommand(trimmed);
+        BannerRecipe fromGive = BannerRecipe.fromCommand(trimmed);
         if (fromGive != null) {
             BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
             try {
-                BannerDesign created = rootPack.addBannerDesign(fromGive);
+                BannerRecipe created = rootPack.addBannerRecipe(fromGive);
                 refreshBannerCache();
                 return SavedBanner.fromType(created);
             } catch (IOException e) {
@@ -159,11 +159,11 @@ public class BannerStorage {
         }
 
         try {
-            BannerDesign fromTypesJson = BannerDesign.fromJson(trimmed);
+            BannerRecipe fromTypesJson = BannerRecipe.fromJson(trimmed);
             if (fromTypesJson != null) {
                 BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
                 try {
-                    BannerDesign created = rootPack.addBannerDesign(fromTypesJson);
+                    BannerRecipe created = rootPack.addBannerRecipe(fromTypesJson);
                     refreshBannerCache();
                     return SavedBanner.fromType(created);
                 } catch (IOException e) {
@@ -202,8 +202,8 @@ public class BannerStorage {
         }
 
         for (Map.Entry<String, BannerPack> entry : repository.getPacks().entrySet()) {
-            for (BannerDesign design : entry.getValue().getDesigns()) {
-                banners.add(SavedBanner.fromType(design));
+            for (BannerRecipe recipe : entry.getValue().getDesigns()) {
+                banners.add(SavedBanner.fromType(recipe));
             }
         }
     }

@@ -63,27 +63,27 @@ public class BannerPackRepository {
         return packs.get(packId);
     }
 
-    public List<BannerDesign> getAllBannerDesigns() {
-        List<BannerDesign> result = new ArrayList<>();
+    public List<BannerRecipe> getAllBannerRecipes() {
+        List<BannerRecipe> result = new ArrayList<>();
         for (BannerPack pack : packs.values()) {
             result.addAll(pack.getDesigns());
         }
         return result;
     }
 
-    public BannerDesign getBannerDesignById(String designId) {
+    public BannerRecipe getBannerRecipeById(String recipeId) {
         for (BannerPack pack : packs.values()) {
-            BannerDesign design = pack.getDesign(designId);
-            if (design != null) {
-                return design;
+            BannerRecipe recipe = pack.getDesign(recipeId);
+            if (recipe != null) {
+                return recipe;
             }
         }
         return null;
     }
 
-    public String getBannerDesignPackId(String designId) {
+    public String getBannerRecipePackId(String recipeId) {
         for (BannerPack pack : packs.values()) {
-            if (pack.getDesign(designId) != null) {
+            if (pack.getDesign(recipeId) != null) {
                 return pack.getMetadata().id();
             }
         }
@@ -129,7 +129,7 @@ public class BannerPackRepository {
         }
     }
 
-    public BannerDesign moveBannerDesign(String sourcePackId, String targetPackId, String designId) {
+    public BannerRecipe moveBannerRecipe(String sourcePackId, String targetPackId, String recipeId) {
         String sourceId = normalizeId(sourcePackId);
         String targetId = normalizeId(targetPackId);
         BannerPack sourcePack = requirePack(sourceId);
@@ -138,21 +138,21 @@ public class BannerPackRepository {
             throw new IllegalArgumentException("cannot move from read-only pack; copy instead");
         }
         try {
-            return dirSource.moveDesignTo(targetPack, designId);
+            return dirSource.moveRecipeTo(targetPack, recipeId);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to move design " + designId, e);
+            throw new IllegalStateException("Failed to move recipe " + recipeId, e);
         }
     }
 
-    public BannerDesign copyBannerDesign(String sourcePackId, String targetPackId, String designId) {
+    public BannerRecipe copyBannerRecipe(String sourcePackId, String targetPackId, String recipeId) {
         String sourceId = normalizeId(sourcePackId);
         String targetId = normalizeId(targetPackId);
         BannerPack sourcePack = requirePack(sourceId);
         BannerPack targetPack = requirePack(targetId);
         try {
-            return sourcePack.copyDesignTo(targetPack, designId);
+            return sourcePack.copyRecipeTo(targetPack, recipeId);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to copy design " + designId, e);
+            throw new IllegalStateException("Failed to copy recipe " + recipeId, e);
         }
     }
 

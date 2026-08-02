@@ -49,13 +49,13 @@ class BannerPackRepositoryTest {
 
     @Test
     void canCreateAndSerializeDesign() {
-        BannerDesign design = new BannerDesign(
+        BannerRecipe recipe = new BannerRecipe(
                 "Letter A",
                 DyeColor.LIGHT_BLUE,
-                List.of(BannerDesignLayer.of("minecraft:small_stripes", DyeColor.BLUE.getName())));
+                List.of(BannerRecipeLayer.of("minecraft:small_stripes", DyeColor.BLUE.getName())));
 
-        String json = design.toJson();
-        BannerDesign parsed = BannerDesign.fromJson(json);
+        String json = recipe.toJson();
+        BannerRecipe parsed = BannerRecipe.fromJson(json);
 
         assertTrue(json.contains("\"color\":\"blue\""));
         assertTrue(json.contains("\"banner_color\":\"light_blue\""));
@@ -68,20 +68,20 @@ class BannerPackRepositoryTest {
         assertEquals(1, parsed.layers().size());
         assertEquals("minecraft:small_stripes", parsed.layers().get(0).pattern().toString());
 
-        BannerDesign whiteDesign = new BannerDesign("Test", DyeColor.WHITE, List.of());
+        BannerRecipe whiteDesign = new BannerRecipe("Test", DyeColor.WHITE, List.of());
         String whiteJson = whiteDesign.toJson();
         assertTrue(whiteJson.contains("\"banner_color\":\"white\""));
-        BannerDesign whiteParsed = BannerDesign.fromJson(whiteJson);
+        BannerRecipe whiteParsed = BannerRecipe.fromJson(whiteJson);
         assertEquals("white", whiteParsed.bannerColor());
     }
 
     @Test
     void missingRequiredFieldsFailParsing() {
-        assertThrows(IllegalStateException.class, () -> BannerDesign.fromJson("{\"layers\":[]}"));
-        assertThrows(IllegalStateException.class, () -> BannerDesign.fromJson("{\"description\":\"x\",\"layers\":[]}"));
+        assertThrows(IllegalStateException.class, () -> BannerRecipe.fromJson("{\"layers\":[]}"));
+        assertThrows(IllegalStateException.class, () -> BannerRecipe.fromJson("{\"description\":\"x\",\"layers\":[]}"));
         assertThrows(
                 IllegalStateException.class,
-                () -> BannerDesign.fromJson("{\"description\":\"x\",\"banner_color\":\"white\"}"));
+                () -> BannerRecipe.fromJson("{\"description\":\"x\",\"banner_color\":\"white\"}"));
     }
 
     @Test
@@ -92,21 +92,21 @@ class BannerPackRepositoryTest {
         repository.createPack("letters", "Letters");
         assertNotNull(repository.getPack("letters"));
 
-        BannerDesign design = new BannerDesign(
+        BannerRecipe recipe = new BannerRecipe(
                 "Letter B",
                 DyeColor.LIGHT_BLUE,
-                List.of(BannerDesignLayer.of("minecraft:cross", DyeColor.WHITE.getName())));
-        BannerDesign created =
-                repository.getPack(BannerPackRepository.ROOT_PACK_ID).addBannerDesign(design);
+                List.of(BannerRecipeLayer.of("minecraft:cross", DyeColor.WHITE.getName())));
+        BannerRecipe created =
+                repository.getPack(BannerPackRepository.ROOT_PACK_ID).addBannerRecipe(recipe);
         assertNotNull(created.id());
-        assertNotNull(repository.getBannerDesignById(created.id()));
-        assertEquals(BannerPackRepository.ROOT_PACK_ID, repository.getBannerDesignPackId(created.id()));
+        assertNotNull(repository.getBannerRecipeById(created.id()));
+        assertEquals(BannerPackRepository.ROOT_PACK_ID, repository.getBannerRecipePackId(created.id()));
 
-        BannerDesign moved = repository.moveBannerDesign(BannerPackRepository.ROOT_PACK_ID, "letters", created.id());
-        assertEquals("letters", repository.getBannerDesignPackId(moved.id()));
+        BannerRecipe moved = repository.moveBannerRecipe(BannerPackRepository.ROOT_PACK_ID, "letters", created.id());
+        assertEquals("letters", repository.getBannerRecipePackId(moved.id()));
 
-        repository.getPack("letters").removeBannerDesign(moved.id());
-        assertNull(repository.getBannerDesignById(moved.id()));
+        repository.getPack("letters").removeBannerRecipe(moved.id());
+        assertNull(repository.getBannerRecipeById(moved.id()));
 
         repository.deletePack("letters");
         assertNull(repository.getPack("letters"));
@@ -119,7 +119,7 @@ class BannerPackRepositoryTest {
                 "minecraft:light_blue_banner[banner_patterns=[{\"pattern\":\"cross\",\"color\":\"white\"},"
                         + "{\"pattern\":\"minecraft:curly_border\",\"color\":\"black\"},"
                         + "{\"pattern\":\"triangle_top\",\"color\":\"yellow\"}]]";
-        BannerDesign fromGive = BannerDesign.fromCommand("/give @p " + complexBanner);
+        BannerRecipe fromGive = BannerRecipe.fromCommand("/give @p " + complexBanner);
         assertNotNull(fromGive);
         assertEquals("light_blue", fromGive.bannerColor());
         assertEquals(3, fromGive.layers().size());
@@ -132,16 +132,16 @@ class BannerPackRepositoryTest {
                 "minecraft:triangle_top", fromGive.layers().get(2).pattern().toString());
         assertEquals(DyeColor.YELLOW, fromGive.layers().get(2).color());
 
-        BannerDesign fromBareItem = BannerDesign.fromCommand("light_blue_banner");
+        BannerRecipe fromBareItem = BannerRecipe.fromCommand("light_blue_banner");
         assertNotNull(fromBareItem);
         assertEquals("light_blue", fromBareItem.bannerColor());
 
-        BannerDesign fromNamespacedItem = BannerDesign.fromCommand(complexBanner);
+        BannerRecipe fromNamespacedItem = BannerRecipe.fromCommand(complexBanner);
         assertNotNull(fromNamespacedItem);
         assertEquals("light_blue", fromNamespacedItem.bannerColor());
         assertEquals(3, fromNamespacedItem.layers().size());
 
-        BannerDesign fromInvalidItem = BannerDesign.fromCommand("minecraft:dirt");
+        BannerRecipe fromInvalidItem = BannerRecipe.fromCommand("minecraft:dirt");
         assertNull(fromInvalidItem);
 
         String give = fromGive.toCommand();
@@ -150,7 +150,7 @@ class BannerPackRepositoryTest {
         assertTrue(give.contains("\"pattern\":\"curly_border\""));
         assertTrue(give.contains("\"pattern\":\"triangle_top\""));
 
-        BannerDesign roundTripped = BannerDesign.fromCommand(give);
+        BannerRecipe roundTripped = BannerRecipe.fromCommand(give);
         assertNotNull(roundTripped);
         assertEquals(fromGive.bannerColor(), roundTripped.bannerColor());
         assertEquals(fromGive.layers(), roundTripped.layers());
@@ -162,11 +162,11 @@ class BannerPackRepositoryTest {
             Items.BANNER.lightBlue().builtInRegistryHolder().bindComponents(DataComponentMap.EMPTY);
         }
 
-        BannerDesign design = BannerDesign.fromItem(new ItemStack(Items.BANNER.lightBlue()));
+        BannerRecipe recipe = BannerRecipe.fromItem(new ItemStack(Items.BANNER.lightBlue()));
 
-        assertNotNull(design);
-        assertEquals(BannerDesign.DEFAULT_DESCRIPTION, design.description());
-        assertEquals("light_blue", design.bannerColor());
-        assertTrue(design.layers().isEmpty());
+        assertNotNull(recipe);
+        assertEquals(BannerRecipe.DEFAULT_DESCRIPTION, recipe.description());
+        assertEquals("light_blue", recipe.bannerColor());
+        assertTrue(recipe.layers().isEmpty());
     }
 }

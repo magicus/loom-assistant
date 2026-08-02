@@ -71,7 +71,13 @@ public class LoomSidePanel {
 
         // Draw header with subtle background
         context.fill(x, y, x + PANEL_WIDTH, y + HEADER_HEIGHT + PADDING + 2, 0xFF1A1A2E);
-        context.text(textRenderer, Component.literal("Saved"), x + PADDING, y + PADDING, 0xFF4169E1, true);
+        context.text(
+            textRenderer,
+            Component.translatable("loom-assistant.side_panel.saved"),
+            x + PADDING,
+            y + PADDING,
+            0xFF4169E1,
+            true);
 
         // Draw save button
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
@@ -79,7 +85,7 @@ public class LoomSidePanel {
         int saveButtonColor = saveHovered ? 0xFF66BB6A : 0xFF2E7D32;
         context.fill(
                 x + PADDING, saveButtonY, x + PANEL_WIDTH - PADDING, saveButtonY + SAVE_BUTTON_HEIGHT, saveButtonColor);
-        String saveText = "+ Save";
+        String saveText = Component.translatable("loom-assistant.side_panel.save").getString();
         int saveTextWidth = textRenderer.width(saveText);
         context.text(
                 textRenderer,
@@ -101,7 +107,7 @@ public class LoomSidePanel {
                 x + PADDING + importButtonWidth,
                 importButtonY + BUTTON_HEIGHT,
                 importButtonColor);
-        String importText = "Import";
+        String importText = Component.translatable("loom-assistant.side_panel.import").getString();
         int importTextWidth = textRenderer.width(importText);
         int importButtonCenterX = x + PADDING + importButtonWidth / 2;
         context.text(
@@ -121,7 +127,7 @@ public class LoomSidePanel {
                 x + PANEL_WIDTH - PADDING,
                 importButtonY + BUTTON_HEIGHT,
                 exportButtonColor);
-        String exportText = "Export";
+        String exportText = Component.translatable("loom-assistant.side_panel.export").getString();
         int exportTextWidth = textRenderer.width(exportText);
         int exportButtonCenterX = exportButtonX + importButtonWidth / 2;
         context.text(
@@ -142,7 +148,7 @@ public class LoomSidePanel {
                 x + PANEL_WIDTH - PADDING,
                 browseButtonY + BUTTON_HEIGHT,
                 browseButtonColor);
-        String browseText = "Browse all banners...";
+        String browseText = Component.translatable("loom-assistant.side_panel.browse_all").getString();
         int browseTextWidth = textRenderer.width(browseText);
         context.text(
                 textRenderer,
@@ -161,7 +167,7 @@ public class LoomSidePanel {
         // Draw count of saved banners in header
         context.text(
                 textRenderer,
-                Component.literal("(" + banners.size() + ")"),
+            Component.translatable("loom-assistant.side_panel.count", banners.size()),
                 x + PANEL_WIDTH - 22,
                 y + PADDING,
                 0xFFAAAAAA,
@@ -201,14 +207,26 @@ public class LoomSidePanel {
             boolean renameHovered =
                     mouseX >= renameX && mouseX < renameX + 12 && mouseY >= entryY + 4 && mouseY < entryY + 18;
             int renameColor = renameHovered ? 0xFF5C7CFA : 0xFFAAAAAA;
-            context.text(textRenderer, Component.literal("E"), renameX + 2, entryY + 7, renameColor, true);
+                context.text(
+                    textRenderer,
+                    Component.translatable("loom-assistant.side_panel.rename_icon"),
+                    renameX + 2,
+                    entryY + 7,
+                    renameColor,
+                    true);
 
             // Draw delete button
             int deleteX = x + PANEL_WIDTH - PADDING - 12;
             boolean deleteHovered =
                     mouseX >= deleteX && mouseX < deleteX + 12 && mouseY >= entryY + 4 && mouseY < entryY + 18;
             int deleteColor = deleteHovered ? 0xFFFF6B6B : 0xFFAAAAAA;
-            context.text(textRenderer, Component.literal("X"), deleteX + 2, entryY + 7, deleteColor, true);
+                context.text(
+                    textRenderer,
+                    Component.translatable("loom-assistant.side_panel.delete_icon"),
+                    deleteX + 2,
+                    entryY + 7,
+                    deleteColor,
+                    true);
         }
 
         // Draw craft button if any banners are selected
@@ -222,7 +240,10 @@ public class LoomSidePanel {
                     x + PANEL_WIDTH - PADDING,
                     craftButtonY + BUTTON_HEIGHT,
                     craftButtonColor);
-            String craftText = selectedBannerIds.size() > 1 ? "Craft (" + selectedBannerIds.size() + ")" : "Craft";
+                String craftText = selectedBannerIds.size() > 1
+                    ? Component.translatable("loom-assistant.side_panel.weave_count", selectedBannerIds.size())
+                        .getString()
+                    : Component.translatable("loom-assistant.tooltip.weave").getString();
             int craftTextWidth = textRenderer.width(craftText);
             context.text(
                     textRenderer,
@@ -236,12 +257,17 @@ public class LoomSidePanel {
         // Draw scroll indicators if needed (only if no craft button is showing)
         if (scrollOffset > 0) {
             context.text(
-                    textRenderer, Component.literal("^"), x + PANEL_WIDTH / 2 - 2, listStartY - 10, 0xFFFFFFFF, true);
+                    textRenderer,
+                    Component.translatable("loom-assistant.common.scroll_up_symbol"),
+                    x + PANEL_WIDTH / 2 - 2,
+                    listStartY - 10,
+                    0xFFFFFFFF,
+                    true);
         }
         if (scrollOffset + maxVisible < banners.size() && selectedBannerIds.isEmpty()) {
             context.text(
                     textRenderer,
-                    Component.literal("v"),
+                    Component.translatable("loom-assistant.common.scroll_down_symbol"),
                     x + PANEL_WIDTH / 2 - 2,
                     y + PANEL_HEIGHT - 12,
                     0xFFFFFFFF,
@@ -252,14 +278,14 @@ public class LoomSidePanel {
         if (autoCraft.isActive()) {
             context.text(
                     textRenderer,
-                    Component.literal("Crafting..."),
+                    Component.translatable("loom-assistant.panel.weaving"),
                     x + PANEL_WIDTH / 2 - 30,
                     y + PANEL_HEIGHT + 4,
                     0xFFFFFF00,
                     true);
         } else if (autoCraft.getState() == AutoCraftStateMachine.AutoCraftState.ERROR) {
             String err = autoCraft.getErrorMessage();
-            if (err == null) err = "Error";
+            if (err == null) err = Component.translatable("loom-assistant.common.error").getString();
             int textWidth = textRenderer.width(err);
             context.text(
                     textRenderer,

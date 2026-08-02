@@ -33,7 +33,7 @@ public class BannerMaterialsScreen extends Screen {
     private int scrollOffset = 0;
 
     public BannerMaterialsScreen(Screen previousScreen, SavedBanner banner) {
-        super(Component.literal("Banner Materials"));
+        super(Component.translatable("loom-assistant.screen.banner_materials.title"));
         this.previousScreen = previousScreen;
         this.banner = banner;
     }
@@ -67,7 +67,7 @@ public class BannerMaterialsScreen extends Screen {
         // Draw title
         context.text(
                 this.font,
-                Component.literal("Required Materials"),
+            Component.translatable("loom-assistant.screen.banner_materials.required_materials"),
                 contentX + PADDING,
                 contentY + PADDING,
                 0xFF4169E1,
@@ -76,7 +76,7 @@ public class BannerMaterialsScreen extends Screen {
         // Draw crafting order header
         context.text(
                 this.font,
-                Component.literal("Crafting Order:"),
+            Component.translatable("loom-assistant.screen.banner_materials.weaving_order"),
                 contentX + PADDING,
                 contentY + PADDING + 15,
                 0xFF4169E1,
@@ -88,7 +88,8 @@ public class BannerMaterialsScreen extends Screen {
         context.item(baseStack, contentX + PADDING, contentY + PADDING + 28);
         context.text(
                 this.font,
-                Component.literal("1. " + baseColorName + " Banner"),
+            Component.translatable(
+                "loom-assistant.screen.banner_materials.step_base", baseStack.getHoverName()),
                 contentX + PADDING + 20,
                 contentY + PADDING + 31,
                 0xFFFFFFFF,
@@ -108,9 +109,15 @@ public class BannerMaterialsScreen extends Screen {
             context.item(entry.stack, contentX + PADDING, materialY - 2);
 
             // Draw text with step number
-            String text = stepNumber + ". " + entry.name;
+            String text = Component.translatable("loom-assistant.screen.banner_materials.step", stepNumber, entry.name)
+                    .getString();
             if (entry.quantity > 1) {
-                text = stepNumber + ". " + entry.quantity + "x " + entry.name;
+                text = Component.translatable(
+                                "loom-assistant.screen.banner_materials.step_quantity",
+                                stepNumber,
+                                entry.quantity,
+                                entry.name)
+                        .getString();
             }
             context.text(this.font, Component.literal(text), contentX + PADDING + 20, materialY, 0xFFFFFFFF, true);
             materialY += 18;
@@ -124,7 +131,7 @@ public class BannerMaterialsScreen extends Screen {
                 mouseX >= buttonX && mouseX < buttonX + 50 && mouseY >= buttonY && mouseY < buttonY + 20;
         int buttonColor = buttonHovered ? 0xFF4169E1 : 0xFF1E40AF;
         context.fill(buttonX, buttonY, buttonX + 50, buttonY + 20, buttonColor);
-        String closeText = "Close";
+        String closeText = Component.translatable("loom-assistant.common.close").getString();
         int closeTextWidth = this.font.width(closeText);
         context.text(
                 this.font,
@@ -192,11 +199,11 @@ public class BannerMaterialsScreen extends Screen {
             String patternName = extractPatternName(patternId);
 
             // Get dye color name
-            String colorName = dyeColor.getSerializedName();
-            String displayColor = colorName.substring(0, 1).toUpperCase() + colorName.substring(1);
+                String displayColor = new ItemStack(SavedBanner.getDyeItem(dyeColor)).getHoverName().getString();
 
-            // Create display text: "Pattern Name (Dye Color)"
-            String displayName = patternName + " (" + displayColor + " Dye)";
+                String displayName = Component.translatable(
+                        "loom-assistant.screen.banner_materials.pattern_with_dye", patternName, displayColor)
+                    .getString();
 
             // Check if this pattern requires an item
             ItemStack patternStack = getPatternItem(patternId);

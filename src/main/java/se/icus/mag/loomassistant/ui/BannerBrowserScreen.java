@@ -24,7 +24,7 @@ import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
 
 /**
- * Full-screen browser for viewing and acting on saved banner designs.
+ * Full-screen browser for viewing and acting on saved banner recipes.
  * Displays a pack list on the left (currently only "root"), a banner list in the center,
  * and a details/actions panel on the right.
  */
@@ -69,7 +69,7 @@ public class BannerBrowserScreen extends Screen {
     private long lastClickTime = 0;
 
     public BannerBrowserScreen(Screen previousScreen) {
-        super(Component.literal("Banner Browser"));
+        super(Component.translatable("loom-assistant.screen.banner_browser.title"));
         this.previousScreen = previousScreen;
     }
 
@@ -109,7 +109,7 @@ public class BannerBrowserScreen extends Screen {
             List<SavedBanner> all = BannerStorage.getInstance().getBanners();
             ctx.text(
                     this.font,
-                    Component.literal("Banners (" + all.size() + ")"),
+                    Component.translatable("loom-assistant.screen.banner_browser.banners_count", all.size()),
                     cx + PADDING,
                     cy + 3,
                     COL_ACCENT,
@@ -117,7 +117,12 @@ public class BannerBrowserScreen extends Screen {
         } else {
             boolean backHov = isInBackButton(mx, my, cx, cy);
             ctx.text(
-                    this.font, Component.literal("<"), cx + PADDING, cy + 3, backHov ? COL_TEXT : COL_ACCENT, true);
+                    this.font,
+                    Component.translatable("loom-assistant.common.back_symbol"),
+                    cx + PADDING,
+                    cy + 3,
+                    backHov ? COL_TEXT : COL_ACCENT,
+                    true);
             ctx.text(this.font, Component.literal(currentPackId), cx + PADDING + 12, cy + 3, COL_TEXT, true);
         }
 
@@ -154,11 +159,23 @@ public class BannerBrowserScreen extends Screen {
         }
 
         if (gridScrollOffset > 0) {
-            ctx.text(this.font, Component.literal("^"), cx + ew - 10, gridStartY + 2, COL_TEXT_DIM, true);
+            ctx.text(
+                    this.font,
+                    Component.translatable("loom-assistant.common.scroll_up_symbol"),
+                    cx + ew - 10,
+                    gridStartY + 2,
+                    COL_TEXT_DIM,
+                    true);
         }
         int maxScroll = Math.max(0, totalRows - maxVisRows);
         if (gridScrollOffset < maxScroll) {
-            ctx.text(this.font, Component.literal("v"), cx + ew - 10, cy + TOTAL_H - 10, COL_TEXT_DIM, true);
+            ctx.text(
+                    this.font,
+                    Component.translatable("loom-assistant.common.scroll_down_symbol"),
+                    cx + ew - 10,
+                    cy + TOTAL_H - 10,
+                    COL_TEXT_DIM,
+                    true);
         }
     }
 
@@ -178,11 +195,17 @@ public class BannerBrowserScreen extends Screen {
 
         // Header
         ctx.fill(dx, dy, dx + dw, dy + HEADER_H, COL_HEADER);
-        ctx.text(this.font, Component.literal("Details"), dx + PADDING, dy + 3, COL_ACCENT, true);
+        ctx.text(
+                this.font,
+                Component.translatable("loom-assistant.screen.banner_browser.details"),
+                dx + PADDING,
+                dy + 3,
+                COL_ACCENT,
+                true);
 
         SavedBanner sel = getSelectedBanner();
         if (sel == null) {
-            String hint = "Select a banner";
+            String hint = Component.translatable("loom-assistant.panel.select_banner").getString();
             int hw = this.font.width(hint);
             ctx.text(this.font, Component.literal(hint), dx + (dw - hw) / 2, dy + TOTAL_H / 2, COL_TEXT_DIM, true);
             return;
@@ -211,9 +234,36 @@ public class BannerBrowserScreen extends Screen {
         renderMaterialsList(ctx, sel, dx, ty, dw, startBtnY - ty - PADDING);
 
         renderButton(ctx, mx, my, bbx, startBtnY, btnW, BTN_H, defaultActionLabel(), true);
-        renderButton(ctx, mx, my, bbx, startBtnY + (BTN_H + 3), btnW, BTN_H, "Craft", false);
-        renderButton(ctx, mx, my, bbx, startBtnY + (BTN_H + 3) * 2, btnW, BTN_H, "Edit (stub)", false);
-        renderButton(ctx, mx, my, bbx, startBtnY + (BTN_H + 3) * 3, btnW, BTN_H, "Change colors (stub)", false);
+    renderButton(
+        ctx,
+        mx,
+        my,
+        bbx,
+        startBtnY + (BTN_H + 3),
+        btnW,
+        BTN_H,
+        Component.translatable("loom-assistant.tooltip.weave").getString(),
+        false);
+    renderButton(
+        ctx,
+        mx,
+        my,
+        bbx,
+        startBtnY + (BTN_H + 3) * 2,
+        btnW,
+        BTN_H,
+        Component.translatable("loom-assistant.screen.banner_browser.edit_soon").getString(),
+        false);
+    renderButton(
+        ctx,
+        mx,
+        my,
+        bbx,
+        startBtnY + (BTN_H + 3) * 3,
+        btnW,
+        BTN_H,
+        Component.translatable("loom-assistant.screen.banner_browser.change_colors_soon").getString(),
+        false);
     }
 
     private void renderMaterialsList(
@@ -264,7 +314,8 @@ public class BannerBrowserScreen extends Screen {
         if (visible < layers.size()) {
             ctx.text(
                     this.font,
-                    Component.literal("... +" + (layers.size() - visible) + " more"),
+                Component.translatable(
+                    "loom-assistant.screen.banner_browser.more_count", layers.size() - visible),
                     lx,
                     ty,
                     COL_TEXT_DIM,
@@ -478,12 +529,12 @@ public class BannerBrowserScreen extends Screen {
         try {
             LoomAssistantConfig cfg = LoomAssistantMod.getConfig();
             return switch (cfg.getDefaultAction()) {
-                case ENQUEUE -> "Enqueue (default)";
-                case CRAFT -> "Craft (default)";
-                case SHOW -> "Show (default)";
+                case ENQUEUE -> Component.translatable("loom-assistant.action.enqueue_default").getString();
+                case CRAFT -> Component.translatable("loom-assistant.action.weave_default").getString();
+                case SHOW -> Component.translatable("loom-assistant.action.show_default").getString();
             };
         } catch (Exception e) {
-            return "Enqueue (default)";
+            return Component.translatable("loom-assistant.action.enqueue_default").getString();
         }
     }
 

@@ -10,7 +10,7 @@ import java.nio.file.Path;
 public class ZipBannerPack extends BannerPack {
     public ZipBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath) throws IOException {
         super(metadata, path);
-        loadDesignsFromPath(bannersPath);
+        loadRecipesFromPath(bannersPath);
     }
 
     @Override
@@ -19,20 +19,20 @@ public class ZipBannerPack extends BannerPack {
     }
 
     @Override
-    public BannerDesign addBannerDesign(BannerDesign design) {
+    public BannerRecipe addBannerRecipe(BannerRecipe recipe) {
         throw new IllegalStateException(
-                "Cannot add design to read-only pack " + getMetadata().id());
+                "Cannot add recipe to read-only pack " + getMetadata().id());
     }
 
     @Override
-    public BannerDesign updateBannerDesign(BannerDesign design) {
+    public BannerRecipe updateBannerRecipe(BannerRecipe recipe) {
         throw new IllegalStateException(
-                "Cannot update design in read-only pack " + getMetadata().id());
+                "Cannot update recipe in read-only pack " + getMetadata().id());
     }
 
     @Override
-    public void removeBannerDesign(String designId) {
+    public void removeBannerRecipe(String recipeId) {
         throw new IllegalStateException(
-                "Cannot remove design from read-only pack " + getMetadata().id());
+                "Cannot remove recipe from read-only pack " + getMetadata().id());
     }
 }

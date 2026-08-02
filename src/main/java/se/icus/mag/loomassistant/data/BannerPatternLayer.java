@@ -5,7 +5,7 @@
 package se.icus.mag.loomassistant.data;
 
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.types.BannerDesignLayer;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 /**
  * Represents a single pattern layer on a banner.
@@ -20,11 +20,11 @@ public record BannerPatternLayer(String patternId, String dyeColor) {
         return new BannerPatternLayer(patternId, color.getName());
     }
 
-    public BannerDesignLayer toType() {
-        return BannerDesignLayer.of(patternId, dyeColor);
+    public BannerRecipeLayer toType() {
+        return BannerRecipeLayer.of(patternId, dyeColor);
     }
 
-    public static BannerPatternLayer fromType(BannerDesignLayer layer) {
+    public static BannerPatternLayer fromType(BannerRecipeLayer layer) {
         return new BannerPatternLayer(layer.pattern().toString(), layer.color().getName());
     }
 }

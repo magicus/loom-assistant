@@ -19,7 +19,6 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -45,6 +44,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Unique
     private static final int LOOMASSISTANT_BG_LEFT_PADDING = 19;
     @Unique
+    private static final int LOOMASSISTANT_PANEL_TAB_LEFT_OVERHANG = 32;
+    @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_BUTTON_X = 3;
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_RECIPE_Y = 5;
@@ -69,6 +70,18 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         @Unique
         private static final SoundEvent LOOMASSISTANT_ACTIVE_SLOT_SET_SOUND =
             SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("loom-assistant", "ui.active_slot_set"));
+            @Unique
+            private static final Component LOOMASSISTANT_SAVE_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.save");
+            @Unique
+                private static final Component LOOMASSISTANT_WEAVE_TOOLTIP =
+                    Component.translatable("loom-assistant.tooltip.weave");
+            @Unique
+            private static final Component LOOMASSISTANT_EDIT_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.edit");
+            @Unique
+            private static final Component LOOMASSISTANT_MISSING_MATERIALS_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.missing_materials");
     @Unique
     private boolean loomassistant$panelOpen = false;
     @Unique
@@ -93,9 +106,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Inject(method = "init", at = @At("TAIL"))
     private void loomassistant$onInit(CallbackInfo ci) {
         this.loomassistant$panelOpen = LoomUiStateStore.isLoomPanelOpen(this.minecraft);
-        if (loomassistant$panelOpen) {
-            this.leftPos = loomassistant$getOpenLeftPos();
-        }
+        this.leftPos = loomassistant$panelOpen ? loomassistant$getOpenLeftPos() : loomassistant$getClosedLeftPos();
 
         this.loomassistant$recipeBookButton = this.addRenderableWidget(new ImageButton(
             this.loomassistant$getLeftStripButtonX(),
@@ -196,12 +207,29 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
 
     @Unique
     private int loomassistant$getClosedLeftPos() {
-        return (this.width - this.imageWidth) / 2;
+        int guiExtraLeft = LOOMASSISTANT_BG_LEFT_PADDING + LOOMASSISTANT_CONTENT_X_SHIFT;
+        int visualGuiWidth = this.imageWidth + guiExtraLeft;
+        int visualLeft = (this.width - visualGuiWidth) / 2;
+        return visualLeft + guiExtraLeft;
     }
 
     @Unique
     private int loomassistant$getOpenLeftPos() {
-        return loomassistant$getClosedLeftPos() + (LoomPanel.PANEL_WIDTH + 5 + LOOMASSISTANT_BG_LEFT_PADDING) / 2;
+        int leftExtensionWithoutTabs = LoomPanel.PANEL_WIDTH + 5 + LOOMASSISTANT_BG_LEFT_PADDING;
+
+        // Center panel + loom as a combined area (tabs excluded from centering).
+        int centeredAreaWidth = this.imageWidth + leftExtensionWithoutTabs;
+        int centeredAreaLeft = (this.width - centeredAreaWidth) / 2;
+        int leftPos = centeredAreaLeft + leftExtensionWithoutTabs;
+
+        // If tabs would go off-screen on the left, shift everything right just enough.
+        int panelLeft = leftPos - leftExtensionWithoutTabs;
+        int tabLeft = panelLeft - LOOMASSISTANT_PANEL_TAB_LEFT_OVERHANG;
+        if (tabLeft < 0) {
+            leftPos += -tabLeft;
+        }
+
+        return leftPos;
     }
 
     @Unique
@@ -299,13 +327,27 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 && !this.loomassistant$craftButton.active
                 && loomassistant$isMouseOverWidget(this.loomassistant$craftButton, mouseX, mouseY)) {
             if (craftDisabledMessage == null) {
-                craftDisabledMessage = "Missing materials";
+                craftDisabledMessage = LOOMASSISTANT_MISSING_MATERIALS_TOOLTIP.getString();
             }
             List<Component> tooltipLines = craftDisabledMessage.lines()
                     .map(Component::literal)
                     .collect(Collectors.toList());
             context.setTooltipForNextFrame(
                     this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (this.loomassistant$saveButton != null
+                && loomassistant$isMouseOverWidget(this.loomassistant$saveButton, mouseX, mouseY)) {
+            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_SAVE_TOOLTIP, mouseX, mouseY);
+        }
+        if (this.loomassistant$craftButton != null
+                && this.loomassistant$craftButton.active
+                && loomassistant$isMouseOverWidget(this.loomassistant$craftButton, mouseX, mouseY)) {
+            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_WEAVE_TOOLTIP, mouseX, mouseY);
+        }
+        if (this.loomassistant$editButton != null
+                && loomassistant$isMouseOverWidget(this.loomassistant$editButton, mouseX, mouseY)) {
+            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_EDIT_TOOLTIP, mouseX, mouseY);
         }
 
         if (!loomassistant$activeBannerStack.isEmpty()) {
@@ -397,6 +439,12 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 && mouseX < widget.getX() + widget.getWidth()
                 && mouseY >= widget.getY()
                 && mouseY < widget.getY() + widget.getHeight();
+    }
+
+    @Unique
+    private void loomassistant$setSingleLineTooltip(
+            GuiGraphicsExtractor context, Component text, int mouseX, int mouseY) {
+        context.setTooltipForNextFrame(this.font, List.of(text), Optional.empty(), mouseX, mouseY);
     }
 
     @Unique

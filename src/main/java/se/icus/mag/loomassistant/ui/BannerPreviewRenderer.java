@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.SavedBanner;
-import se.icus.mag.loomassistant.types.BannerDesign;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 /**
  * Renders banner preview thumbnails in the side panel.
@@ -98,7 +98,7 @@ public class BannerPreviewRenderer {
     }
 
     public static SavedBanner extractBannerData(ItemStack stack) {
-        BannerDesign design = BannerDesign.fromItem(stack);
-        return design == null ? null : SavedBanner.fromType(design);
+        BannerRecipe recipe = BannerRecipe.fromItem(stack);
+        return recipe == null ? null : SavedBanner.fromType(recipe);
     }
 }

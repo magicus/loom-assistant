@@ -29,7 +29,7 @@ public abstract class BannerPack {
 
     private final BannerPackMetadata metadata;
     private final Path path;
-    private final Map<String, BannerDesign> designs = new LinkedHashMap<>();
+    private final Map<String, BannerRecipe> recipes = new LinkedHashMap<>();
 
     protected BannerPack(BannerPackMetadata metadata, Path path) {
         this.metadata = metadata;
@@ -44,39 +44,39 @@ public abstract class BannerPack {
         return path;
     }
 
-    public BannerDesign getDesign(String designId) {
-        return designs.get(designId);
+    public BannerRecipe getDesign(String recipeId) {
+        return recipes.get(recipeId);
     }
 
-    public Collection<BannerDesign> getDesigns() {
-        return Collections.unmodifiableCollection(designs.values());
+    public Collection<BannerRecipe> getDesigns() {
+        return Collections.unmodifiableCollection(recipes.values());
     }
 
-    public BannerDesign copyDesignTo(BannerPack target, String designId) throws IOException {
+    public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
         if (target.isReadOnly()) {
             throw new IllegalArgumentException("cannot copy to read-only pack");
         }
-        BannerDesign design = getDesign(designId);
-        if (design == null) {
-            throw new IllegalArgumentException("design not found: " + designId);
+        BannerRecipe recipe = getDesign(recipeId);
+        if (recipe == null) {
+            throw new IllegalArgumentException("recipe not found: " + recipeId);
         }
-        return target.addBannerDesign(design.withId(null));
+        return target.addBannerRecipe(recipe.withId(null));
     }
 
     public abstract boolean isReadOnly();
 
-    public abstract BannerDesign addBannerDesign(BannerDesign design) throws IOException;
+    public abstract BannerRecipe addBannerRecipe(BannerRecipe recipe) throws IOException;
 
-    public abstract BannerDesign updateBannerDesign(BannerDesign design) throws IOException;
+    public abstract BannerRecipe updateBannerRecipe(BannerRecipe recipe) throws IOException;
 
-    public abstract void removeBannerDesign(String designId) throws IOException;
+    public abstract void removeBannerRecipe(String recipeId) throws IOException;
 
-    protected final void includeDesign(BannerDesign design) {
-        designs.put(design.id(), design);
+    protected final void includeRecipe(BannerRecipe recipe) {
+        recipes.put(recipe.id(), recipe);
     }
 
-    protected final void excludeDesign(String designId) {
-        designs.remove(designId);
+    protected final void excludeRecipe(String recipeId) {
+        recipes.remove(recipeId);
     }
 
     public static DirectoryBannerPack createDirectoryPack(Path packDir, BannerPackMetadata metadata)
@@ -174,7 +174,7 @@ public abstract class BannerPack {
         }
     }
 
-    protected final void loadDesignsFromPath(Path bannersPath) throws IOException {
+    protected final void loadRecipesFromPath(Path bannersPath) throws IOException {
         if (!Files.exists(bannersPath) || !Files.isDirectory(bannersPath)) {
             return;
         }
@@ -188,14 +188,14 @@ public abstract class BannerPack {
                             .sorted()
                             .forEach(path -> {
                                 try (Reader reader = Files.newBufferedReader(path)) {
-                                    BannerDesign design = BannerDesign.fromJson(readAll(reader));
-                                    if (design != null) {
+                                    BannerRecipe recipe = BannerRecipe.fromJson(readAll(reader));
+                                    if (recipe != null) {
                                         String fileName = path.getFileName().toString();
                                         String baseName = fileName.substring(0, fileName.length() - ".json".length());
-                                        includeDesign(design.withId(namespace + ":" + baseName));
+                                        includeRecipe(recipe.withId(namespace + ":" + baseName));
                                     }
                                 } catch (IOException e) {
-                                    throw new IllegalStateException("Failed to read design " + path, e);
+                                    throw new IllegalStateException("Failed to read recipe " + path, e);
                                 }
                             });
                 } catch (IOException e) {

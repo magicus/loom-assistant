@@ -9,13 +9,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 
-public record BannerDesignLayer(Identifier pattern, DyeColor color) {
-    public static final Codec<BannerDesignLayer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                    Identifier.CODEC.fieldOf("pattern").forGetter(BannerDesignLayer::pattern),
-                    DyeColor.CODEC.fieldOf("color").forGetter(BannerDesignLayer::color))
-            .apply(instance, BannerDesignLayer::new));
+public record BannerRecipeLayer(Identifier pattern, DyeColor color) {
+    public static final Codec<BannerRecipeLayer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                    Identifier.CODEC.fieldOf("pattern").forGetter(BannerRecipeLayer::pattern),
+                    DyeColor.CODEC.fieldOf("color").forGetter(BannerRecipeLayer::color))
+            .apply(instance, BannerRecipeLayer::new));
 
-    public BannerDesignLayer {
+    public BannerRecipeLayer {
         if (pattern == null) {
             throw new IllegalArgumentException("pattern identifier cannot be null");
         }
@@ -24,7 +24,7 @@ public record BannerDesignLayer(Identifier pattern, DyeColor color) {
         }
     }
 
-    public static BannerDesignLayer of(String pattern, String color) {
+    public static BannerRecipeLayer of(String pattern, String color) {
         Identifier parsed = Identifier.tryParse(pattern);
         if (parsed == null) {
             throw new IllegalArgumentException("Invalid pattern identifier: " + pattern);
@@ -33,6 +33,6 @@ public record BannerDesignLayer(Identifier pattern, DyeColor color) {
         if (parsedColor == null) {
             throw new IllegalArgumentException("Invalid color: " + color);
         }
-        return new BannerDesignLayer(parsed, parsedColor);
+        return new BannerRecipeLayer(parsed, parsedColor);
     }
 }

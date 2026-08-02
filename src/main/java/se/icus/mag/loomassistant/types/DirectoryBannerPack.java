@@ -17,7 +17,7 @@ public class DirectoryBannerPack extends BannerPack {
 
     public DirectoryBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath) throws IOException {
         this(metadata, path);
-        loadDesignsFromPath(bannersPath);
+        loadRecipesFromPath(bannersPath);
     }
 
     @Override
@@ -26,70 +26,70 @@ public class DirectoryBannerPack extends BannerPack {
     }
 
     @Override
-    public BannerDesign addBannerDesign(BannerDesign design) throws IOException {
-        BannerDesign normalized = normalizeBannerDesignForPack(design);
-        writeDesign(normalized);
+    public BannerRecipe addBannerRecipe(BannerRecipe recipe) throws IOException {
+        BannerRecipe normalized = normalizeBannerRecipeForPack(recipe);
+        writeRecipe(normalized);
         return normalized;
     }
 
     @Override
-    public BannerDesign updateBannerDesign(BannerDesign design) throws IOException {
-        if (design.id() == null || design.id().isBlank()) {
-            throw new IllegalArgumentException("design id is required for update");
+    public BannerRecipe updateBannerRecipe(BannerRecipe recipe) throws IOException {
+        if (recipe.id() == null || recipe.id().isBlank()) {
+            throw new IllegalArgumentException("recipe id is required for update");
         }
-        return addBannerDesign(design);
+        return addBannerRecipe(recipe);
     }
 
     @Override
-    public void removeBannerDesign(String designId) throws IOException {
-        deleteDesignFile(designId);
+    public void removeBannerRecipe(String recipeId) throws IOException {
+        deleteRecipeFile(recipeId);
     }
 
-    public BannerDesign moveDesignTo(BannerPack target, String designId) throws IOException {
+    public BannerRecipe moveRecipeTo(BannerPack target, String recipeId) throws IOException {
         if (target.isReadOnly()) {
             throw new IllegalArgumentException("cannot move to read-only pack");
         }
-        BannerDesign design = getDesign(designId);
-        if (design == null) {
-            throw new IllegalArgumentException("design not found: " + designId);
+        BannerRecipe recipe = getDesign(recipeId);
+        if (recipe == null) {
+            throw new IllegalArgumentException("recipe not found: " + recipeId);
         }
-        BannerDesign moved = target.addBannerDesign(design.withId(null));
-        removeBannerDesign(designId);
+        BannerRecipe moved = target.addBannerRecipe(recipe.withId(null));
+        removeBannerRecipe(recipeId);
         return moved;
     }
 
-    private BannerDesign normalizeBannerDesignForPack(BannerDesign design) {
-        String id = design.id();
+    private BannerRecipe normalizeBannerRecipeForPack(BannerRecipe recipe) {
+        String id = recipe.id();
         if (id == null || id.isBlank()) {
-            return design.withId(
+            return recipe.withId(
                     getMetadata().id() + ":" + UUID.randomUUID().toString().replace("-", ""));
         } else if (!id.contains(":")) {
-            return design.withId(getMetadata().id() + ":" + id);
+            return recipe.withId(getMetadata().id() + ":" + id);
         }
-        return design;
+        return recipe;
     }
 
-    private void writeDesign(BannerDesign design) throws IOException {
-        Path designFile = getDesignFile(design.id());
+    private void writeRecipe(BannerRecipe recipe) throws IOException {
+        Path designFile = getRecipeFile(recipe.id());
         Files.createDirectories(designFile.getParent());
         try (Writer writer = Files.newBufferedWriter(designFile)) {
-            writer.write(design.toJson());
+            writer.write(recipe.toJson());
         }
-        includeDesign(design);
+        includeRecipe(recipe);
     }
 
-    private void deleteDesignFile(String designId) throws IOException {
-        excludeDesign(designId);
-        Files.deleteIfExists(getDesignFile(designId));
+    private void deleteRecipeFile(String recipeId) throws IOException {
+        excludeRecipe(recipeId);
+        Files.deleteIfExists(getRecipeFile(recipeId));
     }
 
-    private Path getDesignFile(String designId) {
-        int colon = designId.indexOf(':');
+    private Path getRecipeFile(String recipeId) {
+        int colon = recipeId.indexOf(':');
         if (colon < 0) {
-            throw new IllegalArgumentException("design id must be in namespace:name format: " + designId);
+            throw new IllegalArgumentException("recipe id must be in namespace:name format: " + recipeId);
         }
-        String namespace = designId.substring(0, colon);
-        String name = designId.substring(colon + 1);
+        String namespace = recipeId.substring(0, colon);
+        String name = recipeId.substring(colon + 1);
         return getPath().resolve(BANNERS_DIR).resolve(namespace).resolve(name + ".json");
     }
 }

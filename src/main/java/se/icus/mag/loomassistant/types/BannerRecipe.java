@@ -25,13 +25,13 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 
-public record BannerDesign(
-        String id, String description, String author, String url, String bannerColor, List<BannerDesignLayer> layers) {
+public record BannerRecipe(
+        String id, String description, String author, String url, String bannerColor, List<BannerRecipeLayer> layers) {
     public static final String DEFAULT_DESCRIPTION = "Unnamed banner";
-    public static final Codec<BannerDesign> CODEC;
+    public static final Codec<BannerRecipe> CODEC;
     private static final Gson GSON = new GsonBuilder().create();
 
-    public BannerDesign {
+    public BannerRecipe {
         description = blankToNull(description);
         if (description == null) {
             throw new IllegalArgumentException("description is required");
@@ -45,7 +45,7 @@ public record BannerDesign(
         layers = List.copyOf(layers == null ? List.of() : layers);
     }
 
-    public BannerDesign(String description, DyeColor bannerColor, List<BannerDesignLayer> layers) {
+    public BannerRecipe(String description, DyeColor bannerColor, List<BannerRecipeLayer> layers) {
         this(null, description, null, null, bannerColor.getName(), layers);
     }
 
@@ -53,42 +53,42 @@ public record BannerDesign(
         return DyeColor.byName(bannerColor, DyeColor.WHITE);
     }
 
-    public BannerDesign withId(String newId) {
-        return new BannerDesign(newId, description, author, url, bannerColor, layers);
+    public BannerRecipe withId(String newId) {
+        return new BannerRecipe(newId, description, author, url, bannerColor, layers);
     }
 
-    public BannerDesign withDescription(String newDescription) {
-        return new BannerDesign(id, newDescription, author, url, bannerColor, layers);
+    public BannerRecipe withDescription(String newDescription) {
+        return new BannerRecipe(id, newDescription, author, url, bannerColor, layers);
     }
 
-    public BannerDesign withBannerColor(String newBannerColor) {
-        return new BannerDesign(id, description, author, url, newBannerColor, layers);
+    public BannerRecipe withBannerColor(String newBannerColor) {
+        return new BannerRecipe(id, description, author, url, newBannerColor, layers);
     }
 
-    static BannerDesign fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {
-        List<BannerDesignLayer> parsedLayers = new ArrayList<>();
+    static BannerRecipe fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {
+        List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
         if (patterns != null) {
             for (BannerPatternLayers.Layer layer : patterns.layers()) {
-                parsedLayers.add(BannerDesignLayer.of(
+                parsedLayers.add(BannerRecipeLayer.of(
                         layer.pattern().getRegisteredName(), layer.color().getName()));
             }
         }
-        return new BannerDesign(null, description, null, null, baseColor.getName(), parsedLayers);
+        return new BannerRecipe(null, description, null, null, baseColor.getName(), parsedLayers);
     }
 
-    public static BannerDesign fromJson(String json) {
+    public static BannerRecipe fromJson(String json) {
         JsonElement element = JsonParser.parseString(json);
         return CODEC.parse(JsonOps.INSTANCE, element)
-                .getOrThrow(msg -> new IllegalStateException("Failed to parse BannerDesign: " + msg));
+                .getOrThrow(msg -> new IllegalStateException("Failed to parse BannerRecipe: " + msg));
     }
 
     public String toJson() {
         JsonElement element = CODEC.encodeStart(JsonOps.INSTANCE, this)
-                .getOrThrow(msg -> new IllegalStateException("Failed to encode BannerDesign: " + msg));
+                .getOrThrow(msg -> new IllegalStateException("Failed to encode BannerRecipe: " + msg));
         return GSON.toJson(element);
     }
 
-    public static BannerDesign fromItem(ItemStack stack) {
+    public static BannerRecipe fromItem(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !(stack.getItem() instanceof BannerItem bannerItem)) {
             return null;
         }
@@ -97,7 +97,7 @@ public record BannerDesign(
         return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
     }
 
-    public static BannerDesign fromCommand(String input) {
+    public static BannerRecipe fromCommand(String input) {
         return CommandFormat.parseCommand(input);
     }
 
@@ -111,14 +111,14 @@ public record BannerDesign(
 
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                        Codec.STRING.fieldOf("description").forGetter(BannerDesign::description),
+                        Codec.STRING.fieldOf("description").forGetter(BannerRecipe::description),
                         Codec.STRING.optionalFieldOf("author").forGetter(d -> Optional.ofNullable(d.author())),
                         Codec.STRING.optionalFieldOf("url").forGetter(d -> Optional.ofNullable(d.url())),
-                        Codec.STRING.fieldOf("banner_color").forGetter(BannerDesign::bannerColor),
-                        BannerDesignLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerDesign::layers))
+                        Codec.STRING.fieldOf("banner_color").forGetter(BannerRecipe::bannerColor),
+                        BannerRecipeLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerRecipe::layers))
                 .apply(
                         instance,
-                        (description, author, url, bannerColor, layers) -> new BannerDesign(
+                        (description, author, url, bannerColor, layers) -> new BannerRecipe(
                                 null, description, author.orElse(null), url.orElse(null), bannerColor, layers)));
     }
 
@@ -127,14 +127,14 @@ public record BannerDesign(
                 Pattern.compile("(?:^|\\s)(?:minecraft:)?([a-z_]+)_banner(?=\\b|\\[)");
         private static final Pattern BANNER_PATTERNS_PATTERN = Pattern.compile("banner_patterns=\\[(.*?)]");
 
-        public static String buildCommand(BannerDesign design) {
-            String itemName = "minecraft:" + design.getBannerColorEnum().getName() + "_banner";
-            if (design.layers().isEmpty()) {
+        public static String buildCommand(BannerRecipe recipe) {
+            String itemName = "minecraft:" + recipe.getBannerColorEnum().getName() + "_banner";
+            if (recipe.layers().isEmpty()) {
                 return "/give @p " + itemName;
             }
 
             JsonArray patterns = new JsonArray();
-            for (BannerDesignLayer layer : design.layers()) {
+            for (BannerRecipeLayer layer : recipe.layers()) {
                 JsonObject obj = new JsonObject();
                 obj.addProperty(
                         "pattern", stripMinecraftNamespace(layer.pattern().toString()));
@@ -144,7 +144,7 @@ public record BannerDesign(
             return "/give @p " + itemName + "[banner_patterns=" + GSON.toJson(patterns) + "]";
         }
 
-        public static BannerDesign parseCommand(String input) {
+        public static BannerRecipe parseCommand(String input) {
             if (input == null || input.isBlank()) {
                 return null;
             }
@@ -160,7 +160,7 @@ public record BannerDesign(
             return null;
         }
 
-        private static BannerDesign parseInner(String body) {
+        private static BannerRecipe parseInner(String body) {
             Matcher itemMatcher = BANNER_ITEM_PATTERN.matcher(body);
             if (!itemMatcher.find()) {
                 return null;
@@ -171,7 +171,7 @@ public record BannerDesign(
                 return null;
             }
 
-            List<BannerDesignLayer> parsedLayers = new ArrayList<>();
+            List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
             Matcher patternsMatcher = BANNER_PATTERNS_PATTERN.matcher(body);
             if (patternsMatcher.find()) {
                 String patternsJson = "[" + patternsMatcher.group(1) + "]";
@@ -187,7 +187,7 @@ public record BannerDesign(
                         }
                         String patternId = patternObj.get("pattern").getAsString();
                         String namespacedPattern = patternId.contains(":") ? patternId : "minecraft:" + patternId;
-                        parsedLayers.add(BannerDesignLayer.of(
+                        parsedLayers.add(BannerRecipeLayer.of(
                                 namespacedPattern, patternObj.get("color").getAsString()));
                     }
                 } catch (IllegalArgumentException | JsonSyntaxException ignored) {
@@ -195,7 +195,7 @@ public record BannerDesign(
                 }
             }
 
-            return new BannerDesign(null, DEFAULT_DESCRIPTION, null, null, baseColor.getName(), parsedLayers);
+            return new BannerRecipe(null, DEFAULT_DESCRIPTION, null, null, baseColor.getName(), parsedLayers);
         }
 
         private static String stripMinecraftNamespace(String value) {

@@ -27,7 +27,7 @@ public class ImportBannerScreen extends Screen {
     private int scrollOffset = 0;
 
     public ImportBannerScreen(Screen previousScreen) {
-        super(Component.literal("Import Banner"));
+        super(Component.translatable("loom-assistant.screen.import_banner.title"));
         this.previousScreen = previousScreen;
     }
 
@@ -45,7 +45,7 @@ public class ImportBannerScreen extends Screen {
         // Draw title
         context.text(
                 this.font,
-                Component.literal("Paste Banner JSON or /give Command"),
+            Component.translatable("loom-assistant.screen.import_banner.paste_hint"),
                 this.width / 2 - 120,
                 editorY - 20,
                 0xFFFFFFFF,
@@ -97,7 +97,7 @@ public class ImportBannerScreen extends Screen {
                 mouseX >= okButtonX && mouseX < okButtonX + buttonWidth && mouseY >= buttonY && mouseY < buttonY + 20;
         int okColor = okHovered ? 0xFF66BB6A : 0xFF2E7D32;
         context.fill(okButtonX, buttonY, okButtonX + buttonWidth, buttonY + 20, okColor);
-        String okText = "OK";
+        String okText = Component.translatable("loom-assistant.common.ok").getString();
         int okTextWidth = this.font.width(okText);
         context.text(
                 this.font,
@@ -115,7 +115,7 @@ public class ImportBannerScreen extends Screen {
                 && mouseY < buttonY + 20;
         int cancelColor = cancelHovered ? 0xFFFF6B6B : 0xFFCC0000;
         context.fill(cancelButtonX, buttonY, cancelButtonX + buttonWidth, buttonY + 20, cancelColor);
-        String cancelText = "Cancel";
+        String cancelText = Component.translatable("loom-assistant.common.cancel").getString();
         int cancelTextWidth = this.font.width(cancelText);
         context.text(
                 this.font,

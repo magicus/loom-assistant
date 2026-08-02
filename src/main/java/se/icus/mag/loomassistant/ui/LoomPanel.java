@@ -80,6 +80,24 @@ public class LoomPanel {
         Component.translatable("gui.recipebook.toggleRecipes.all");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
         Component.translatable("gui.recipebook.toggleRecipes.craftable");
+    private static final Component AUTO_WEAVE_LABEL =
+        Component.translatable("loom-assistant.panel.auto_weave");
+    private static final Component WEAVING_LABEL =
+        Component.translatable("loom-assistant.panel.weaving");
+    private static final Component NO_BANNERS_LABEL =
+        Component.translatable("loom-assistant.panel.no_banners");
+    private static final Component SELECT_BANNER_LABEL =
+        Component.translatable("loom-assistant.panel.select_banner");
+    private static final Component SELECT_BANNER_HINT_LABEL =
+        Component.translatable("loom-assistant.panel.select_banner_hint");
+    private static final Component WEAVE_GUIDE_LABEL =
+        Component.translatable("loom-assistant.panel.weave_guide");
+    private static final Component NO_PACKS_LABEL =
+        Component.translatable("loom-assistant.panel.no_packs");
+    private static final Component EDIT_LABEL =
+        Component.translatable("loom-assistant.panel.edit");
+    private static final Component COMING_SOON_LABEL =
+        Component.translatable("loom-assistant.common.coming_soon");
     private static final Identifier SLOT_CRAFTABLE_SPRITE =
         Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
@@ -122,7 +140,7 @@ public class LoomPanel {
         this.searchBox.setVisible(true);
         this.searchBox.setTextColor(-1);
         this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
-        this.autoCraftButton = Button.builder(Component.literal("Auto craft"), button -> startSelectedBannerAutoCraft())
+        this.autoCraftButton = Button.builder(AUTO_WEAVE_LABEL, button -> startSelectedBannerAutoCraft())
             .bounds(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y, GUIDE_BUTTON_W, GUIDE_BUTTON_H)
             .build();
         this.autoCraftButton.active = false;
@@ -153,7 +171,7 @@ public class LoomPanel {
         }
 
         if (autoCraft.isActive()) {
-            ctx.text(font, Component.literal("Crafting..."), x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
+            ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
         }
     }
 
@@ -238,22 +256,22 @@ public class LoomPanel {
         }
 
         if (items.isEmpty()) {
-            ctx.text(font, Component.literal("No banners"), x + 38, y + 76, 0xFF777777, false);
+            ctx.text(font, NO_BANNERS_LABEL, x + 38, y + 76, 0xFF777777, false);
         }
     }
 
     private void renderGuideTab(GuiGraphicsExtractor ctx, Font font, int mouseX, int mouseY) {
         SavedBanner banner = getSelectedBanner();
         if (banner == null) {
-            ctx.text(font, Component.literal("Select a banner"), x + 18, y + 48, 0xFFDDDDDD, false);
-            ctx.text(font, Component.literal("to see the craft guide."), x + 18, y + 60, 0xFF777777, false);
+            ctx.text(font, SELECT_BANNER_LABEL, x + 18, y + 48, 0xFFDDDDDD, false);
+            ctx.text(font, SELECT_BANNER_HINT_LABEL, x + 18, y + 60, 0xFF777777, false);
             autoCraftButton.active = false;
             autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
             autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
             return;
         }
 
-        ctx.text(font, Component.literal("Craft guide"), x + 12, y + 20, 0xFFDDDDDD, false);
+        ctx.text(font, WEAVE_GUIDE_LABEL, x + 12, y + 20, 0xFFDDDDDD, false);
         ctx.text(font, Component.literal(banner.getDisplayName()), x + 12, y + 32, 0xFFFFFFFF, false);
 
         List<GuideCard> cards = buildGuideCards(banner);
@@ -404,19 +422,19 @@ public class LoomPanel {
         int ty = y + GRID_START_Y;
         List<String> packs = getInstalledPacks();
         if (packs.isEmpty()) {
-            ctx.text(font, Component.literal("No packs installed"), x + 12, ty, 0xFF777777, false);
+            ctx.text(font, NO_PACKS_LABEL, x + 12, ty, 0xFF777777, false);
             return;
         }
         for (String pack : packs) {
-            ctx.text(font, Component.literal("- " + pack), x + 12, ty, 0xFFDDDDDD, false);
+            ctx.text(font, Component.translatable("loom-assistant.panel.pack_entry", pack), x + 12, ty, 0xFFDDDDDD, false);
             ty += 11;
             if (ty > y + 130) break;
         }
     }
 
     private void renderEditTab(GuiGraphicsExtractor ctx, Font font) {
-        ctx.text(font, Component.literal("Edit"), x + 12, y + GRID_START_Y, 0xFFDDDDDD, false);
-        ctx.text(font, Component.literal("Coming soon"), x + 12, y + GRID_START_Y + 12, 0xFF777777, false);
+        ctx.text(font, EDIT_LABEL, x + 12, y + GRID_START_Y, 0xFFDDDDDD, false);
+        ctx.text(font, COMING_SOON_LABEL, x + 12, y + GRID_START_Y + 12, 0xFF777777, false);
     }
 
     // -------------------------------------------------------------------------
@@ -633,14 +651,14 @@ public class LoomPanel {
     public String getActiveBannerMissingMaterialMessage() {
         SavedBanner selectedBanner = getSelectedBanner();
         if (selectedBanner == null) {
-            return "Select an active banner";
+            return Component.translatable("loom-assistant.active.select_banner").getString();
         }
 
         List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(selectedBanner);
         if (missingMaterials.isEmpty()) {
             return null;
         }
-        return "Missing:\n" + String.join("\n", missingMaterials);
+        return Component.translatable("loom-assistant.active.missing_header").getString() + "\n" + String.join("\n", missingMaterials);
     }
 
     public void editSelectedBanner() {
