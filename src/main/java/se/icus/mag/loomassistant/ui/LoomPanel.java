@@ -5,8 +5,12 @@
 package se.icus.mag.loomassistant.ui;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
@@ -30,6 +34,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
@@ -111,6 +116,10 @@ public class LoomPanel {
     private int page = 0;
     private String selectedBannerId = null;
     private SavedBanner activeBanner = null;
+    private SavedBanner activeBannerSource = null;
+    private String activeBannerSourceId = null;
+    private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
+    private boolean persistentDyeSwitchEnabled = false;
 
     public LoomPanel(LoomScreen screen, LoomMenu handler, int x, int y) {
         this.screen = screen;
@@ -540,8 +549,7 @@ public class LoomPanel {
             int by = y + GRID_START_Y + row * GRID_CELL;
             if (isIn(mx, my, bx, by, 16, 16)) {
                 SavedBanner banner = items.get(i);
-                selectedBannerId = banner.getId();
-                activeBanner = banner;
+                setActiveBannerFromSource(banner, banner.getId());
                 playUiClickSound();
                 if (isShiftPressed) {
                     craftSelectedBanner();
@@ -711,6 +719,8 @@ public class LoomPanel {
     public void clearSelectedBanner() {
         selectedBannerId = null;
         activeBanner = null;
+        activeBannerSource = null;
+        activeBannerSourceId = null;
     }
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
@@ -718,8 +728,7 @@ public class LoomPanel {
         if (banner == null) {
             return false;
         }
-        selectedBannerId = null;
-        activeBanner = banner;
+        setActiveBannerFromSource(banner, null);
         return true;
     }
 
@@ -793,8 +802,7 @@ public class LoomPanel {
             BannerStorage.getInstance().updateBannerMetadata(matched.getId(), name, category);
             SavedBanner updated = BannerStorage.getInstance().getBannerById(matched.getId());
             if (updated != null) {
-                activeBanner = updated;
-                selectedBannerId = updated.getId();
+                setActiveBannerFromSource(updated, updated.getId());
             }
             return true;
         }
@@ -806,8 +814,7 @@ public class LoomPanel {
 
         SavedBanner created = findMatchingSavedBanner(selected);
         if (created != null) {
-            activeBanner = created;
-            selectedBannerId = created.getId();
+            setActiveBannerFromSource(created, created.getId());
             return true;
         }
 
@@ -836,6 +843,158 @@ public class LoomPanel {
         if (source.getName() != null) {
             copy.setName(source.getName());
         }
+        copy.setCategory(source.getCategory());
+        return copy;
+    }
+
+    public boolean isPersistentDyeSwitchEnabled() {
+        return persistentDyeSwitchEnabled;
+    }
+
+    public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
+        return Map.copyOf(persistentDyeReplacementMap);
+    }
+
+    public void restorePersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
+        persistentDyeReplacementMap.clear();
+        if (replacements != null) {
+            persistentDyeReplacementMap.putAll(normalizeReplacementMap(replacements));
+        }
+        persistentDyeSwitchEnabled = enabled && !persistentDyeReplacementMap.isEmpty();
+        if (activeBannerSource != null) {
+            setActiveBannerFromSource(activeBannerSource, activeBannerSourceId);
+        }
+    }
+
+    public List<DyeColor> getActiveBannerUsedColors() {
+        if (activeBanner == null) {
+            return List.of();
+        }
+
+        LinkedHashSet<DyeColor> colors = new LinkedHashSet<>();
+        colors.add(activeBanner.getBaseColorEnum());
+        for (BannerPatternLayer layer : activeBanner.getLayers()) {
+            colors.add(layer.getDyeColorEnum());
+        }
+        return List.copyOf(colors);
+    }
+
+    public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
+        LinkedHashMap<DyeColor, DyeColor> out = new LinkedHashMap<>();
+        for (DyeColor source : sourceColors) {
+            out.put(source, persistentDyeReplacementMap.getOrDefault(source, source));
+        }
+        return out;
+    }
+
+    public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
+        if (activeBanner == null) {
+            return false;
+        }
+
+        SavedBanner sourceForTransform;
+        if (persistent) {
+            sourceForTransform = cloneBannerForSave(activeBannerSource != null ? activeBannerSource : activeBanner);
+            activeBannerSource = cloneBannerForSave(sourceForTransform);
+            activeBannerSourceId = selectedBannerId;
+        } else {
+            sourceForTransform = cloneBannerForSave(activeBanner);
+            persistentDyeSwitchEnabled = false;
+            persistentDyeReplacementMap.clear();
+        }
+
+        EnumMap<DyeColor, DyeColor> normalized = normalizeReplacementMap(replacements);
+        if (persistent) {
+            persistentDyeReplacementMap.clear();
+            persistentDyeReplacementMap.putAll(normalized);
+            persistentDyeSwitchEnabled = !persistentDyeReplacementMap.isEmpty();
+        }
+
+        if (normalized.isEmpty()) {
+            return false;
+        }
+
+        SavedBanner transformed = applyDyeReplacementMap(sourceForTransform, normalized);
+        if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) {
+            return false;
+        }
+
+        activeBanner = transformed;
+        selectedBannerId = null;
+        return true;
+    }
+
+    public void disablePersistentDyeSwitchAndReload() {
+        if (!persistentDyeSwitchEnabled) {
+            return;
+        }
+
+        persistentDyeSwitchEnabled = false;
+        persistentDyeReplacementMap.clear();
+
+        if (activeBannerSource != null) {
+            activeBanner = cloneBannerForSave(activeBannerSource);
+            selectedBannerId = activeBannerSourceId;
+        }
+    }
+
+    private void setActiveBannerFromSource(SavedBanner sourceBanner, String sourceId) {
+        if (sourceBanner == null) {
+            activeBanner = null;
+            selectedBannerId = null;
+            activeBannerSource = null;
+            activeBannerSourceId = null;
+            return;
+        }
+
+        activeBannerSource = cloneBannerForSave(sourceBanner);
+        activeBannerSourceId = sourceId;
+        selectedBannerId = sourceId;
+
+        if (persistentDyeSwitchEnabled && !persistentDyeReplacementMap.isEmpty()) {
+            SavedBanner transformed = applyDyeReplacementMap(activeBannerSource, persistentDyeReplacementMap);
+            if (transformed != null && !bannersEquivalent(activeBannerSource, transformed)) {
+                activeBanner = transformed;
+                selectedBannerId = null;
+                return;
+            }
+        }
+
+        activeBanner = cloneBannerForSave(sourceBanner);
+    }
+
+    private static EnumMap<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
+        EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
+        if (replacements == null) {
+            return normalized;
+        }
+
+        for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
+            DyeColor src = entry.getKey();
+            DyeColor dst = entry.getValue();
+            if (src != null && dst != null && src != dst) {
+                normalized.put(src, dst);
+            }
+        }
+        return normalized;
+    }
+
+    private SavedBanner applyDyeReplacementMap(SavedBanner source, Map<DyeColor, DyeColor> replacements) {
+        if (source == null) {
+            return null;
+        }
+
+        SavedBanner copy = cloneBannerForSave(source);
+        DyeColor newBase = replacements.getOrDefault(copy.getBaseColorEnum(), copy.getBaseColorEnum());
+        copy.setBaseColor(newBase.getName());
+
+        List<BannerPatternLayer> replacedLayers = new ArrayList<>();
+        for (BannerPatternLayer layer : copy.getLayers()) {
+            DyeColor current = layer.getDyeColorEnum();
+            DyeColor target = replacements.getOrDefault(current, current);
+            replacedLayers.add(new BannerPatternLayer(layer.patternId(), target.getName()));
+        }
+        copy.setLayers(replacedLayers);
         return copy;
     }
 

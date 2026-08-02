@@ -22,8 +22,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.LoomMenu;
+import java.util.EnumMap;
+import java.util.Map;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,17 +34,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomPanelHost;
 import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
+import se.icus.mag.loomassistant.ui.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.ui.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.ui.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.ui.LoomPanel;
 import se.icus.mag.loomassistant.ui.LoomUiStateStore;
 
 @Mixin(LoomScreen.class)
-public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> implements LoomPanelHost {
+public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> implements LoomPanelHost, LoomActiveBannerHost {
     @Unique
     private static final int LOOMASSISTANT_CONTENT_X_SHIFT = 3;
     @Unique
@@ -58,6 +64,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private static final int LOOMASSISTANT_LEFT_STRIP_CRAFT_Y = LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y + 22;
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_SAVE_EDIT_Y = LOOMASSISTANT_LEFT_STRIP_CRAFT_Y + 20;
+    @Unique
+    private static final int LOOMASSISTANT_LEFT_STRIP_COLOR_Y = LOOMASSISTANT_LEFT_STRIP_SAVE_EDIT_Y + 20;
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN = 6;
     @Unique
@@ -88,6 +96,9 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Unique
             private static final Component LOOMASSISTANT_IMPORT_EXPORT_TOOLTIP =
                 Component.translatable("loom-assistant.tooltip.import_export");
+            @Unique
+            private static final Component LOOMASSISTANT_CHANGE_COLORS_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.change_colors");
     @Unique
     private boolean loomassistant$panelOpen = false;
     @Unique
@@ -99,11 +110,23 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Unique
     private Button loomassistant$craftButton;
     @Unique
+    private Button loomassistant$colorButton;
+    @Unique
     private Button loomassistant$importExportButton;
     @Unique
     private ItemStack loomassistant$activeBannerStack = ItemStack.EMPTY;
     @Unique
     private ItemStack loomassistant$pendingActiveBannerStack = ItemStack.EMPTY;
+    @Unique
+    private final EnumMap<DyeColor, DyeColor> loomassistant$persistentDyeMap = new EnumMap<>(DyeColor.class);
+    @Unique
+    private boolean loomassistant$persistentDyeSwitchEnabled = false;
+    @Unique
+    private String loomassistant$lastPersistedActiveBannerJson = null;
+    @Unique
+    private final EnumMap<DyeColor, DyeColor> loomassistant$lastPersistedDyeMap = new EnumMap<>(DyeColor.class);
+    @Unique
+    private boolean loomassistant$lastPersistedDyeEnabled = false;
     @Unique
     private AutoCraftStateMachine loomassistant$craftabilityProbe;
 
@@ -116,6 +139,24 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         this.loomassistant$panelOpen = LoomUiStateStore.isLoomPanelOpen(this.minecraft);
         this.leftPos = loomassistant$panelOpen ? loomassistant$getOpenLeftPos() : loomassistant$getClosedLeftPos();
         this.loomassistant$craftabilityProbe = new AutoCraftStateMachine(this.menu);
+
+        LoomUiStateStore.PersistentDyeState persistentDyeState = LoomUiStateStore.getPersistentDyeState(this.minecraft);
+        this.loomassistant$persistentDyeSwitchEnabled = persistentDyeState.enabled();
+        this.loomassistant$persistentDyeMap.clear();
+        this.loomassistant$persistentDyeMap.putAll(persistentDyeState.replacements());
+        this.loomassistant$lastPersistedDyeEnabled = this.loomassistant$persistentDyeSwitchEnabled;
+        this.loomassistant$lastPersistedDyeMap.clear();
+        this.loomassistant$lastPersistedDyeMap.putAll(this.loomassistant$persistentDyeMap);
+
+        this.loomassistant$pendingActiveBannerStack = LoomUiStateStore.getPersistedActiveBannerStack(this.minecraft);
+        if (!this.loomassistant$pendingActiveBannerStack.isEmpty()) {
+            this.loomassistant$activeBannerStack = this.loomassistant$pendingActiveBannerStack.copy();
+            BannerRecipe persistedRecipe = BannerRecipe.fromItem(this.loomassistant$activeBannerStack);
+            this.loomassistant$lastPersistedActiveBannerJson = persistedRecipe == null ? null : persistedRecipe.toJson();
+        } else {
+            this.loomassistant$activeBannerStack = ItemStack.EMPTY;
+            this.loomassistant$lastPersistedActiveBannerJson = null;
+        }
 
         this.loomassistant$recipeBookButton = this.addRenderableWidget(new ImageButton(
             this.loomassistant$getLeftStripButtonX(),
@@ -190,9 +231,43 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
         });
 
+        this.loomassistant$colorButton = this.addRenderableWidget(new Button.Plain(
+            this.loomassistant$getLeftStripButtonX(),
+            this.topPos + LOOMASSISTANT_LEFT_STRIP_COLOR_Y,
+            20,
+            18,
+            Component.empty(),
+            button -> {
+                if (loomassistant$panel == null || !loomassistant$panel.hasActiveBanner()) {
+                    return;
+                }
+                if (loomassistant$panel.isPersistentDyeSwitchEnabled()) {
+                    loomassistant$panel.disablePersistentDyeSwitchAndReload();
+                    return;
+                }
+                this.minecraft.gui.setScreen(new BannerColorSwitchScreen((LoomScreen) (Object) this, loomassistant$panel));
+            },
+            defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
+            @Override
+            public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+                this.extractDefaultSprite(graphics);
+                boolean persistent = loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled();
+                int iconOffset = persistent ? 1 : 0;
+                graphics.fakeItem(Items.DYE.red().getDefaultInstance(), this.getX() + 2 + iconOffset, this.getY() + 1 + iconOffset);
+                if (loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled()) {
+                    // Small shadow line reinforces a pressed visual without obscuring the icon.
+                    graphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.getWidth() - 1, this.getY() + 2, 0x55000000);
+                }
+            }
+        });
+        this.loomassistant$colorButton.setOverrideRenderHighlightedSprite(
+                () -> loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled());
+
         this.loomassistant$craftButton.active = false;
         this.loomassistant$saveButton.active = false;
         this.loomassistant$saveButton.visible = true;
+        this.loomassistant$colorButton.active = false;
+        this.loomassistant$colorButton.visible = true;
 
         loomassistant$refreshPanel();
     }
@@ -210,6 +285,10 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         if (this.loomassistant$craftButton != null) {
             this.loomassistant$craftButton.setPosition(
                     this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_CRAFT_Y);
+        }
+        if (this.loomassistant$colorButton != null) {
+            this.loomassistant$colorButton.setPosition(
+                this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_COLOR_Y);
         }
         if (this.loomassistant$importExportButton != null) {
             this.loomassistant$importExportButton.setPosition(
@@ -259,6 +338,11 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         this.loomassistant$panel = loomassistant$panelOpen
                 ? new LoomPanel((LoomScreen) (Object) this, this.menu, loomassistant$getPanelX(), this.topPos)
                 : null;
+        if (this.loomassistant$panel != null) {
+            this.loomassistant$panel.restorePersistentDyeSwitchState(
+                    loomassistant$persistentDyeSwitchEnabled,
+                    Map.copyOf(loomassistant$persistentDyeMap));
+        }
     }
 
     @Unique
@@ -316,9 +400,17 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             if (!loomassistant$pendingActiveBannerStack.isEmpty()) {
                 loomassistant$panel.setActiveBannerFromItemStack(loomassistant$pendingActiveBannerStack);
                 loomassistant$pendingActiveBannerStack = ItemStack.EMPTY;
+            } else if (loomassistant$panel.getActiveBannerStack().isEmpty()
+                    && !loomassistant$activeBannerStack.isEmpty()) {
+                // Keep panel state in sync after opening/closing modal screens.
+                loomassistant$panel.setActiveBannerFromItemStack(loomassistant$activeBannerStack);
             }
             loomassistant$panel.tick();
+            loomassistant$persistentDyeSwitchEnabled = loomassistant$panel.isPersistentDyeSwitchEnabled();
+            loomassistant$persistentDyeMap.clear();
+            loomassistant$persistentDyeMap.putAll(loomassistant$panel.getPersistentDyeReplacementMapCopy());
             loomassistant$activeBannerStack = loomassistant$panel.getActiveBannerStack();
+            loomassistant$syncPerWorldUiState();
             hasActiveBanner = !loomassistant$activeBannerStack.isEmpty();
             canCraftActiveBanner = loomassistant$panel.isActiveBannerCraftable();
             if (!canCraftActiveBanner) {
@@ -327,6 +419,10 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             if (this.loomassistant$saveButton != null) {
                 this.loomassistant$saveButton.active = loomassistant$panel.hasActiveBanner();
                 this.loomassistant$saveButton.visible = true;
+            }
+            if (this.loomassistant$colorButton != null) {
+                this.loomassistant$colorButton.active = loomassistant$panel.hasActiveBanner();
+                this.loomassistant$colorButton.visible = true;
             }
             loomassistant$panel.render(context, mouseX, mouseY, delta);
         } else if (this.loomassistant$saveButton != null) {
@@ -344,6 +440,10 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 }
             }
             this.loomassistant$saveButton.active = hasActiveBanner;
+            if (this.loomassistant$colorButton != null) {
+                this.loomassistant$colorButton.active = false;
+                this.loomassistant$colorButton.visible = true;
+            }
         }
 
         if (this.loomassistant$craftButton != null) {
@@ -375,6 +475,10 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         if (this.loomassistant$importExportButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$importExportButton, mouseX, mouseY)) {
             loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_IMPORT_EXPORT_TOOLTIP, mouseX, mouseY);
+        }
+        if (this.loomassistant$colorButton != null
+                && loomassistant$isMouseOverWidget(this.loomassistant$colorButton, mouseX, mouseY)) {
+            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_CHANGE_COLORS_TOOLTIP, mouseX, mouseY);
         }
 
         if (!loomassistant$activeBannerStack.isEmpty()) {
@@ -461,6 +565,52 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         return loomassistant$panel;
     }
 
+    @Override
+    public void loomassistant$setPendingActiveBannerStack(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            this.loomassistant$pendingActiveBannerStack = ItemStack.EMPTY;
+            this.loomassistant$activeBannerStack = ItemStack.EMPTY;
+            LoomUiStateStore.setPersistedActiveBannerStack(this.minecraft, ItemStack.EMPTY);
+            this.loomassistant$lastPersistedActiveBannerJson = null;
+            return;
+        }
+        this.loomassistant$pendingActiveBannerStack = stack.copyWithCount(1);
+        this.loomassistant$activeBannerStack = this.loomassistant$pendingActiveBannerStack.copy();
+        LoomUiStateStore.setPersistedActiveBannerStack(this.minecraft, this.loomassistant$activeBannerStack);
+        BannerRecipe recipe = BannerRecipe.fromItem(this.loomassistant$activeBannerStack);
+        this.loomassistant$lastPersistedActiveBannerJson = recipe == null ? null : recipe.toJson();
+    }
+
+    @Override
+    public void loomassistant$setPersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
+        this.loomassistant$persistentDyeSwitchEnabled = enabled;
+        this.loomassistant$persistentDyeMap.clear();
+        if (replacements != null) {
+            for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
+                DyeColor src = entry.getKey();
+                DyeColor dst = entry.getValue();
+                if (src != null && dst != null && src != dst) {
+                    this.loomassistant$persistentDyeMap.put(src, dst);
+                }
+            }
+        }
+
+        LoomUiStateStore.setPersistentDyeState(
+                this.minecraft,
+                this.loomassistant$persistentDyeSwitchEnabled,
+                this.loomassistant$persistentDyeMap);
+
+        this.loomassistant$lastPersistedDyeEnabled = this.loomassistant$persistentDyeSwitchEnabled;
+        this.loomassistant$lastPersistedDyeMap.clear();
+        this.loomassistant$lastPersistedDyeMap.putAll(this.loomassistant$persistentDyeMap);
+
+        if (this.loomassistant$panel != null) {
+            this.loomassistant$panel.restorePersistentDyeSwitchState(
+                    this.loomassistant$persistentDyeSwitchEnabled,
+                    Map.copyOf(this.loomassistant$persistentDyeMap));
+        }
+    }
+
     @Unique
     private static boolean loomassistant$isMouseOverWidget(AbstractWidget widget, int mouseX, int mouseY) {
         return mouseX >= widget.getX()
@@ -488,6 +638,31 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             return true;
         }
         return loomassistant$showEditOnSaveButton();
+    }
+
+    @Unique
+    private void loomassistant$syncPerWorldUiState() {
+        BannerRecipe activeRecipe = BannerRecipe.fromItem(this.loomassistant$activeBannerStack);
+        String currentActiveJson = activeRecipe == null ? null : activeRecipe.toJson();
+        boolean activeChanged = currentActiveJson == null
+                ? this.loomassistant$lastPersistedActiveBannerJson != null
+                : !currentActiveJson.equals(this.loomassistant$lastPersistedActiveBannerJson);
+        if (activeChanged) {
+            LoomUiStateStore.setPersistedActiveBannerStack(this.minecraft, this.loomassistant$activeBannerStack);
+            this.loomassistant$lastPersistedActiveBannerJson = currentActiveJson;
+        }
+
+        boolean dyeChanged = this.loomassistant$lastPersistedDyeEnabled != this.loomassistant$persistentDyeSwitchEnabled
+                || !this.loomassistant$lastPersistedDyeMap.equals(this.loomassistant$persistentDyeMap);
+        if (dyeChanged) {
+            LoomUiStateStore.setPersistentDyeState(
+                    this.minecraft,
+                    this.loomassistant$persistentDyeSwitchEnabled,
+                    this.loomassistant$persistentDyeMap);
+            this.loomassistant$lastPersistedDyeEnabled = this.loomassistant$persistentDyeSwitchEnabled;
+            this.loomassistant$lastPersistedDyeMap.clear();
+            this.loomassistant$lastPersistedDyeMap.putAll(this.loomassistant$persistentDyeMap);
+        }
     }
 
     @Unique

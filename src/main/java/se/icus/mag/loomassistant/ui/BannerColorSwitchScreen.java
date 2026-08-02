@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.data.SavedBanner;
 
 /**
@@ -93,6 +94,7 @@ public class BannerColorSwitchScreen extends Screen {
         ctx.text(this.font, this.title, x + 16, y + 12, 0xFFFFFFFF, false);
 
         int rowY = y + 36;
+        int centerX = x + PANEL_W / 2;
         for (int i = 0; i < sourceColors.size(); i++) {
             DyeColor source = sourceColors.get(i);
             DyeColor target = targets.getOrDefault(source, source);
@@ -106,10 +108,10 @@ public class BannerColorSwitchScreen extends Screen {
             ctx.item(sourceIcon, x + 16, lineY);
             ctx.text(this.font, sourceName, x + 36, lineY + 4, 0xFFDDDDDD, false);
 
-            ctx.text(this.font, Component.literal("->"), x + PANEL_W - 128, lineY + 4, 0xFFDDDDDD, false);
+            ctx.text(this.font, Component.literal("->"), centerX - 6, lineY + 4, 0xFFDDDDDD, false);
 
-            ctx.item(targetIcon, x + PANEL_W - 108, lineY);
-            ctx.text(this.font, targetName, x + PANEL_W - 88, lineY + 4, 0xFFFFFFFF, false);
+            ctx.item(targetIcon, centerX + 16, lineY);
+            ctx.text(this.font, targetName, centerX + 36, lineY + 4, 0xFFFFFFFF, false);
         }
 
         super.extractRenderState(ctx, mouseX, mouseY, delta);
@@ -136,7 +138,15 @@ public class BannerColorSwitchScreen extends Screen {
     }
 
     private void applyAndClose() {
-        panel.applyDyeSwitch(targets, persistent);
+        boolean changed = panel.applyDyeSwitch(targets, persistent);
+        if (changed && previousScreen instanceof LoomActiveBannerHost host) {
+            host.loomassistant$setPendingActiveBannerStack(panel.getActiveBannerStack());
+        }
+        if (previousScreen instanceof LoomActiveBannerHost host) {
+            host.loomassistant$setPersistentDyeSwitchState(
+                    panel.isPersistentDyeSwitchEnabled(),
+                    panel.getPersistentDyeReplacementMapCopy());
+        }
         this.minecraft.gui.setScreen(previousScreen);
     }
 
