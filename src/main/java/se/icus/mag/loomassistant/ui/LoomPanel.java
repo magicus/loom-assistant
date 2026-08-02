@@ -4,15 +4,11 @@
  */
 package se.icus.mag.loomassistant.ui;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -56,6 +52,9 @@ public class LoomPanel {
     private static final int GRID_START_Y = 31;
     private static final int TAB_X_OFFSET = 30;
     private static final int TAB_Y_START = 3;
+    private static final int VISIBLE_TAB_SLOTS = 6;
+    private static final int TAB_SCROLL_ARROW_W = 16;
+    private static final int TAB_SCROLL_ARROW_H = 16;
     private static final int SEARCH_X = 25;
     private static final int SEARCH_Y = 13;
     private static final int SEARCH_W = 81;
@@ -82,6 +81,16 @@ public class LoomPanel {
         Component.translatable("loom-assistant.panel.weaving");
     private static final Component NO_BANNERS_LABEL =
         Component.translatable("loom-assistant.panel.no_banners");
+    private static final Component CATEGORY_SCROLL_UP_TOOLTIP = Component.literal("Scroll tabs up");
+    private static final Component CATEGORY_SCROLL_DOWN_TOOLTIP = Component.literal("Scroll tabs down");
+    private static final Identifier TAB_SCROLL_UP_SPRITE =
+        Identifier.withDefaultNamespace("transferable_list/move_up");
+    private static final Identifier TAB_SCROLL_UP_HIGHLIGHTED_SPRITE =
+        Identifier.withDefaultNamespace("transferable_list/move_up_highlighted");
+    private static final Identifier TAB_SCROLL_DOWN_SPRITE =
+        Identifier.withDefaultNamespace("transferable_list/move_down");
+    private static final Identifier TAB_SCROLL_DOWN_HIGHLIGHTED_SPRITE =
+        Identifier.withDefaultNamespace("transferable_list/move_down_highlighted");
     private static final Identifier SLOT_CRAFTABLE_SPRITE =
         Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
@@ -94,7 +103,9 @@ public class LoomPanel {
     private final AutoCraftStateMachine autoCraft;
     private final EditBox searchBox;
     private final List<BannerRecipeCategories.Category> categoryTabs;
+    private final List<TabDescriptor> tabs;
     private String selectedCategoryId;
+    private int tabScrollOffset = 0;
     private boolean craftableOnly = false;
     private int page = 0;
     private String selectedBannerId = null;
@@ -118,6 +129,7 @@ public class LoomPanel {
         this.searchBox.setTextColor(-1);
         this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
+        this.tabs = buildTabs(this.categoryTabs);
         this.selectedCategoryId = null;
     }
 
@@ -140,30 +152,68 @@ public class LoomPanel {
     }
 
     private void renderTabs(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
-        int totalTabs = 1 + categoryTabs.size();
-        for (int i = 0; i < totalTabs; i++) {
-            int tx = x - TAB_X_OFFSET;
-            int ty = y + TAB_Y_START + i * RecipeBookTabButton.HEIGHT;
-            RecipeBookTabButton button;
-            Component tooltip;
-            if (i == 0) {
-                button = createAllTabButton(tx, ty);
-                tooltip = ALL_RECIPES_TOOLTIP;
-            } else {
-                BannerRecipeCategories.Category category = categoryTabs.get(i - 1);
-                button = createCategoryTabButton(category, tx, ty);
-                tooltip = Component.literal(category.name());
-            }
+        int tx = x - TAB_X_OFFSET;
+        int visibleTabCount = getVisibleTabCount();
+        for (int slot = 0; slot < visibleTabCount; slot++) {
+            TabDescriptor tab = tabs.get(tabScrollOffset + slot);
+            int ty = y + TAB_Y_START + slot * RecipeBookTabButton.HEIGHT;
+            RecipeBookTabButton button = createTabButton(tab, tx, ty);
 
-            if (isTabSelected(i)) {
+            if (isTabSelected(tab)) {
                 button.select();
             }
             button.extractContents(ctx, mouseX, mouseY, 0.0F);
-            if (mouseX >= tx - 2 && mouseX < tx - 2 + RecipeBookTabButton.WIDTH && mouseY >= ty && mouseY < ty + RecipeBookTabButton.HEIGHT) {
+            if (isIn(mouseX, mouseY, tx - 2, ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
                         Minecraft.getInstance().font,
-                        List.of(tooltip),
+                        List.of(tab.tooltip()),
+                        Optional.empty(),
+                        mouseX,
+                        mouseY);
+            }
+        }
+
+        renderTabScrollArrows(ctx, mouseX, mouseY, tx, visibleTabCount);
+    }
+
+    private void renderTabScrollArrows(
+            GuiGraphicsExtractor ctx, int mouseX, int mouseY, int tx, int visibleTabCount) {
+        if (!hasScrollableTabs()) {
+            return;
+        }
+
+        int arrowX = tx + (RecipeBookTabButton.WIDTH - TAB_SCROLL_ARROW_W) / 2;
+
+        int upArrowY = y + TAB_Y_START - TAB_SCROLL_ARROW_H - 2;
+        boolean upEnabled = canScrollTabsUp();
+        if (upEnabled) {
+            boolean upHover = isIn(mouseX, mouseY, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            Identifier upSprite = upHover ? TAB_SCROLL_UP_HIGHLIGHTED_SPRITE : TAB_SCROLL_UP_SPRITE;
+            ctx.blitSprite(RenderPipelines.GUI_TEXTURED, upSprite, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            if (upHover) {
+                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.setTooltipForNextFrame(
+                        Minecraft.getInstance().font,
+                        List.of(CATEGORY_SCROLL_UP_TOOLTIP),
+                        Optional.empty(),
+                        mouseX,
+                        mouseY);
+            }
+        }
+
+        int bottomTabY = y + TAB_Y_START + (visibleTabCount - 1) * RecipeBookTabButton.HEIGHT;
+        int downArrowY = bottomTabY + RecipeBookTabButton.HEIGHT;
+        boolean downEnabled = canScrollTabsDown();
+        if (downEnabled) {
+            boolean downHover = isIn(mouseX, mouseY, arrowX, downArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            Identifier downSprite = downHover ? TAB_SCROLL_DOWN_HIGHLIGHTED_SPRITE : TAB_SCROLL_DOWN_SPRITE;
+            ctx.blitSprite(RenderPipelines.GUI_TEXTURED, downSprite, arrowX, downArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            if (downHover) {
+                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.setTooltipForNextFrame(
+                        Minecraft.getInstance().font,
+                        List.of(CATEGORY_SCROLL_DOWN_TOOLTIP),
                         Optional.empty(),
                         mouseX,
                         mouseY);
@@ -171,32 +221,21 @@ public class LoomPanel {
         }
     }
 
-    private RecipeBookTabButton createAllTabButton(int tx, int ty) {
-        RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(Items.COMPASS, new RecipeBookCategory());
+    private RecipeBookTabButton createTabButton(TabDescriptor tab, int tx, int ty) {
+        ItemStack icon = tab.categoryId() == null
+                ? new ItemStack(Items.COMPASS)
+                : BannerRecipeCategories.resolveIcon(categoryTabs.get(tab.categoryIndex()));
+        RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(icon.getItem(), new RecipeBookCategory());
 
         return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
-            selectedCategoryId = null;
+            selectedCategoryId = tab.categoryId();
             page = 0;
             searchBox.setFocused(true);
         });
     }
 
-    private RecipeBookTabButton createCategoryTabButton(BannerRecipeCategories.Category category, int tx, int ty) {
-        RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(
-                BannerRecipeCategories.resolveIcon(category).getItem(), new RecipeBookCategory());
-
-        return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
-            selectedCategoryId = category.id();
-            page = 0;
-            searchBox.setFocused(true);
-        });
-    }
-
-    private boolean isTabSelected(int tabIndex) {
-        if (tabIndex == 0) {
-            return selectedCategoryId == null;
-        }
-        return selectedCategoryId != null && selectedCategoryId.equals(categoryTabs.get(tabIndex - 1).id());
+    private boolean isTabSelected(TabDescriptor tab) {
+        return tab.categoryId() == null ? selectedCategoryId == null : tab.categoryId().equals(selectedCategoryId);
     }
 
     private void renderFilterButton(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
@@ -377,19 +416,112 @@ public class LoomPanel {
     }
 
     private boolean clickTabs(int mx, int my) {
-        int totalTabs = 1 + categoryTabs.size();
-        for (int i = 0; i < totalTabs; i++) {
-            int tx = x - TAB_X_OFFSET;
-            int ty = y + TAB_Y_START + i * RecipeBookTabButton.HEIGHT;
-            if (isIn(mx, my, tx - (isTabSelected(i) ? 2 : 0), ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
-                selectedCategoryId = i == 0 ? null : categoryTabs.get(i - 1).id();
+        int tx = x - TAB_X_OFFSET;
+        int visibleTabCount = getVisibleTabCount();
+        for (int slot = 0; slot < visibleTabCount; slot++) {
+            TabDescriptor tab = tabs.get(tabScrollOffset + slot);
+            int ty = y + TAB_Y_START + slot * RecipeBookTabButton.HEIGHT;
+            if (isIn(mx, my, tx - (isTabSelected(tab) ? 2 : 0), ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
+                selectedCategoryId = tab.categoryId();
                 page = 0;
                 searchBox.setFocused(true);
                 playUiClickSound();
                 return true;
             }
         }
+
+        if (hasScrollableTabs()) {
+            int arrowX = tx + (RecipeBookTabButton.WIDTH - TAB_SCROLL_ARROW_W) / 2;
+            int upArrowY = y + TAB_Y_START - TAB_SCROLL_ARROW_H - 2;
+            if (isIn(mx, my, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H) && canScrollTabsUp()) {
+                scrollTabs(-1);
+                playUiClickSound();
+                return true;
+            }
+
+            int bottomTabY = y + TAB_Y_START + (visibleTabCount - 1) * RecipeBookTabButton.HEIGHT;
+            int downArrowY = bottomTabY + RecipeBookTabButton.HEIGHT;
+            if (isIn(mx, my, arrowX, downArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H) && canScrollTabsDown()) {
+                scrollTabs(1);
+                playUiClickSound();
+                return true;
+            }
+        }
         return false;
+    }
+
+    private int getVisibleTabCount() {
+        return Math.min(VISIBLE_TAB_SLOTS, tabs.size());
+    }
+
+    private boolean hasScrollableTabs() {
+        return tabs.size() > VISIBLE_TAB_SLOTS;
+    }
+
+    private boolean canScrollTabsUp() {
+        return tabScrollOffset > 0;
+    }
+
+    private boolean canScrollTabsDown() {
+        return tabScrollOffset + getVisibleTabCount() < tabs.size();
+    }
+
+    private void scrollTabs(int direction) {
+        int newOffset = tabScrollOffset + direction;
+        int maxOffset = Math.max(0, tabs.size() - getVisibleTabCount());
+        newOffset = Math.max(0, Math.min(newOffset, maxOffset));
+        if (newOffset == tabScrollOffset) {
+            return;
+        }
+
+        tabScrollOffset = newOffset;
+        clampSelectedTabToVisibleWindow();
+        page = 0;
+    }
+
+    private void clampSelectedTabToVisibleWindow() {
+        int selectedIndex = indexOfSelectedTab();
+        if (selectedIndex < 0) {
+            selectedCategoryId = null;
+            selectedIndex = 0;
+        }
+
+        int visibleCount = getVisibleTabCount();
+        int minVisible = tabScrollOffset;
+        int maxVisible = tabScrollOffset + visibleCount - 1;
+
+        if (selectedIndex < minVisible) {
+            selectedCategoryId = tabs.get(minVisible).categoryId();
+            return;
+        }
+        if (selectedIndex > maxVisible) {
+            selectedCategoryId = tabs.get(maxVisible).categoryId();
+        }
+    }
+
+    private int indexOfSelectedTab() {
+        if (selectedCategoryId == null) {
+            return 0;
+        }
+        for (int i = 0; i < tabs.size(); i++) {
+            if (selectedCategoryId.equals(tabs.get(i).categoryId())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static List<TabDescriptor> buildTabs(List<BannerRecipeCategories.Category> categories) {
+        List<TabDescriptor> out = new ArrayList<>();
+        out.add(new TabDescriptor(null, ALL_RECIPES_TOOLTIP, -1));
+        for (int i = 0; i < categories.size(); i++) {
+            BannerRecipeCategories.Category category = categories.get(i);
+            out.add(new TabDescriptor(category.id(), Component.literal(category.name()), i));
+        }
+        return List.copyOf(out);
+    }
+
+    private record TabDescriptor(String categoryId, Component tooltip, int categoryIndex) {
     }
 
     private boolean clickBannerGrid(int mx, int my) {
@@ -451,6 +583,19 @@ public class LoomPanel {
     }
 
     public boolean mouseScrolled(double mx, double my, double hAmt, double vAmt) {
+        if (hasScrollableTabs() && isMouseOverTabs((int) mx, (int) my)) {
+            if (vAmt > 0 && canScrollTabsUp()) {
+                scrollTabs(-1);
+                playUiClickSound();
+                return true;
+            }
+            if (vAmt < 0 && canScrollTabsDown()) {
+                scrollTabs(1);
+                playUiClickSound();
+                return true;
+            }
+        }
+
         List<SavedBanner> items = getFilteredBanners();
         int maxPage = Math.max(0, (items.size() - 1) / (GRID_COLUMNS * GRID_ROWS));
         if (vAmt > 0 && page > 0) {
@@ -676,6 +821,13 @@ public class LoomPanel {
 
     private static boolean isIn(int mx, int my, int bx, int by, int bw, int bh) {
         return mx >= bx && mx < bx + bw && my >= by && my < by + bh;
+    }
+
+    private boolean isMouseOverTabs(int mx, int my) {
+        int tx = x - TAB_X_OFFSET;
+        int ty = y + TAB_Y_START;
+        int h = getVisibleTabCount() * RecipeBookTabButton.HEIGHT;
+        return isIn(mx, my, tx - 2, ty, RecipeBookTabButton.WIDTH, h);
     }
 
     public static boolean saveBannerFromOutput(LoomMenu handler) {

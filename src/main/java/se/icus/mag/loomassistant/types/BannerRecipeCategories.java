@@ -24,7 +24,9 @@ public final class BannerRecipeCategories {
             new Category("flags", Identifier.withDefaultNamespace("map"), "flags"),
             new Category("logos", Identifier.withDefaultNamespace("blaze_powder"), "logos"),
             new Category("nature", Identifier.withDefaultNamespace("poppy"), "nature"),
-            new Category("misc", Identifier.withDefaultNamespace("lava_bucket"), "misc"));
+            new Category("misc", Identifier.withDefaultNamespace("lava_bucket"), "misc"),
+            new Category("test1", Identifier.withDefaultNamespace("stone"), "test1"),
+            new Category("test2", Identifier.withDefaultNamespace("oak_planks"), "test2"));
 
     private BannerRecipeCategories() {
     }
