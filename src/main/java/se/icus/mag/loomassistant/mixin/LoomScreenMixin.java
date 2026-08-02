@@ -35,6 +35,7 @@ import se.icus.mag.loomassistant.LoomPanelHost;
 import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
+import se.icus.mag.loomassistant.ui.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.ui.LoomPanel;
 import se.icus.mag.loomassistant.ui.LoomUiStateStore;
 
@@ -53,11 +54,13 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y = LOOMASSISTANT_LEFT_STRIP_RECIPE_Y + 42;
     @Unique
-    private static final int LOOMASSISTANT_LEFT_STRIP_SAVE_Y = LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y + 22;
-    @Unique
-    private static final int LOOMASSISTANT_LEFT_STRIP_CRAFT_Y = LOOMASSISTANT_LEFT_STRIP_SAVE_Y + 20;
+    private static final int LOOMASSISTANT_LEFT_STRIP_CRAFT_Y = LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y + 22;
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_EDIT_Y = LOOMASSISTANT_LEFT_STRIP_CRAFT_Y + 20;
+    @Unique
+    private static final int LOOMASSISTANT_LEFT_STRIP_SAVE_Y = LOOMASSISTANT_LEFT_STRIP_EDIT_Y + 20;
+    @Unique
+    private static final int LOOMASSISTANT_LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN = 6;
     @Unique
     private static final int LOOMASSISTANT_ACTIVE_SLOT_W = 20;
     @Unique
@@ -86,6 +89,9 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Unique
             private static final Component LOOMASSISTANT_EDIT_TOOLTIP =
                 Component.translatable("loom-assistant.tooltip.edit");
+            @Unique
+            private static final Component LOOMASSISTANT_IMPORT_EXPORT_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.import_export");
     @Unique
     private boolean loomassistant$panelOpen = false;
     @Unique
@@ -98,6 +104,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private Button loomassistant$craftButton;
     @Unique
     private Button loomassistant$editButton;
+    @Unique
+    private Button loomassistant$importExportButton;
     @Unique
     private ItemStack loomassistant$activeBannerStack = ItemStack.EMPTY;
     @Unique
@@ -186,6 +194,21 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
         });
 
+        this.loomassistant$importExportButton = this.addRenderableWidget(new Button.Plain(
+            this.loomassistant$getLeftStripButtonX(),
+            this.loomassistant$getImportExportButtonY(),
+            20,
+            18,
+            Component.empty(),
+            button -> this.minecraft.gui.setScreen(new BannerRecipeImportExportScreen((LoomScreen) (Object) this)),
+            defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
+            @Override
+            public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+                this.extractDefaultSprite(graphics);
+                graphics.fakeItem(Items.OAK_BOAT.getDefaultInstance(), this.getX() + 2, this.getY() + 1);
+            }
+        });
+
         this.loomassistant$craftButton.active = false;
         this.loomassistant$editButton.active = false;
 
@@ -210,6 +233,15 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             this.loomassistant$editButton.setPosition(
                     this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_EDIT_Y);
         }
+        if (this.loomassistant$importExportButton != null) {
+            this.loomassistant$importExportButton.setPosition(
+                    this.loomassistant$getLeftStripButtonX(), this.loomassistant$getImportExportButtonY());
+        }
+    }
+
+    @Unique
+    private int loomassistant$getImportExportButtonY() {
+        return this.topPos + this.imageHeight - 18 - LOOMASSISTANT_LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN;
     }
 
     @Unique
@@ -370,6 +402,10 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         if (this.loomassistant$editButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$editButton, mouseX, mouseY)) {
             loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_EDIT_TOOLTIP, mouseX, mouseY);
+        }
+        if (this.loomassistant$importExportButton != null
+                && loomassistant$isMouseOverWidget(this.loomassistant$importExportButton, mouseX, mouseY)) {
+            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_IMPORT_EXPORT_TOOLTIP, mouseX, mouseY);
         }
 
         if (!loomassistant$activeBannerStack.isEmpty()) {
