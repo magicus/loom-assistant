@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -39,6 +41,7 @@ import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
+import org.lwjgl.glfw.GLFW;
 
 public class LoomPanel {
     public static final int PANEL_WIDTH = 147;
@@ -58,6 +61,10 @@ public class LoomPanel {
     private static final int FILTER_Y = 12;
     private static final int FILTER_W = 26;
     private static final int FILTER_H = 16;
+    private static final int GUIDE_BUTTON_X = 8;
+    private static final int GUIDE_BUTTON_Y = PANEL_HEIGHT - 24;
+    private static final int GUIDE_BUTTON_W = PANEL_WIDTH - 16;
+    private static final int GUIDE_BUTTON_H = 20;
 
     private static final Identifier RECIPE_BOOK_TEXTURE =
         Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
@@ -69,11 +76,16 @@ public class LoomPanel {
         Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted");
     private static final Identifier FILTER_DISABLED_HOVER =
         Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
+    private static final Identifier SLOT_CRAFTABLE_SPRITE =
+        Identifier.withDefaultNamespace("recipe_book/slot_craftable");
+    private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
+        Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
 
     private enum Tab {
     BANNERS,
     PACKS,
-    EDIT
+    EDIT,
+    GUIDE
     }
 
     private final LoomScreen screen;
@@ -82,9 +94,11 @@ public class LoomPanel {
     private int y;
     private final AutoCraftStateMachine autoCraft;
     private final EditBox searchBox;
+    private final Button autoCraftButton;
     private Tab activeTab = Tab.BANNERS;
     private boolean craftableOnly = false;
     private int page = 0;
+    private String selectedBannerId = null;
 
     public LoomPanel(LoomScreen screen, LoomMenu handler, int x, int y) {
         this.screen = screen;
@@ -103,6 +117,10 @@ public class LoomPanel {
         this.searchBox.setVisible(true);
         this.searchBox.setTextColor(-1);
         this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
+        this.autoCraftButton = Button.builder(Component.literal("Auto craft"), button -> startSelectedBannerAutoCraft())
+            .bounds(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y, GUIDE_BUTTON_W, GUIDE_BUTTON_H)
+            .build();
+        this.autoCraftButton.active = false;
     }
 
     // -------------------------------------------------------------------------
@@ -114,15 +132,19 @@ public class LoomPanel {
 
         ctx.blit(RenderPipelines.GUI_TEXTURED, RECIPE_BOOK_TEXTURE, x, y, 1.0F, 1.0F, PANEL_WIDTH, PANEL_HEIGHT, 256, 256);
         renderTabs(ctx, mouseX, mouseY);
-        searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
-        renderFilterButton(ctx, mouseX, mouseY);
+        if (activeTab == Tab.BANNERS) {
+            searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
+            renderFilterButton(ctx, mouseX, mouseY);
+        }
 
         if (activeTab == Tab.BANNERS) {
             renderBannerGrid(ctx, font, mouseX, mouseY);
         } else if (activeTab == Tab.PACKS) {
             renderPacksTab(ctx, font);
-        } else {
+        } else if (activeTab == Tab.EDIT) {
             renderEditTab(ctx, font);
+        } else if (activeTab == Tab.GUIDE) {
+            renderGuideTab(ctx, font, mouseX, mouseY);
         }
 
         if (autoCraft.isActive()) {
@@ -131,7 +153,7 @@ public class LoomPanel {
     }
 
     private void renderTabs(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
-        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT};
+        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT, Tab.GUIDE};
 
         for (int i = 0; i < tabs.length; i++) {
             int tx = x - TAB_X_OFFSET;
@@ -152,6 +174,7 @@ public class LoomPanel {
             case BANNERS -> new RecipeBookComponent.TabInfo(Items.COMPASS, new RecipeBookCategory());
             case PACKS -> new RecipeBookComponent.TabInfo(Items.BRICKS, new RecipeBookCategory());
             case EDIT -> new RecipeBookComponent.TabInfo(Items.REDSTONE, new RecipeBookCategory());
+            case GUIDE -> new RecipeBookComponent.TabInfo(Items.BOOK, new RecipeBookCategory());
         };
 
         return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
@@ -186,7 +209,12 @@ public class LoomPanel {
             int bx = x + GRID_START_X + col * GRID_CELL;
             int by = y + GRID_START_Y + row * GRID_CELL;
 
+            Identifier sprite = isCraftableNow(banner) ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE;
+            ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx - 1, by - 1, 25, 25);
             BannerPreviewRenderer.render(ctx, banner, handler, bx + 4, by + 4, 16);
+            if (banner.getId().equals(selectedBannerId)) {
+                ctx.outline(bx - 1, by - 1, 25, 25, 0xFF5C7CFA);
+            }
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
@@ -200,7 +228,80 @@ public class LoomPanel {
         }
     }
 
+    private void renderGuideTab(GuiGraphicsExtractor ctx, Font font, int mouseX, int mouseY) {
+        SavedBanner banner = getSelectedBanner();
+        if (banner == null) {
+            ctx.text(font, Component.literal("Select a banner"), x + 18, y + 48, 0xFFDDDDDD, false);
+            ctx.text(font, Component.literal("to see the craft guide."), x + 18, y + 60, 0xFF777777, false);
+            autoCraftButton.active = false;
+            autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
+            autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
+            return;
+        }
+
+        ctx.text(font, Component.literal("Craft guide"), x + 12, y + 20, 0xFFDDDDDD, false);
+        ctx.text(font, Component.literal(banner.getDisplayName()), x + 12, y + 32, 0xFFFFFFFF, false);
+
+        List<GuideCard> cards = buildGuideCards(banner);
+        int cardY = y + 48;
+        for (int i = 0; i < cards.size(); i++) {
+            GuideCard card = cards.get(i);
+            int cardHeight = card.rows().size() * 18 + 6;
+            int cardWidth = PANEL_WIDTH - 24;
+            int cardX = x + 8;
+
+            int bgColor = card.highlighted() ? 0x4A3D2A66 : 0x241A1A1A;
+            int borderColor = card.highlighted() ? 0xFF8FB6FF : 0x60FFFFFF;
+            ctx.fill(cardX, cardY, cardX + cardWidth, cardY + cardHeight, bgColor);
+            ctx.outline(cardX, cardY, cardWidth, cardHeight, borderColor);
+
+            int rowY = cardY + 4;
+            for (BannerRecipeTooltipComponent.Row row : card.rows()) {
+                ctx.text(font, row.text(), cardX + 6, rowY + 1, 0xFFFFFFFF, false);
+                ctx.item(row.primary(), cardX + 6, rowY + 11);
+                if (row.hasSecondary()) {
+                    ctx.item(row.secondary(), cardX + 24, rowY + 11);
+                }
+                rowY += 18;
+            }
+
+            cardY += cardHeight + 4;
+        }
+
+        autoCraftButton.active = !autoCraft.isActive();
+        autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
+        autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
+    }
+
     private Optional<TooltipComponent> buildTooltipImage(SavedBanner banner) {
+        List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
+        if (rows.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new BannerRecipeTooltipComponent(rows));
+    }
+
+    private List<GuideCard> buildGuideCards(SavedBanner banner) {
+        List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
+        List<GuideCard> cards = new ArrayList<>();
+        if (rows.isEmpty()) {
+            return cards;
+        }
+
+        if (rows.size() == 1) {
+            cards.add(new GuideCard(rows, true));
+            return cards;
+        }
+
+        cards.add(new GuideCard(rows.subList(0, Math.min(2, rows.size())), true));
+        for (int i = 2; i < rows.size(); i++) {
+            cards.add(new GuideCard(List.of(rows.get(i)), false));
+        }
+        return cards;
+    }
+
+    private List<BannerRecipeTooltipComponent.Row> buildRecipeRows(SavedBanner banner) {
         List<BannerRecipeTooltipComponent.Row> rows = new ArrayList<>();
         String baseKey = "block.minecraft." + banner.getBaseColorEnum().getSerializedName() + "_banner";
         String baseName = Language.getInstance().getOrDefault(baseKey);
@@ -221,12 +322,7 @@ public class LoomPanel {
                     Component.literal(idx + ". " + getPatternDisplayName(layer))));
             idx++;
         }
-
-        if (rows.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(new BannerRecipeTooltipComponent(rows));
+        return rows;
     }
 
     @SuppressWarnings("unchecked")
@@ -322,19 +418,25 @@ public class LoomPanel {
             return true;
         }
 
-        if (searchBox.mouseClicked(event, false)) {
+        if (activeTab == Tab.BANNERS && searchBox.mouseClicked(event, false)) {
             return true;
         }
 
-        int filterX = x + FILTER_X;
-        int filterY = y + FILTER_Y;
-        if (isIn(mx, my, filterX, filterY, FILTER_W, FILTER_H)) {
-            craftableOnly = !craftableOnly;
-            page = 0;
-            return true;
+        if (activeTab == Tab.BANNERS) {
+            int filterX = x + FILTER_X;
+            int filterY = y + FILTER_Y;
+            if (isIn(mx, my, filterX, filterY, FILTER_W, FILTER_H)) {
+                craftableOnly = !craftableOnly;
+                page = 0;
+                return true;
+            }
         }
 
         if (activeTab == Tab.BANNERS && clickBannerGrid(mx, my)) {
+            return true;
+        }
+
+        if (activeTab == Tab.GUIDE && autoCraftButton.mouseClicked(event, false)) {
             return true;
         }
 
@@ -360,6 +462,8 @@ public class LoomPanel {
         List<SavedBanner> items = getFilteredBanners();
         int start = page * GRID_COLUMNS * GRID_ROWS;
         int end = Math.min(items.size(), start + GRID_COLUMNS * GRID_ROWS);
+        boolean isShiftPressed = InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
 
         for (int i = start; i < end; i++) {
             int local = i - start;
@@ -368,7 +472,14 @@ public class LoomPanel {
             int bx = x + GRID_START_X + col * GRID_CELL;
             int by = y + GRID_START_Y + row * GRID_CELL;
             if (isIn(mx, my, bx, by, 16, 16)) {
-                autoCraft.start(items.get(i));
+                SavedBanner banner = items.get(i);
+                if (isShiftPressed) {
+                    autoCraft.start(banner);
+                } else {
+                    selectedBannerId = banner.getId();
+                    activeTab = Tab.GUIDE;
+                    searchBox.setFocused(false);
+                }
                 return true;
             }
         }
@@ -429,6 +540,14 @@ public class LoomPanel {
         this.x = x;
         this.y = y;
         this.searchBox.setPosition(x + SEARCH_X, y + SEARCH_Y);
+        this.autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
+    }
+
+    private void startSelectedBannerAutoCraft() {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner != null) {
+            autoCraft.start(selectedBanner);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -452,6 +571,18 @@ public class LoomPanel {
 
     private boolean isCraftableNow(SavedBanner banner) {
         return true;
+    }
+
+    private SavedBanner getSelectedBanner() {
+        if (selectedBannerId == null) {
+            return null;
+        }
+        for (SavedBanner banner : BannerStorage.getInstance().getBanners()) {
+            if (selectedBannerId.equals(banner.getId())) {
+                return banner;
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -508,6 +639,9 @@ public class LoomPanel {
 
     private static boolean isIn(int mx, int my, int bx, int by, int bw, int bh) {
         return mx >= bx && mx < bx + bw && my >= by && my < by + bh;
+    }
+
+    private record GuideCard(List<BannerRecipeTooltipComponent.Row> rows, boolean highlighted) {
     }
 
     public static boolean saveBannerFromOutput(LoomMenu handler) {
