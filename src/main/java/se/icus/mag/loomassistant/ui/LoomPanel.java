@@ -109,7 +109,7 @@ public class LoomPanel {
     private final AutoCraftStateMachine autoCraft;
     private final EditBox searchBox;
     private final List<BannerRecipeCategories.Category> categoryTabs;
-    private final List<TabDescriptor> tabs;
+    private List<TabDescriptor> tabs;
     private String selectedCategoryId;
     private int tabScrollOffset = 0;
     private boolean craftableOnly = false;
@@ -139,8 +139,9 @@ public class LoomPanel {
         this.searchBox.setTextColor(-1);
         this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
-        this.tabs = buildTabs(this.categoryTabs);
+        this.tabs = List.of();
         this.selectedCategoryId = null;
+        refreshVisibleTabs();
     }
 
     // -------------------------------------------------------------------------
@@ -148,6 +149,7 @@ public class LoomPanel {
     // -------------------------------------------------------------------------
 
     public void render(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
+        refreshVisibleTabs();
         Font font = Minecraft.getInstance().font;
 
         ctx.blit(RenderPipelines.GUI_TEXTURED, RECIPE_BOOK_TEXTURE, x, y, 1.0F, 1.0F, PANEL_WIDTH, PANEL_HEIGHT, 256, 256);
@@ -398,6 +400,7 @@ public class LoomPanel {
 
     public boolean mouseClicked(MouseButtonEvent event) {
         if (event.button() != 0) return false;
+        refreshVisibleTabs();
         int mx = (int) event.x();
         int my = (int) event.y();
 
@@ -529,14 +532,47 @@ public class LoomPanel {
         return -1;
     }
 
-    private static List<TabDescriptor> buildTabs(List<BannerRecipeCategories.Category> categories) {
+    private List<TabDescriptor> buildTabs(List<BannerRecipeCategories.Category> categories) {
+        LinkedHashSet<String> nonEmptyCategoryIds = new LinkedHashSet<>();
+        for (SavedBanner banner : BannerStorage.getInstance().getBanners()) {
+            String categoryId = banner.getCategory();
+            if (categoryId != null && !categoryId.isBlank()) {
+                nonEmptyCategoryIds.add(categoryId.toLowerCase(Locale.ROOT));
+            }
+        }
+
         List<TabDescriptor> out = new ArrayList<>();
         out.add(new TabDescriptor(null, ALL_RECIPES_TOOLTIP, -1));
         for (int i = 0; i < categories.size(); i++) {
             BannerRecipeCategories.Category category = categories.get(i);
-            out.add(new TabDescriptor(category.id(), Component.literal(category.name()), i));
+            if (nonEmptyCategoryIds.contains(category.id().toLowerCase(Locale.ROOT))) {
+                out.add(new TabDescriptor(category.id(), Component.literal(category.name()), i));
+            }
         }
         return List.copyOf(out);
+    }
+
+    private void refreshVisibleTabs() {
+        tabs = buildTabs(this.categoryTabs);
+
+        if (selectedCategoryId != null) {
+            boolean selectedStillVisible = false;
+            for (TabDescriptor tab : tabs) {
+                if (selectedCategoryId.equals(tab.categoryId())) {
+                    selectedStillVisible = true;
+                    break;
+                }
+            }
+            if (!selectedStillVisible) {
+                selectedCategoryId = null;
+                page = 0;
+            }
+        }
+
+        int maxOffset = Math.max(0, tabs.size() - getVisibleTabCount());
+        if (tabScrollOffset > maxOffset) {
+            tabScrollOffset = maxOffset;
+        }
     }
 
     private record TabDescriptor(String categoryId, Component tooltip, int categoryIndex) {
