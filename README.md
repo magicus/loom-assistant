@@ -21,3 +21,7 @@ Minecraft.)
 ## Support
 
 Do you have any problems with the mod? Please open an issue here on GitHub.
+
+## Acknowledgements
+
+The sound effect for active_slot_clear is based on ["broom sweep" by semccab (Freesound)](https://pixabay.com/sound-effects/film-special-effects-broom-sweep-106601/), licensed under  the [Pixabay Content License](https://pixabay.com/service/license-summary/).
