@@ -116,6 +116,28 @@ public class BannerStorage {
         }
     }
 
+    public void updateBannerMetadata(String id, String newName, String newCategory) {
+        ensureRepositoryLoaded();
+        String packId = repository.getBannerRecipePackId(id);
+        if (packId == null) {
+            return;
+        }
+
+        BannerRecipe existing = repository.getBannerRecipeById(id);
+        if (existing == null) {
+            return;
+        }
+
+        BannerPack pack = requirePack(packId);
+        try {
+            BannerRecipe updated = existing.withDescription(newName).withCategory(newCategory);
+            pack.updateBannerRecipe(updated);
+            refreshBannerCache();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to update banner metadata " + id, e);
+        }
+    }
+
     public String exportBannerToJson(String bannerId) {
         ensureRepositoryLoaded();
         BannerRecipe recipe = repository.getBannerRecipeById(bannerId);

@@ -41,6 +41,7 @@ import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.types.BannerRecipeCategories;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 public class LoomPanel {
     public static final int PANEL_WIDTH = 147;
@@ -732,6 +733,85 @@ public class LoomPanel {
             return false;
         }
         return findMatchingSavedBanner(selected) == null;
+    }
+
+    public boolean isActiveBannerAlreadySaved() {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null) {
+            return false;
+        }
+        return findMatchingSavedBanner(selected) != null;
+    }
+
+    public String getActiveBannerDialogName(boolean editMode) {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null) {
+            return Component.translatable("loom-assistant.banner.unnamed").getString();
+        }
+
+        SavedBanner matched = findMatchingSavedBanner(selected);
+        if (editMode && matched != null) {
+            String existingName = matched.getName();
+            if (existingName == null || existingName.isBlank()) {
+                return Component.translatable("loom-assistant.banner.unnamed").getString();
+            }
+            return existingName;
+        }
+
+        return Component.translatable("loom-assistant.banner.unnamed").getString();
+    }
+
+    public String getActiveBannerDialogCategory(boolean editMode) {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null) {
+            return BannerRecipe.DEFAULT_CATEGORY;
+        }
+
+        SavedBanner matched = findMatchingSavedBanner(selected);
+        if (editMode && matched != null) {
+            return matched.getCategory();
+        }
+
+        return BannerRecipe.DEFAULT_CATEGORY;
+    }
+
+    public boolean applyActiveBannerMetadata(String nameInput, String categoryInput) {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null) {
+            return false;
+        }
+
+        String name = (nameInput == null || nameInput.isBlank())
+                ? Component.translatable("loom-assistant.banner.unnamed").getString()
+                : nameInput.trim();
+        String category = (categoryInput == null || categoryInput.isBlank())
+                ? BannerRecipe.DEFAULT_CATEGORY
+                : categoryInput;
+
+        SavedBanner matched = findMatchingSavedBanner(selected);
+        if (matched != null) {
+            BannerStorage.getInstance().updateBannerMetadata(matched.getId(), name, category);
+            SavedBanner updated = BannerStorage.getInstance().getBannerById(matched.getId());
+            if (updated != null) {
+                activeBanner = updated;
+                selectedBannerId = updated.getId();
+            }
+            return true;
+        }
+
+        SavedBanner toSave = cloneBannerForSave(selected);
+        toSave.setName(name);
+        toSave.setCategory(category);
+        BannerStorage.getInstance().addBanner(toSave);
+
+        SavedBanner created = findMatchingSavedBanner(selected);
+        if (created != null) {
+            activeBanner = created;
+            selectedBannerId = created.getId();
+            return true;
+        }
+
+        return false;
     }
 
     public boolean saveActiveBanner() {

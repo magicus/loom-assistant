@@ -36,6 +36,7 @@ import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
 import se.icus.mag.loomassistant.ui.BannerRecipeImportExportScreen;
+import se.icus.mag.loomassistant.ui.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.ui.LoomPanel;
 import se.icus.mag.loomassistant.ui.LoomUiStateStore;
 
@@ -56,9 +57,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_CRAFT_Y = LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y + 22;
     @Unique
-    private static final int LOOMASSISTANT_LEFT_STRIP_EDIT_Y = LOOMASSISTANT_LEFT_STRIP_CRAFT_Y + 20;
-    @Unique
-    private static final int LOOMASSISTANT_LEFT_STRIP_SAVE_Y = LOOMASSISTANT_LEFT_STRIP_EDIT_Y + 20;
+    private static final int LOOMASSISTANT_LEFT_STRIP_SAVE_EDIT_Y = LOOMASSISTANT_LEFT_STRIP_CRAFT_Y + 20;
     @Unique
     private static final int LOOMASSISTANT_LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN = 6;
     @Unique
@@ -81,9 +80,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             private static final Component LOOMASSISTANT_SAVE_TOOLTIP =
                 Component.translatable("loom-assistant.tooltip.save");
             @Unique
-            private static final Component LOOMASSISTANT_SAVE_ALREADY_SAVED_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.recipe_already_saved");
-            @Unique
                 private static final Component LOOMASSISTANT_WEAVE_TOOLTIP =
                     Component.translatable("loom-assistant.tooltip.weave");
             @Unique
@@ -102,8 +98,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private Button loomassistant$saveButton;
     @Unique
     private Button loomassistant$craftButton;
-    @Unique
-    private Button loomassistant$editButton;
     @Unique
     private Button loomassistant$importExportButton;
     @Unique
@@ -139,20 +133,26 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
 
         this.loomassistant$saveButton = this.addRenderableWidget(new Button.Plain(
             this.loomassistant$getLeftStripButtonX(),
-            this.topPos + LOOMASSISTANT_LEFT_STRIP_SAVE_Y,
+            this.topPos + LOOMASSISTANT_LEFT_STRIP_SAVE_EDIT_Y,
             20,
             18,
             Component.empty(),
             button -> {
-                if (loomassistant$panel != null) {
-                    loomassistant$panel.saveActiveBanner();
+                if (loomassistant$panel != null && loomassistant$panel.hasActiveBanner()) {
+                    this.minecraft.gui.setScreen(new BannerSaveEditScreen(
+                            (LoomScreen) (Object) this,
+                            loomassistant$panel,
+                            loomassistant$showEditOnSaveButton()));
                 }
             },
             defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
             @Override
             public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
                 this.extractDefaultSprite(graphics);
-                graphics.fakeItem(Items.CHEST.getDefaultInstance(), this.getX() + 2, this.getY() + 1);
+                ItemStack icon = loomassistant$showEditOnSaveButton()
+                        ? Items.WRITABLE_BOOK.getDefaultInstance()
+                        : Items.CHEST.getDefaultInstance();
+                graphics.fakeItem(icon, this.getX() + 2, this.getY() + 1);
             }
         });
 
@@ -175,25 +175,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
         });
 
-        this.loomassistant$editButton = this.addRenderableWidget(new Button.Plain(
-            this.loomassistant$getLeftStripButtonX(),
-            this.topPos + LOOMASSISTANT_LEFT_STRIP_EDIT_Y,
-            20,
-            18,
-            Component.empty(),
-            button -> {
-                if (loomassistant$panel != null) {
-                    loomassistant$panel.editSelectedBanner();
-                }
-            },
-            defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
-            @Override
-            public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-                this.extractDefaultSprite(graphics);
-                graphics.fakeItem(Items.WRITABLE_BOOK.getDefaultInstance(), this.getX() + 2, this.getY() + 1);
-            }
-        });
-
         this.loomassistant$importExportButton = this.addRenderableWidget(new Button.Plain(
             this.loomassistant$getLeftStripButtonX(),
             this.loomassistant$getImportExportButtonY(),
@@ -210,7 +191,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         });
 
         this.loomassistant$craftButton.active = false;
-        this.loomassistant$editButton.active = false;
+        this.loomassistant$saveButton.active = false;
+        this.loomassistant$saveButton.visible = false;
 
         loomassistant$refreshPanel();
     }
@@ -223,15 +205,11 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         }
         if (this.loomassistant$saveButton != null) {
             this.loomassistant$saveButton.setPosition(
-                    this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_SAVE_Y);
+                    this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_SAVE_EDIT_Y);
         }
         if (this.loomassistant$craftButton != null) {
             this.loomassistant$craftButton.setPosition(
                     this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_CRAFT_Y);
-        }
-        if (this.loomassistant$editButton != null) {
-            this.loomassistant$editButton.setPosition(
-                    this.loomassistant$getLeftStripButtonX(), this.topPos + LOOMASSISTANT_LEFT_STRIP_EDIT_Y);
         }
         if (this.loomassistant$importExportButton != null) {
             this.loomassistant$importExportButton.setPosition(
@@ -347,11 +325,13 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 craftDisabledMessage = loomassistant$panel.getActiveBannerMissingMaterialMessage();
             }
             if (this.loomassistant$saveButton != null) {
-                this.loomassistant$saveButton.active = loomassistant$panel.isActiveBannerSavable();
+                this.loomassistant$saveButton.active = loomassistant$panel.hasActiveBanner();
+                this.loomassistant$saveButton.visible = loomassistant$panel.hasActiveBanner();
             }
             loomassistant$panel.render(context, mouseX, mouseY, delta);
         } else if (this.loomassistant$saveButton != null) {
             this.loomassistant$saveButton.active = false;
+            this.loomassistant$saveButton.visible = false;
             hasActiveBanner = !loomassistant$activeBannerStack.isEmpty();
             if (hasActiveBanner && loomassistant$craftabilityProbe != null) {
                 SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
@@ -363,26 +343,18 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                     }
                 }
             }
+            this.loomassistant$saveButton.visible = hasActiveBanner;
+            this.loomassistant$saveButton.active = hasActiveBanner;
         }
 
         if (this.loomassistant$craftButton != null) {
             this.loomassistant$craftButton.active = hasActiveBanner && canCraftActiveBanner;
         }
-        if (this.loomassistant$editButton != null) {
-            this.loomassistant$editButton.active = hasActiveBanner;
-        }
 
         if (this.loomassistant$saveButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$saveButton, mouseX, mouseY)) {
-            List<Component> tooltipLines = new ArrayList<>();
-            tooltipLines.add(LOOMASSISTANT_SAVE_TOOLTIP);
-
-            if (!this.loomassistant$saveButton.active && hasActiveBanner && loomassistant$panel != null) {
-                tooltipLines.add(Component.empty());
-                tooltipLines.add(LOOMASSISTANT_SAVE_ALREADY_SAVED_TOOLTIP);
-            }
-
-            context.setTooltipForNextFrame(this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
+            Component tooltip = loomassistant$showEditOnSaveButton() ? LOOMASSISTANT_EDIT_TOOLTIP : LOOMASSISTANT_SAVE_TOOLTIP;
+            loomassistant$setSingleLineTooltip(context, tooltip, mouseX, mouseY);
         }
         if (this.loomassistant$craftButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$craftButton, mouseX, mouseY)) {
@@ -398,10 +370,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
 
             context.setTooltipForNextFrame(this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
-        }
-        if (this.loomassistant$editButton != null
-                && loomassistant$isMouseOverWidget(this.loomassistant$editButton, mouseX, mouseY)) {
-            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_EDIT_TOOLTIP, mouseX, mouseY);
         }
         if (this.loomassistant$importExportButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$importExportButton, mouseX, mouseY)) {
@@ -504,6 +472,13 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private void loomassistant$setSingleLineTooltip(
             GuiGraphicsExtractor context, Component text, int mouseX, int mouseY) {
         context.setTooltipForNextFrame(this.font, List.of(text), Optional.empty(), mouseX, mouseY);
+    }
+
+    @Unique
+    private boolean loomassistant$showEditOnSaveButton() {
+        return loomassistant$panel != null
+                && loomassistant$panel.hasActiveBanner()
+                && !loomassistant$panel.isActiveBannerSavable();
     }
 
     @Unique

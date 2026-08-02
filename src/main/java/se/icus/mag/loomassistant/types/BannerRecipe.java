@@ -77,6 +77,10 @@ public record BannerRecipe(
         return new BannerRecipe(id, description, author, url, category, newBannerColor, layers);
     }
 
+    public BannerRecipe withCategory(String newCategory) {
+        return new BannerRecipe(id, description, author, url, newCategory, bannerColor, layers);
+    }
+
     static BannerRecipe fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {
         List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
         if (patterns != null) {
