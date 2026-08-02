@@ -4,6 +4,8 @@
  */
 package se.icus.mag.loomassistant;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.server.Bootstrap;
@@ -11,8 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class DummyTest {
     @BeforeAll
