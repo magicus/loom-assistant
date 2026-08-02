@@ -26,8 +26,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 
 public record BannerRecipe(
-        String id, String description, String author, String url, String bannerColor, List<BannerRecipeLayer> layers) {
+        String id,
+        String description,
+        String author,
+        String url,
+        String category,
+        String bannerColor,
+        List<BannerRecipeLayer> layers) {
     public static final String DEFAULT_DESCRIPTION = "Unnamed banner";
+    public static final String DEFAULT_CATEGORY = "misc";
     public static final Codec<BannerRecipe> CODEC;
     private static final Gson GSON = new GsonBuilder().create();
 
@@ -38,6 +45,7 @@ public record BannerRecipe(
         }
         author = blankToNull(author);
         url = blankToNull(url);
+        category = (category == null || category.isBlank()) ? DEFAULT_CATEGORY : category;
         bannerColor = (bannerColor == null || bannerColor.isBlank()) ? DyeColor.WHITE.getName() : bannerColor;
         if (DyeColor.byName(bannerColor, null) == null) {
             throw new IllegalArgumentException("Invalid banner color: " + bannerColor);
@@ -45,8 +53,12 @@ public record BannerRecipe(
         layers = List.copyOf(layers == null ? List.of() : layers);
     }
 
+    public BannerRecipe(String id, String description, String author, String url, String bannerColor, List<BannerRecipeLayer> layers) {
+        this(id, description, author, url, DEFAULT_CATEGORY, bannerColor, layers);
+    }
+
     public BannerRecipe(String description, DyeColor bannerColor, List<BannerRecipeLayer> layers) {
-        this(null, description, null, null, bannerColor.getName(), layers);
+        this(null, description, null, null, DEFAULT_CATEGORY, bannerColor.getName(), layers);
     }
 
     public DyeColor getBannerColorEnum() {
@@ -54,15 +66,15 @@ public record BannerRecipe(
     }
 
     public BannerRecipe withId(String newId) {
-        return new BannerRecipe(newId, description, author, url, bannerColor, layers);
+        return new BannerRecipe(newId, description, author, url, category, bannerColor, layers);
     }
 
     public BannerRecipe withDescription(String newDescription) {
-        return new BannerRecipe(id, newDescription, author, url, bannerColor, layers);
+        return new BannerRecipe(id, newDescription, author, url, category, bannerColor, layers);
     }
 
     public BannerRecipe withBannerColor(String newBannerColor) {
-        return new BannerRecipe(id, description, author, url, newBannerColor, layers);
+        return new BannerRecipe(id, description, author, url, category, newBannerColor, layers);
     }
 
     static BannerRecipe fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {
@@ -73,7 +85,7 @@ public record BannerRecipe(
                         layer.pattern().getRegisteredName(), layer.color().getName()));
             }
         }
-        return new BannerRecipe(null, description, null, null, baseColor.getName(), parsedLayers);
+        return new BannerRecipe(null, description, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
     }
 
     public static BannerRecipe fromJson(String json) {
@@ -114,12 +126,19 @@ public record BannerRecipe(
                         Codec.STRING.fieldOf("description").forGetter(BannerRecipe::description),
                         Codec.STRING.optionalFieldOf("author").forGetter(d -> Optional.ofNullable(d.author())),
                         Codec.STRING.optionalFieldOf("url").forGetter(d -> Optional.ofNullable(d.url())),
+                        Codec.STRING.optionalFieldOf("category", DEFAULT_CATEGORY).forGetter(BannerRecipe::category),
                         Codec.STRING.fieldOf("banner_color").forGetter(BannerRecipe::bannerColor),
                         BannerRecipeLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerRecipe::layers))
                 .apply(
                         instance,
-                        (description, author, url, bannerColor, layers) -> new BannerRecipe(
-                                null, description, author.orElse(null), url.orElse(null), bannerColor, layers)));
+                        (description, author, url, category, bannerColor, layers) -> new BannerRecipe(
+                            null,
+                            description,
+                            author.orElse(null),
+                            url.orElse(null),
+                            category,
+                            bannerColor,
+                            layers)));
     }
 
     private static final class CommandFormat {
@@ -195,7 +214,8 @@ public record BannerRecipe(
                 }
             }
 
-            return new BannerRecipe(null, DEFAULT_DESCRIPTION, null, null, baseColor.getName(), parsedLayers);
+                return new BannerRecipe(
+                    null, DEFAULT_DESCRIPTION, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
         }
 
         private static String stripMinecraftNamespace(String value) {

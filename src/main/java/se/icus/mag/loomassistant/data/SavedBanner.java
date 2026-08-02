@@ -20,6 +20,7 @@ import se.icus.mag.loomassistant.types.BannerRecipe;
 public class SavedBanner {
     private String id;
     private String name;
+    private String category;
     private String baseColor;
     private List<BannerPatternLayer> layers;
     private long createdAt;
@@ -33,6 +34,7 @@ public class SavedBanner {
     public SavedBanner(String name, DyeColor baseColor, List<BannerPatternLayer> layers) {
         this();
         this.name = name;
+        this.category = BannerRecipe.DEFAULT_CATEGORY;
         this.baseColor = baseColor.getName();
         this.layers = new ArrayList<>(layers);
     }
@@ -51,6 +53,14 @@ public class SavedBanner {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCategory() {
+        return category == null || category.isBlank() ? BannerRecipe.DEFAULT_CATEGORY : category;
+    }
+
+    public void setCategory(String category) {
+        this.category = (category == null || category.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : category;
     }
 
     public String getBaseColor() {
@@ -113,7 +123,7 @@ public class SavedBanner {
         List<se.icus.mag.loomassistant.types.BannerRecipeLayer> convertedLayers = layers == null
                 ? new ArrayList<>()
                 : layers.stream().map(BannerPatternLayer::toType).collect(Collectors.toCollection(ArrayList::new));
-        return new BannerRecipe(id, name, null, null, baseColor, convertedLayers);
+        return new BannerRecipe(id, name, null, null, getCategory(), baseColor, convertedLayers);
     }
 
     public static SavedBanner fromType(BannerRecipe recipe) {
@@ -125,6 +135,7 @@ public class SavedBanner {
 
         SavedBanner banner = new SavedBanner(recipe.description(), recipe.getBannerColorEnum(), convertedLayers);
         banner.setId(recipe.id());
+        banner.setCategory(recipe.category());
         return banner;
     }
 

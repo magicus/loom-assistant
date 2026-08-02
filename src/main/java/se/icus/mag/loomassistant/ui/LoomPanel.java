@@ -42,6 +42,7 @@ import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipeCategories;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 import org.lwjgl.glfw.GLFW;
 
@@ -63,11 +64,6 @@ public class LoomPanel {
     private static final int FILTER_Y = 12;
     private static final int FILTER_W = 26;
     private static final int FILTER_H = 16;
-    private static final int GUIDE_BUTTON_X = 8;
-    private static final int GUIDE_BUTTON_Y = PANEL_HEIGHT - 24;
-    private static final int GUIDE_BUTTON_W = PANEL_WIDTH - 16;
-    private static final int GUIDE_BUTTON_H = 20;
-
     private static final Identifier RECIPE_BOOK_TEXTURE =
         Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
     private static final Identifier FILTER_ENABLED =
@@ -82,35 +78,14 @@ public class LoomPanel {
         Component.translatable("gui.recipebook.toggleRecipes.all");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
         Component.translatable("loom-assistant.panel.show_weavable");
-    private static final Component AUTO_WEAVE_LABEL =
-        Component.translatable("loom-assistant.panel.auto_weave");
     private static final Component WEAVING_LABEL =
         Component.translatable("loom-assistant.panel.weaving");
     private static final Component NO_BANNERS_LABEL =
         Component.translatable("loom-assistant.panel.no_banners");
-    private static final Component SELECT_BANNER_LABEL =
-        Component.translatable("loom-assistant.panel.select_banner");
-    private static final Component SELECT_BANNER_HINT_LABEL =
-        Component.translatable("loom-assistant.panel.select_banner_hint");
-    private static final Component WEAVE_GUIDE_LABEL =
-        Component.translatable("loom-assistant.panel.weave_guide");
-    private static final Component NO_PACKS_LABEL =
-        Component.translatable("loom-assistant.panel.no_packs");
-    private static final Component EDIT_LABEL =
-        Component.translatable("loom-assistant.panel.edit");
-    private static final Component COMING_SOON_LABEL =
-        Component.translatable("loom-assistant.common.coming_soon");
     private static final Identifier SLOT_CRAFTABLE_SPRITE =
         Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
         Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
-
-    private enum Tab {
-    BANNERS,
-    PACKS,
-    EDIT,
-    GUIDE
-    }
 
     private final LoomScreen screen;
     private final LoomMenu handler;
@@ -118,8 +93,8 @@ public class LoomPanel {
     private int y;
     private final AutoCraftStateMachine autoCraft;
     private final EditBox searchBox;
-    private final Button autoCraftButton;
-    private Tab activeTab = Tab.BANNERS;
+    private final List<BannerRecipeCategories.Category> categoryTabs;
+    private String selectedCategoryId;
     private boolean craftableOnly = false;
     private int page = 0;
     private String selectedBannerId = null;
@@ -142,10 +117,8 @@ public class LoomPanel {
         this.searchBox.setVisible(true);
         this.searchBox.setTextColor(-1);
         this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
-        this.autoCraftButton = Button.builder(AUTO_WEAVE_LABEL, button -> startSelectedBannerAutoCraft())
-            .bounds(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y, GUIDE_BUTTON_W, GUIDE_BUTTON_H)
-            .build();
-        this.autoCraftButton.active = false;
+        this.categoryTabs = BannerRecipeCategories.getCategories();
+        this.selectedCategoryId = null;
     }
 
     // -------------------------------------------------------------------------
@@ -157,20 +130,9 @@ public class LoomPanel {
 
         ctx.blit(RenderPipelines.GUI_TEXTURED, RECIPE_BOOK_TEXTURE, x, y, 1.0F, 1.0F, PANEL_WIDTH, PANEL_HEIGHT, 256, 256);
         renderTabs(ctx, mouseX, mouseY);
-        if (activeTab == Tab.BANNERS) {
-            searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
-            renderFilterButton(ctx, mouseX, mouseY);
-        }
-
-        if (activeTab == Tab.BANNERS) {
-            renderBannerGrid(ctx, font, mouseX, mouseY);
-        } else if (activeTab == Tab.PACKS) {
-            renderPacksTab(ctx, font);
-        } else if (activeTab == Tab.EDIT) {
-            renderEditTab(ctx, font);
-        } else if (activeTab == Tab.GUIDE) {
-            renderGuideTab(ctx, font, mouseX, mouseY);
-        }
+        searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
+        renderFilterButton(ctx, mouseX, mouseY);
+        renderBannerGrid(ctx, font, mouseX, mouseY);
 
         if (autoCraft.isActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
@@ -178,35 +140,63 @@ public class LoomPanel {
     }
 
     private void renderTabs(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
-        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT, Tab.GUIDE};
-
-        for (int i = 0; i < tabs.length; i++) {
+        int totalTabs = 1 + categoryTabs.size();
+        for (int i = 0; i < totalTabs; i++) {
             int tx = x - TAB_X_OFFSET;
             int ty = y + TAB_Y_START + i * RecipeBookTabButton.HEIGHT;
-            RecipeBookTabButton button = createTabButton(tabs[i], tx, ty);
-            if (activeTab == tabs[i]) {
+            RecipeBookTabButton button;
+            Component tooltip;
+            if (i == 0) {
+                button = createAllTabButton(tx, ty);
+                tooltip = ALL_RECIPES_TOOLTIP;
+            } else {
+                BannerRecipeCategories.Category category = categoryTabs.get(i - 1);
+                button = createCategoryTabButton(category, tx, ty);
+                tooltip = Component.literal(category.name());
+            }
+
+            if (isTabSelected(i)) {
                 button.select();
             }
             button.extractContents(ctx, mouseX, mouseY, 0.0F);
             if (mouseX >= tx - 2 && mouseX < tx - 2 + RecipeBookTabButton.WIDTH && mouseY >= ty && mouseY < ty + RecipeBookTabButton.HEIGHT) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.setTooltipForNextFrame(
+                        Minecraft.getInstance().font,
+                        List.of(tooltip),
+                        Optional.empty(),
+                        mouseX,
+                        mouseY);
             }
         }
     }
 
-    private RecipeBookTabButton createTabButton(Tab tab, int tx, int ty) {
-        RecipeBookComponent.TabInfo tabInfo = switch (tab) {
-            case BANNERS -> new RecipeBookComponent.TabInfo(Items.COMPASS, new RecipeBookCategory());
-            case PACKS -> new RecipeBookComponent.TabInfo(Items.BRICKS, new RecipeBookCategory());
-            case EDIT -> new RecipeBookComponent.TabInfo(Items.REDSTONE, new RecipeBookCategory());
-            case GUIDE -> new RecipeBookComponent.TabInfo(Items.BOOK, new RecipeBookCategory());
-        };
+    private RecipeBookTabButton createAllTabButton(int tx, int ty) {
+        RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(Items.COMPASS, new RecipeBookCategory());
 
         return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
-            activeTab = tab;
+            selectedCategoryId = null;
             page = 0;
-            searchBox.setFocused(activeTab == Tab.BANNERS);
+            searchBox.setFocused(true);
         });
+    }
+
+    private RecipeBookTabButton createCategoryTabButton(BannerRecipeCategories.Category category, int tx, int ty) {
+        RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(
+                BannerRecipeCategories.resolveIcon(category).getItem(), new RecipeBookCategory());
+
+        return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
+            selectedCategoryId = category.id();
+            page = 0;
+            searchBox.setFocused(true);
+        });
+    }
+
+    private boolean isTabSelected(int tabIndex) {
+        if (tabIndex == 0) {
+            return selectedCategoryId == null;
+        }
+        return selectedCategoryId != null && selectedCategoryId.equals(categoryTabs.get(tabIndex - 1).id());
     }
 
     private void renderFilterButton(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
@@ -259,51 +249,6 @@ public class LoomPanel {
         }
     }
 
-    private void renderGuideTab(GuiGraphicsExtractor ctx, Font font, int mouseX, int mouseY) {
-        SavedBanner banner = getSelectedBanner();
-        if (banner == null) {
-            ctx.text(font, SELECT_BANNER_LABEL, x + 18, y + 48, 0xFFDDDDDD, false);
-            ctx.text(font, SELECT_BANNER_HINT_LABEL, x + 18, y + 60, 0xFF777777, false);
-            autoCraftButton.active = false;
-            autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
-            autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
-            return;
-        }
-
-        ctx.text(font, WEAVE_GUIDE_LABEL, x + 12, y + 20, 0xFFDDDDDD, false);
-        ctx.text(font, Component.literal(banner.getDisplayName()), x + 12, y + 32, 0xFFFFFFFF, false);
-
-        List<GuideCard> cards = buildGuideCards(banner);
-        int cardY = y + 48;
-        for (int i = 0; i < cards.size(); i++) {
-            GuideCard card = cards.get(i);
-            int cardHeight = card.rows().size() * 18 + 6;
-            int cardWidth = PANEL_WIDTH - 24;
-            int cardX = x + 8;
-
-            int bgColor = card.highlighted() ? 0x4A3D2A66 : 0x241A1A1A;
-            int borderColor = card.highlighted() ? 0xFF8FB6FF : 0x60FFFFFF;
-            ctx.fill(cardX, cardY, cardX + cardWidth, cardY + cardHeight, bgColor);
-            ctx.outline(cardX, cardY, cardWidth, cardHeight, borderColor);
-
-            int rowY = cardY + 4;
-            for (BannerRecipeTooltipComponent.Row row : card.rows()) {
-                ctx.text(font, row.text(), cardX + 6, rowY + 1, 0xFFFFFFFF, false);
-                ctx.item(row.primary(), cardX + 6, rowY + 11);
-                if (row.hasSecondary()) {
-                    ctx.item(row.secondary(), cardX + 24, rowY + 11);
-                }
-                rowY += 18;
-            }
-
-            cardY += cardHeight + 4;
-        }
-
-        autoCraftButton.active = !autoCraft.isActive();
-        autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
-        autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
-    }
-
     private static Optional<TooltipComponent> buildTooltipImage(SavedBanner banner) {
         List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
         if (rows.isEmpty()) {
@@ -311,25 +256,6 @@ public class LoomPanel {
         }
 
         return Optional.of(new BannerRecipeTooltipComponent(rows));
-    }
-
-    private List<GuideCard> buildGuideCards(SavedBanner banner) {
-        List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
-        List<GuideCard> cards = new ArrayList<>();
-        if (rows.isEmpty()) {
-            return cards;
-        }
-
-        if (rows.size() == 1) {
-            cards.add(new GuideCard(rows, true));
-            return cards;
-        }
-
-        cards.add(new GuideCard(rows.subList(0, Math.min(2, rows.size())), true));
-        for (int i = 2; i < rows.size(); i++) {
-            cards.add(new GuideCard(List.of(rows.get(i)), false));
-        }
-        return cards;
     }
 
     private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(SavedBanner banner) {
@@ -417,25 +343,6 @@ public class LoomPanel {
         return ItemStack.EMPTY;
     }
 
-    private void renderPacksTab(GuiGraphicsExtractor ctx, Font font) {
-        int ty = y + GRID_START_Y;
-        List<String> packs = getInstalledPacks();
-        if (packs.isEmpty()) {
-            ctx.text(font, NO_PACKS_LABEL, x + 12, ty, 0xFF777777, false);
-            return;
-        }
-        for (String pack : packs) {
-            ctx.text(font, Component.translatable("loom-assistant.panel.pack_entry", pack), x + 12, ty, 0xFFDDDDDD, false);
-            ty += 11;
-            if (ty > y + 130) break;
-        }
-    }
-
-    private void renderEditTab(GuiGraphicsExtractor ctx, Font font) {
-        ctx.text(font, EDIT_LABEL, x + 12, y + GRID_START_Y, 0xFFDDDDDD, false);
-        ctx.text(font, COMING_SOON_LABEL, x + 12, y + GRID_START_Y + 12, 0xFF777777, false);
-    }
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -449,26 +356,20 @@ public class LoomPanel {
             return true;
         }
 
-        if (activeTab == Tab.BANNERS && searchBox.mouseClicked(event, false)) {
+        if (searchBox.mouseClicked(event, false)) {
             return true;
         }
 
-        if (activeTab == Tab.BANNERS) {
-            int filterX = x + FILTER_X;
-            int filterY = y + FILTER_Y;
-            if (isIn(mx, my, filterX, filterY, FILTER_W, FILTER_H)) {
-                craftableOnly = !craftableOnly;
-                page = 0;
-                playUiClickSound();
-                return true;
-            }
-        }
-
-        if (activeTab == Tab.BANNERS && clickBannerGrid(mx, my)) {
+        int filterX = x + FILTER_X;
+        int filterY = y + FILTER_Y;
+        if (isIn(mx, my, filterX, filterY, FILTER_W, FILTER_H)) {
+            craftableOnly = !craftableOnly;
+            page = 0;
+            playUiClickSound();
             return true;
         }
 
-        if (activeTab == Tab.GUIDE && autoCraftButton.mouseClicked(event, false)) {
+        if (clickBannerGrid(mx, my)) {
             return true;
         }
 
@@ -476,14 +377,14 @@ public class LoomPanel {
     }
 
     private boolean clickTabs(int mx, int my) {
-        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT, Tab.GUIDE};
-        for (int i = 0; i < tabs.length; i++) {
+        int totalTabs = 1 + categoryTabs.size();
+        for (int i = 0; i < totalTabs; i++) {
             int tx = x - TAB_X_OFFSET;
             int ty = y + TAB_Y_START + i * RecipeBookTabButton.HEIGHT;
-            if (isIn(mx, my, tx - (activeTab == tabs[i] ? 2 : 0), ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
-                activeTab = tabs[i];
+            if (isIn(mx, my, tx - (isTabSelected(i) ? 2 : 0), ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
+                selectedCategoryId = i == 0 ? null : categoryTabs.get(i - 1).id();
                 page = 0;
-                searchBox.setFocused(activeTab == Tab.BANNERS);
+                searchBox.setFocused(true);
                 playUiClickSound();
                 return true;
             }
@@ -530,9 +431,6 @@ public class LoomPanel {
     }
 
     public boolean keyPressed(KeyEvent event) {
-        if (activeTab != Tab.BANNERS) {
-            return false;
-        }
         if (searchBox.keyPressed(event)) {
             page = 0;
             return true;
@@ -541,9 +439,6 @@ public class LoomPanel {
     }
 
     public boolean charTyped(CharacterEvent event) {
-        if (activeTab != Tab.BANNERS) {
-            return false;
-        }
         if (searchBox.charTyped(event)) {
             page = 0;
             return true;
@@ -552,16 +447,10 @@ public class LoomPanel {
     }
 
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (activeTab != Tab.BANNERS) {
-            return false;
-        }
         return searchBox.mouseDragged(event, dx, dy);
     }
 
     public boolean mouseScrolled(double mx, double my, double hAmt, double vAmt) {
-        if (activeTab != Tab.BANNERS) {
-            return false;
-        }
         List<SavedBanner> items = getFilteredBanners();
         int maxPage = Math.max(0, (items.size() - 1) / (GRID_COLUMNS * GRID_ROWS));
         if (vAmt > 0 && page > 0) {
@@ -583,11 +472,6 @@ public class LoomPanel {
         this.x = x;
         this.y = y;
         this.searchBox.setPosition(x + SEARCH_X, y + SEARCH_Y);
-        this.autoCraftButton.setPosition(x + GUIDE_BUTTON_X, y + GUIDE_BUTTON_Y);
-    }
-
-    private void startSelectedBannerAutoCraft() {
-        craftSelectedBanner();
     }
 
     // -------------------------------------------------------------------------
@@ -598,6 +482,9 @@ public class LoomPanel {
         String query = searchBox.getValue().trim().toLowerCase(Locale.ROOT);
         List<SavedBanner> out = new ArrayList<>();
         for (SavedBanner banner : BannerStorage.getInstance().getBanners()) {
+            if (selectedCategoryId != null && !selectedCategoryId.equalsIgnoreCase(banner.getCategory())) {
+                continue;
+            }
             if (!query.isEmpty() && !banner.getDisplayName().toLowerCase(Locale.ROOT).contains(query)) {
                 continue;
             }
@@ -673,10 +560,6 @@ public class LoomPanel {
     }
 
     public void editSelectedBanner() {
-        if (getSelectedBanner() != null) {
-            activeTab = Tab.EDIT;
-            searchBox.setFocused(false);
-        }
     }
 
     public void clearSelectedBanner() {
@@ -781,24 +664,6 @@ public class LoomPanel {
         return toTitle(layer.getDyeColorEnum().getSerializedName()) + " " + toTitle(layer.patternId());
     }
 
-    private List<String> getInstalledPacks() {
-        List<String> packs = new ArrayList<>();
-        packs.add("root");
-        try {
-            Path dir = FabricLoader.getInstance().getConfigDir().resolve("loom-assistant").resolve("bannerpacks");
-            if (Files.exists(dir)) {
-                try (var stream = Files.list(dir)) {
-                    stream.map(path -> path.getFileName().toString())
-                            .filter(name -> !name.equalsIgnoreCase("root"))
-                            .sorted()
-                            .forEach(packs::add);
-                }
-            }
-        } catch (Exception ignored) {
-        }
-        return packs;
-    }
-
     private static String toTitle(String id) {
         String raw = id.contains(":") ? id.split(":", 2)[1] : id;
         StringBuilder sb = new StringBuilder();
@@ -811,9 +676,6 @@ public class LoomPanel {
 
     private static boolean isIn(int mx, int my, int bx, int by, int bw, int bh) {
         return mx >= bx && mx < bx + bw && my >= by && my < by + bh;
-    }
-
-    private record GuideCard(List<BannerRecipeTooltipComponent.Row> rows, boolean highlighted) {
     }
 
     public static boolean saveBannerFromOutput(LoomMenu handler) {
