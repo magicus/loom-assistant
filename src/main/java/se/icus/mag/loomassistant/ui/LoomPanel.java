@@ -69,13 +69,17 @@ public class LoomPanel {
     private static final Identifier RECIPE_BOOK_TEXTURE =
         Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
     private static final Identifier FILTER_ENABLED =
-        Identifier.withDefaultNamespace("recipe_book/filter_enabled");
+        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_enabled");
     private static final Identifier FILTER_DISABLED =
-        Identifier.withDefaultNamespace("recipe_book/filter_disabled");
+        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_disabled");
     private static final Identifier FILTER_ENABLED_HOVER =
-        Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted");
+        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_enabled_highlighted");
     private static final Identifier FILTER_DISABLED_HOVER =
-        Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
+        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_disabled_highlighted");
+    private static final Component ALL_RECIPES_TOOLTIP =
+        Component.translatable("gui.recipebook.toggleRecipes.all");
+    private static final Component ONLY_CRAFTABLES_TOOLTIP =
+        Component.translatable("gui.recipebook.toggleRecipes.craftable");
     private static final Identifier SLOT_CRAFTABLE_SPRITE =
         Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
@@ -99,6 +103,7 @@ public class LoomPanel {
     private boolean craftableOnly = false;
     private int page = 0;
     private String selectedBannerId = null;
+    private SavedBanner activeBanner = null;
 
     public LoomPanel(LoomScreen screen, LoomMenu handler, int x, int y) {
         this.screen = screen;
@@ -195,6 +200,16 @@ public class LoomPanel {
             sprite = hov ? FILTER_DISABLED_HOVER : FILTER_DISABLED;
         }
         ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx, by, FILTER_W, FILTER_H);
+        if (hov) {
+            ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+            Component tooltip = craftableOnly ? ONLY_CRAFTABLES_TOOLTIP : ALL_RECIPES_TOOLTIP;
+            ctx.setTooltipForNextFrame(
+                    Minecraft.getInstance().font,
+                    List.of(tooltip),
+                    Optional.empty(),
+                    mouseX,
+                    mouseY);
+        }
     }
 
     private void renderBannerGrid(GuiGraphicsExtractor ctx, Font font, int mouseX, int mouseY) {
@@ -218,8 +233,7 @@ public class LoomPanel {
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
-                Optional<TooltipComponent> image = buildTooltipImage(banner);
-                ctx.setTooltipForNextFrame(font, List.of(Component.literal(banner.getDisplayName())), image, mouseX, mouseY);
+                setBannerTooltip(ctx, banner, mouseX, mouseY);
             }
         }
 
@@ -273,7 +287,7 @@ public class LoomPanel {
         autoCraftButton.extractRenderState(ctx, mouseX, mouseY, 0.0F);
     }
 
-    private Optional<TooltipComponent> buildTooltipImage(SavedBanner banner) {
+    private static Optional<TooltipComponent> buildTooltipImage(SavedBanner banner) {
         List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
         if (rows.isEmpty()) {
             return Optional.empty();
@@ -301,7 +315,7 @@ public class LoomPanel {
         return cards;
     }
 
-    private List<BannerRecipeTooltipComponent.Row> buildRecipeRows(SavedBanner banner) {
+    private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(SavedBanner banner) {
         List<BannerRecipeTooltipComponent.Row> rows = new ArrayList<>();
         String baseKey = "block.minecraft." + banner.getBaseColorEnum().getSerializedName() + "_banner";
         String baseName = Language.getInstance().getOrDefault(baseKey);
@@ -326,7 +340,7 @@ public class LoomPanel {
     }
 
     @SuppressWarnings("unchecked")
-    private ItemStack createLayerPreviewStack(BannerPatternLayer layer) {
+    private static ItemStack createLayerPreviewStack(BannerPatternLayer layer) {
         ItemStack stack = new ItemStack(Items.BANNER.white());
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
@@ -358,7 +372,7 @@ public class LoomPanel {
     }
 
     @SuppressWarnings("unchecked")
-    private ItemStack getPatternItem(String patternId) {
+    private static ItemStack getPatternItem(String patternId) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
             return ItemStack.EMPTY;
@@ -444,7 +458,7 @@ public class LoomPanel {
     }
 
     private boolean clickTabs(int mx, int my) {
-        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT};
+        Tab[] tabs = new Tab[] {Tab.BANNERS, Tab.PACKS, Tab.EDIT, Tab.GUIDE};
         for (int i = 0; i < tabs.length; i++) {
             int tx = x - TAB_X_OFFSET;
             int ty = y + TAB_Y_START + i * RecipeBookTabButton.HEIGHT;
@@ -473,12 +487,12 @@ public class LoomPanel {
             int by = y + GRID_START_Y + row * GRID_CELL;
             if (isIn(mx, my, bx, by, 16, 16)) {
                 SavedBanner banner = items.get(i);
+                selectedBannerId = banner.getId();
+                activeBanner = banner;
                 if (isShiftPressed) {
-                    autoCraft.start(banner);
+                    craftSelectedBanner();
                 } else {
-                    selectedBannerId = banner.getId();
-                    activeTab = Tab.GUIDE;
-                    searchBox.setFocused(false);
+                    searchBox.setFocused(true);
                 }
                 return true;
             }
@@ -544,10 +558,7 @@ public class LoomPanel {
     }
 
     private void startSelectedBannerAutoCraft() {
-        SavedBanner selectedBanner = getSelectedBanner();
-        if (selectedBanner != null) {
-            autoCraft.start(selectedBanner);
-        }
+        craftSelectedBanner();
     }
 
     // -------------------------------------------------------------------------
@@ -570,23 +581,155 @@ public class LoomPanel {
     }
 
     private boolean isCraftableNow(SavedBanner banner) {
-        return true;
+        return autoCraft.canCraft(banner);
     }
 
     private SavedBanner getSelectedBanner() {
-        if (selectedBannerId == null) {
+        return activeBanner;
+    }
+
+    public ItemStack getActiveBannerStack() {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner == null) {
+            return ItemStack.EMPTY;
+        }
+        return BannerPreviewRenderer.createBannerWithPatterns(selectedBanner);
+    }
+
+    public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner == null) {
+            return;
+        }
+
+        setBannerTooltip(ctx, selectedBanner, mouseX, mouseY);
+    }
+
+    public static void setBannerTooltip(GuiGraphicsExtractor ctx, SavedBanner banner, int mouseX, int mouseY) {
+        Optional<TooltipComponent> image = buildTooltipImage(banner);
+        ctx.setTooltipForNextFrame(
+                Minecraft.getInstance().font,
+                List.of(Component.literal(banner.getDisplayName())),
+                image,
+                mouseX,
+                mouseY);
+    }
+
+    public void craftSelectedBanner() {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner != null) {
+            autoCraft.start(selectedBanner);
+        }
+    }
+
+    public boolean isActiveBannerCraftable() {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner == null) {
+            return false;
+        }
+        return autoCraft.canCraft(selectedBanner);
+    }
+
+    public String getActiveBannerMissingMaterialMessage() {
+        SavedBanner selectedBanner = getSelectedBanner();
+        if (selectedBanner == null) {
+            return "Select an active banner";
+        }
+
+        List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(selectedBanner);
+        if (missingMaterials.isEmpty()) {
             return null;
         }
-        for (SavedBanner banner : BannerStorage.getInstance().getBanners()) {
-            if (selectedBannerId.equals(banner.getId())) {
-                return banner;
+        return "Missing:\n" + String.join("\n", missingMaterials);
+    }
+
+    public void editSelectedBanner() {
+        if (getSelectedBanner() != null) {
+            activeTab = Tab.EDIT;
+            searchBox.setFocused(false);
+        }
+    }
+
+    public void clearSelectedBanner() {
+        selectedBannerId = null;
+        activeBanner = null;
+    }
+
+    public boolean setActiveBannerFromItemStack(ItemStack stack) {
+        SavedBanner banner = BannerPreviewRenderer.extractBannerData(stack);
+        if (banner == null) {
+            return false;
+        }
+        selectedBannerId = null;
+        activeBanner = banner;
+        return true;
+    }
+
+    public boolean hasActiveBanner() {
+        return activeBanner != null;
+    }
+
+    public boolean isActiveBannerSavable() {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null) {
+            return false;
+        }
+        return findMatchingSavedBanner(selected) == null;
+    }
+
+    public boolean saveActiveBanner() {
+        SavedBanner selected = getSelectedBanner();
+        if (selected == null || !isActiveBannerSavable()) {
+            return false;
+        }
+
+        SavedBanner toSave = cloneBannerForSave(selected);
+        BannerStorage.getInstance().addBanner(toSave);
+
+        SavedBanner matched = findMatchingSavedBanner(selected);
+        if (matched != null) {
+            activeBanner = matched;
+            selectedBannerId = matched.getId();
+        }
+        return true;
+    }
+
+    private SavedBanner cloneBannerForSave(SavedBanner source) {
+        SavedBanner copy = new SavedBanner(source.getName(), source.getBaseColorEnum(), new ArrayList<>(source.getLayers()));
+        if (source.getName() != null) {
+            copy.setName(source.getName());
+        }
+        return copy;
+    }
+
+    private SavedBanner findMatchingSavedBanner(SavedBanner needle) {
+        for (SavedBanner existing : BannerStorage.getInstance().getBanners()) {
+            if (bannersEquivalent(existing, needle)) {
+                return existing;
             }
         }
         return null;
     }
 
+    private boolean bannersEquivalent(SavedBanner a, SavedBanner b) {
+        if (!a.getBaseColorEnum().equals(b.getBaseColorEnum())) {
+            return false;
+        }
+        List<BannerPatternLayer> la = a.getLayers();
+        List<BannerPatternLayer> lb = b.getLayers();
+        if (la.size() != lb.size()) {
+            return false;
+        }
+        for (int i = 0; i < la.size(); i++) {
+            if (!la.get(i).equals(lb.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @SuppressWarnings("unchecked")
-    private String getPatternDisplayName(BannerPatternLayer layer) {
+    private static String getPatternDisplayName(BannerPatternLayer layer) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
             try {

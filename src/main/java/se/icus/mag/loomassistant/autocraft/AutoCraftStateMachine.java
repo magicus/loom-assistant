@@ -4,7 +4,10 @@
  */
 package se.icus.mag.loomassistant.autocraft;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.inventory.ContainerInput;
@@ -47,6 +50,17 @@ public class AutoCraftStateMachine {
         ERROR
     }
 
+    public enum MissingMaterialType {
+        NONE,
+        BANNER,
+        DYE,
+        PATTERN_TEMPLATE
+    }
+
+    private record MissingMaterial(Item item, MissingMaterialType type) {}
+
+    private record MaterialValidationResult(String errorMessage, MissingMaterialType missingType) {}
+
     public AutoCraftStateMachine(LoomMenu handler) {
         this.handler = handler;
     }
@@ -85,6 +99,37 @@ public class AutoCraftStateMachine {
 
     public String getErrorMessage() {
         return errorMessage;
+    }
+
+    public boolean canCraft(SavedBanner banner) {
+        if (banner == null) {
+            return false;
+        }
+        return getMissingMaterialsInCraftOrder(banner).isEmpty();
+    }
+
+    public MissingMaterialType getMissingMaterialType(SavedBanner banner) {
+        if (banner == null) {
+            return MissingMaterialType.NONE;
+        }
+        List<MissingMaterial> missingMaterials = getMissingMaterialsInCraftOrder(banner);
+        if (missingMaterials.isEmpty()) {
+            return MissingMaterialType.NONE;
+        }
+        return missingMaterials.get(0).type();
+    }
+
+    public List<String> getMissingMaterialDescriptions(SavedBanner banner) {
+        List<String> descriptions = new ArrayList<>();
+        if (banner == null) {
+            return descriptions;
+        }
+
+        List<MissingMaterial> missingMaterials = getMissingMaterialsInCraftOrder(banner);
+        for (MissingMaterial missingMaterial : missingMaterials) {
+            descriptions.add(formatMissingMaterialName(missingMaterial));
+        }
+        return descriptions;
     }
 
     public void tick() {
@@ -360,35 +405,100 @@ public class AutoCraftStateMachine {
      * Returns an error message if validation fails, null if all materials are available
      */
     private String validateAllMaterials(SavedBanner banner) {
-        // Check for base banner
-        Item bannerItem = banner.getBaseBannerItem();
-        int bannerSlotId = findBlankBannerInInventory(bannerItem);
-        if (bannerSlotId < 0 && handler.getSlot(BANNER_SLOT).getItem().isEmpty()) {
-            return "Missing base banner";
+        return validateMaterials(banner).errorMessage();
+    }
+
+    private MaterialValidationResult validateMaterials(SavedBanner banner) {
+        List<String> missingDescriptions = getMissingMaterialDescriptions(banner);
+        if (missingDescriptions.isEmpty()) {
+            return new MaterialValidationResult(null, MissingMaterialType.NONE);
+        }
+        MissingMaterialType missingType = getMissingMaterialType(banner);
+        return new MaterialValidationResult("Missing " + String.join(", ", missingDescriptions), missingType);
+    }
+
+    private List<MissingMaterial> getMissingMaterialsInCraftOrder(SavedBanner banner) {
+        List<MissingMaterial> missing = new ArrayList<>();
+
+        Map<Item, Integer> availableCounts = getAvailableItemCounts();
+
+        // Crafting starts with a base banner.
+        ItemStack bannerSlotStack = handler.getSlot(BANNER_SLOT).getItem();
+        if (bannerSlotStack.isEmpty()) {
+            Item bannerItem = banner.getBaseBannerItem();
+            int availableBlankBanners = countBlankBannersInInventory(bannerItem);
+            if (availableBlankBanners < 1) {
+                missing.add(new MissingMaterial(bannerItem, MissingMaterialType.BANNER));
+            } else {
+                consumeOne(availableCounts, bannerItem);
+            }
         }
 
-        // Check for all dyes and pattern items
-        for (int i = 0; i < banner.getLayers().size(); i++) {
-            BannerPatternLayer layer = banner.getLayers().get(i);
-
-            // Check dye
+        for (BannerPatternLayer layer : banner.getLayers()) {
             Item dyeItem = SavedBanner.getDyeItem(layer.getDyeColorEnum());
-            int dyeSlotId = findItemInInventory(dyeItem);
-            if (dyeSlotId < 0 && handler.getSlot(DYE_SLOT).getItem().isEmpty()) {
-                return "Missing " + layer.getDyeColorEnum().getName() + " dye for pattern " + (i + 1);
+            if (!consumeOne(availableCounts, dyeItem)) {
+                missing.add(new MissingMaterial(dyeItem, MissingMaterialType.DYE));
             }
 
-            // Check pattern item if required
             Item patternItem = getRequiredPatternItem(layer.patternId());
-            if (patternItem != null) {
-                int patternSlotId = findItemInInventory(patternItem);
-                if (patternSlotId < 0 && handler.getSlot(PATTERN_SLOT).getItem().isEmpty()) {
-                    return "Missing " + patternItem + " for pattern " + (i + 1);
-                }
+            if (patternItem != null && !consumeOne(availableCounts, patternItem)) {
+                missing.add(new MissingMaterial(patternItem, MissingMaterialType.PATTERN_TEMPLATE));
             }
         }
 
-        return null; // All materials available
+        return missing;
+    }
+
+    private Map<Item, Integer> getAvailableItemCounts() {
+        Map<Item, Integer> available = new HashMap<>();
+
+        for (int i = INVENTORY_START; i < INVENTORY_END; i++) {
+            ItemStack stack = handler.getSlot(i).getItem();
+            if (!stack.isEmpty()) {
+                available.merge(stack.getItem(), stack.getCount(), Integer::sum);
+            }
+        }
+
+        ItemStack dyeSlotStack = handler.getSlot(DYE_SLOT).getItem();
+        if (!dyeSlotStack.isEmpty()) {
+            available.merge(dyeSlotStack.getItem(), dyeSlotStack.getCount(), Integer::sum);
+        }
+
+        ItemStack patternSlotStack = handler.getSlot(PATTERN_SLOT).getItem();
+        if (!patternSlotStack.isEmpty()) {
+            available.merge(patternSlotStack.getItem(), patternSlotStack.getCount(), Integer::sum);
+        }
+
+        return available;
+    }
+
+    private int countBlankBannersInInventory(Item bannerItem) {
+        int count = 0;
+        for (int i = INVENTORY_START; i < INVENTORY_END; i++) {
+            ItemStack stack = handler.getSlot(i).getItem();
+            if (stack.isEmpty() || stack.getItem() != bannerItem) {
+                continue;
+            }
+            BannerPatternLayers patterns = stack.get(DataComponents.BANNER_PATTERNS);
+            if (patterns == null || patterns.layers().isEmpty()) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    private static boolean consumeOne(Map<Item, Integer> availableCounts, Item item) {
+        int available = availableCounts.getOrDefault(item, 0);
+        if (available <= 0) {
+            return false;
+        }
+
+        availableCounts.put(item, available - 1);
+        return true;
+    }
+
+    private static String formatMissingMaterialName(MissingMaterial missingMaterial) {
+        return new ItemStack(missingMaterial.item()).getHoverName().getString();
     }
 
     /**

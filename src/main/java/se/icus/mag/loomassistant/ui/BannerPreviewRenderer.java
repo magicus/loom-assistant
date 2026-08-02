@@ -28,7 +28,7 @@ public class BannerPreviewRenderer {
     public static void render(
             GuiGraphicsExtractor context, SavedBanner banner, LoomMenu handler, int x, int y, int size) {
         // Create a banner item stack with patterns applied
-        ItemStack bannerStack = createBannerWithPatterns(banner);
+    ItemStack bannerStack = createBannerWithPatterns(banner);
 
         // Render the item using DrawContext
         context.item(bannerStack, x, y);
@@ -37,7 +37,7 @@ public class BannerPreviewRenderer {
     /**
      * Creates a banner ItemStack with all patterns from the SavedBanner applied.
      */
-    private static ItemStack createBannerWithPatterns(SavedBanner banner) {
+    public static ItemStack createBannerWithPatterns(SavedBanner banner) {
         ItemStack stack = new ItemStack(banner.getBaseBannerItem());
 
         List<BannerPatternLayer> layers = banner.getLayers();

@@ -1,0 +1,10 @@
+{
+  "ui.active_slot_set": {
+    "subtitle": "subtitles.loom-assistant.ui.active_slot_set",
+    "sounds": [
+      {
+        "name": "loom-assistant:ui/active_slot_set"
+      }
+    ]
+  }
+}
