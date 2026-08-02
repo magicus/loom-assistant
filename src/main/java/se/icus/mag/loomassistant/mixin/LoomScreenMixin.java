@@ -5,9 +5,9 @@
 package se.icus.mag.loomassistant.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -32,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomPanelHost;
+import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
 import se.icus.mag.loomassistant.ui.LoomPanel;
@@ -70,18 +71,21 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         @Unique
         private static final SoundEvent LOOMASSISTANT_ACTIVE_SLOT_SET_SOUND =
             SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("loom-assistant", "ui.active_slot_set"));
+        @Unique
+        private static final SoundEvent LOOMASSISTANT_ACTIVE_SLOT_CLEAR_SOUND =
+            SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("loom-assistant", "ui.active_slot_clear"));
             @Unique
             private static final Component LOOMASSISTANT_SAVE_TOOLTIP =
                 Component.translatable("loom-assistant.tooltip.save");
+            @Unique
+            private static final Component LOOMASSISTANT_SAVE_ALREADY_SAVED_TOOLTIP =
+                Component.translatable("loom-assistant.tooltip.recipe_already_saved");
             @Unique
                 private static final Component LOOMASSISTANT_WEAVE_TOOLTIP =
                     Component.translatable("loom-assistant.tooltip.weave");
             @Unique
             private static final Component LOOMASSISTANT_EDIT_TOOLTIP =
                 Component.translatable("loom-assistant.tooltip.edit");
-            @Unique
-            private static final Component LOOMASSISTANT_MISSING_MATERIALS_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.missing_materials");
     @Unique
     private boolean loomassistant$panelOpen = false;
     @Unique
@@ -98,6 +102,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private ItemStack loomassistant$activeBannerStack = ItemStack.EMPTY;
     @Unique
     private ItemStack loomassistant$pendingActiveBannerStack = ItemStack.EMPTY;
+    @Unique
+    private AutoCraftStateMachine loomassistant$craftabilityProbe;
 
     public LoomScreenMixin(LoomMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
@@ -107,6 +113,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     private void loomassistant$onInit(CallbackInfo ci) {
         this.loomassistant$panelOpen = LoomUiStateStore.isLoomPanelOpen(this.minecraft);
         this.leftPos = loomassistant$panelOpen ? loomassistant$getOpenLeftPos() : loomassistant$getClosedLeftPos();
+        this.loomassistant$craftabilityProbe = new AutoCraftStateMachine(this.menu);
 
         this.loomassistant$recipeBookButton = this.addRenderableWidget(new ImageButton(
             this.loomassistant$getLeftStripButtonX(),
@@ -314,6 +321,16 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         } else if (this.loomassistant$saveButton != null) {
             this.loomassistant$saveButton.active = false;
             hasActiveBanner = !loomassistant$activeBannerStack.isEmpty();
+            if (hasActiveBanner && loomassistant$craftabilityProbe != null) {
+                SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+                if (activeBanner != null) {
+                    canCraftActiveBanner = loomassistant$craftabilityProbe.canCraft(activeBanner);
+                    if (!canCraftActiveBanner) {
+                        craftDisabledMessage = loomassistant$buildMissingMaterialsMessage(
+                                activeBanner, loomassistant$craftabilityProbe);
+                    }
+                }
+            }
         }
 
         if (this.loomassistant$craftButton != null) {
@@ -323,27 +340,32 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             this.loomassistant$editButton.active = hasActiveBanner;
         }
 
-        if (this.loomassistant$craftButton != null
-                && !this.loomassistant$craftButton.active
-                && loomassistant$isMouseOverWidget(this.loomassistant$craftButton, mouseX, mouseY)) {
-            if (craftDisabledMessage == null) {
-                craftDisabledMessage = LOOMASSISTANT_MISSING_MATERIALS_TOOLTIP.getString();
-            }
-            List<Component> tooltipLines = craftDisabledMessage.lines()
-                    .map(Component::literal)
-                    .collect(Collectors.toList());
-            context.setTooltipForNextFrame(
-                    this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
-        }
-
         if (this.loomassistant$saveButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$saveButton, mouseX, mouseY)) {
-            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_SAVE_TOOLTIP, mouseX, mouseY);
+            List<Component> tooltipLines = new ArrayList<>();
+            tooltipLines.add(LOOMASSISTANT_SAVE_TOOLTIP);
+
+            if (!this.loomassistant$saveButton.active && hasActiveBanner && loomassistant$panel != null) {
+                tooltipLines.add(Component.empty());
+                tooltipLines.add(LOOMASSISTANT_SAVE_ALREADY_SAVED_TOOLTIP);
+            }
+
+            context.setTooltipForNextFrame(this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
         }
         if (this.loomassistant$craftButton != null
-                && this.loomassistant$craftButton.active
                 && loomassistant$isMouseOverWidget(this.loomassistant$craftButton, mouseX, mouseY)) {
-            loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_WEAVE_TOOLTIP, mouseX, mouseY);
+            List<Component> tooltipLines = new ArrayList<>();
+            tooltipLines.add(LOOMASSISTANT_WEAVE_TOOLTIP);
+
+            if (!this.loomassistant$craftButton.active && hasActiveBanner) {
+                String reason = craftDisabledMessage;
+                if (reason != null && !reason.isBlank()) {
+                    tooltipLines.add(Component.empty());
+                    tooltipLines.addAll(reason.lines().map(Component::literal).toList());
+                }
+            }
+
+            context.setTooltipForNextFrame(this.font, tooltipLines, Optional.empty(), mouseX, mouseY);
         }
         if (this.loomassistant$editButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$editButton, mouseX, mouseY)) {
@@ -393,6 +415,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 }
                 loomassistant$pendingActiveBannerStack = ItemStack.EMPTY;
                 loomassistant$activeBannerStack = ItemStack.EMPTY;
+                loomassistant$playActiveSlotClearSound();
                 cir.setReturnValue(true);
                 return;
             }
@@ -448,6 +471,18 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     }
 
     @Unique
+    private static String loomassistant$buildMissingMaterialsMessage(
+            SavedBanner banner, AutoCraftStateMachine autoCraft) {
+        List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(banner);
+        if (missingMaterials.isEmpty()) {
+            return null;
+        }
+        return Component.translatable("loom-assistant.active.missing_header").getString()
+                + "\n"
+                + String.join("\n", missingMaterials);
+    }
+
+    @Unique
     private void loomassistant$playActiveSlotSetSound() {
         if (this.minecraft != null && this.minecraft.player != null) {
             this.minecraft.player
@@ -460,6 +495,23 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                             SoundSource.PLAYERS,
                             0.42F,
                             1.0F,
+                            false);
+        }
+    }
+
+    @Unique
+    private void loomassistant$playActiveSlotClearSound() {
+        if (this.minecraft != null && this.minecraft.player != null) {
+            this.minecraft.player
+                    .level()
+                    .playLocalSound(
+                            this.minecraft.player.getX(),
+                            this.minecraft.player.getY(),
+                            this.minecraft.player.getZ(),
+                            LOOMASSISTANT_ACTIVE_SLOT_CLEAR_SOUND,
+                            SoundSource.PLAYERS,
+                            0.42F,
+                            0.78F,
                             false);
         }
     }

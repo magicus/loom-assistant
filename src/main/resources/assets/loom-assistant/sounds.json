@@ -6,5 +6,12 @@
         "name": "loom-assistant:ui/active_slot_set"
       }
     ]
+  },
+  "ui.active_slot_clear": {
+    "sounds": [
+      {
+        "name": "loom-assistant:ui/active_slot_clear"
+      }
+    ]
   }
 }

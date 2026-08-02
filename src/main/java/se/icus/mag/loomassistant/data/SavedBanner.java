@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -78,9 +79,12 @@ public class SavedBanner {
 
     public String getDisplayName() {
         if (name != null && !name.isEmpty()) {
+            if (name.equals(BannerRecipe.DEFAULT_DESCRIPTION)) {
+                return Component.translatable("loom-assistant.banner.unnamed").getString();
+            }
             return name;
         }
-        return "Banner " + id.substring(0, 4);
+        return Component.translatable("loom-assistant.banner.unnamed").getString();
     }
 
     public Item getBaseBannerItem() {

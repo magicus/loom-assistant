@@ -14,6 +14,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.Font;
@@ -30,6 +31,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.inventory.LoomMenu;
@@ -79,7 +81,7 @@ public class LoomPanel {
     private static final Component ALL_RECIPES_TOOLTIP =
         Component.translatable("gui.recipebook.toggleRecipes.all");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
-        Component.translatable("gui.recipebook.toggleRecipes.craftable");
+        Component.translatable("loom-assistant.panel.show_weavable");
     private static final Component AUTO_WEAVE_LABEL =
         Component.translatable("loom-assistant.panel.auto_weave");
     private static final Component WEAVING_LABEL =
@@ -245,9 +247,6 @@ public class LoomPanel {
             Identifier sprite = isCraftableNow(banner) ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE;
             ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx - 1, by - 1, 25, 25);
             BannerPreviewRenderer.render(ctx, banner, handler, bx + 4, by + 4, 16);
-            if (banner.getId().equals(selectedBannerId)) {
-                ctx.outline(bx - 1, by - 1, 25, 25, 0xFF5C7CFA);
-            }
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
@@ -460,6 +459,7 @@ public class LoomPanel {
             if (isIn(mx, my, filterX, filterY, FILTER_W, FILTER_H)) {
                 craftableOnly = !craftableOnly;
                 page = 0;
+                playUiClickSound();
                 return true;
             }
         }
@@ -484,6 +484,7 @@ public class LoomPanel {
                 activeTab = tabs[i];
                 page = 0;
                 searchBox.setFocused(activeTab == Tab.BANNERS);
+                playUiClickSound();
                 return true;
             }
         }
@@ -507,6 +508,7 @@ public class LoomPanel {
                 SavedBanner banner = items.get(i);
                 selectedBannerId = banner.getId();
                 activeBanner = banner;
+                playUiClickSound();
                 if (isShiftPressed) {
                     craftSelectedBanner();
                 } else {
@@ -516,6 +518,15 @@ public class LoomPanel {
             }
         }
         return false;
+    }
+
+    private void playUiClickSound() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getSoundManager() == null) {
+            return;
+        }
+
+        mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     public boolean keyPressed(KeyEvent event) {
