@@ -149,7 +149,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Override
             public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
                 this.extractDefaultSprite(graphics);
-                ItemStack icon = loomassistant$showEditOnSaveButton()
+                ItemStack icon = loomassistant$shouldUseEditIconOnSaveButton()
                         ? Items.WRITABLE_BOOK.getDefaultInstance()
                         : Items.CHEST.getDefaultInstance();
                 graphics.fakeItem(icon, this.getX() + 2, this.getY() + 1);
@@ -192,7 +192,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
 
         this.loomassistant$craftButton.active = false;
         this.loomassistant$saveButton.active = false;
-        this.loomassistant$saveButton.visible = false;
+        this.loomassistant$saveButton.visible = true;
 
         loomassistant$refreshPanel();
     }
@@ -326,12 +326,12 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
             if (this.loomassistant$saveButton != null) {
                 this.loomassistant$saveButton.active = loomassistant$panel.hasActiveBanner();
-                this.loomassistant$saveButton.visible = loomassistant$panel.hasActiveBanner();
+                this.loomassistant$saveButton.visible = true;
             }
             loomassistant$panel.render(context, mouseX, mouseY, delta);
         } else if (this.loomassistant$saveButton != null) {
             this.loomassistant$saveButton.active = false;
-            this.loomassistant$saveButton.visible = false;
+            this.loomassistant$saveButton.visible = true;
             hasActiveBanner = !loomassistant$activeBannerStack.isEmpty();
             if (hasActiveBanner && loomassistant$craftabilityProbe != null) {
                 SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
@@ -343,7 +343,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                     }
                 }
             }
-            this.loomassistant$saveButton.visible = hasActiveBanner;
             this.loomassistant$saveButton.active = hasActiveBanner;
         }
 
@@ -353,7 +352,9 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
 
         if (this.loomassistant$saveButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$saveButton, mouseX, mouseY)) {
-            Component tooltip = loomassistant$showEditOnSaveButton() ? LOOMASSISTANT_EDIT_TOOLTIP : LOOMASSISTANT_SAVE_TOOLTIP;
+            Component tooltip = loomassistant$shouldUseEditIconOnSaveButton()
+                    ? LOOMASSISTANT_EDIT_TOOLTIP
+                    : LOOMASSISTANT_SAVE_TOOLTIP;
             loomassistant$setSingleLineTooltip(context, tooltip, mouseX, mouseY);
         }
         if (this.loomassistant$craftButton != null
@@ -479,6 +480,14 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
         return loomassistant$panel != null
                 && loomassistant$panel.hasActiveBanner()
                 && !loomassistant$panel.isActiveBannerSavable();
+    }
+
+    @Unique
+    private boolean loomassistant$shouldUseEditIconOnSaveButton() {
+        if (loomassistant$panel == null || !loomassistant$panel.hasActiveBanner()) {
+            return true;
+        }
+        return loomassistant$showEditOnSaveButton();
     }
 
     @Unique
