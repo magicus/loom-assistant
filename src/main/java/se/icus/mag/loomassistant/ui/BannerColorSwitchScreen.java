@@ -19,6 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.data.SavedBanner;
 
 public class BannerColorSwitchScreen extends Screen {
@@ -40,13 +41,12 @@ public class BannerColorSwitchScreen extends Screen {
 
     // Color picker popup
     private static final int PICKER_COLS = 4;
-    private static final int PICKER_CELL = 20; // includes 1px border each side
-    private static final int PICKER_CLOSE_SIZE = 10;
+    private static final int PICKER_CELL = 20;
     private static final int PICKER_PAD = 6;
     private static final int PICKER_GRID_W = PICKER_COLS * PICKER_CELL;
     private static final int PICKER_GRID_ROWS = (int) Math.ceil(16.0 / PICKER_COLS);
     private static final int PICKER_W = PICKER_PAD + PICKER_GRID_W + PICKER_PAD;
-    private static final int PICKER_H = PICKER_PAD + PICKER_CLOSE_SIZE + 4 + PICKER_GRID_ROWS * PICKER_CELL + PICKER_PAD;
+    private static final int PICKER_H = PICKER_PAD + PICKER_GRID_ROWS * PICKER_CELL + PICKER_PAD;
 
     // Background colour matching vanilla loom GUI
     private static final int BG_COLOR = 0xFFC6C6C6;
@@ -66,8 +66,8 @@ public class BannerColorSwitchScreen extends Screen {
     private final LoomPanel panel;
     private final List<DyeColor> sourceColors;
     private final EnumMap<DyeColor, DyeColor> targets = new EnumMap<>(DyeColor.class);
-    private boolean persistent;
-    private Button persistentButton;
+    // Resolved once on init so it doesn't change mid-session if config changes
+    private DyeColor[] pickerColors;
 
     /** Which source color's picker is currently open (null = none). */
     private DyeColor pickerOpenFor = null;
@@ -91,6 +91,7 @@ public class BannerColorSwitchScreen extends Screen {
 
     @Override
     protected void init() {
+        pickerColors = DyeColorSorting.sorted(LoomAssistantMod.getConfig().getColorSortOrder());
         Map<DyeColor, DyeColor> initialTargets = panel.getInitialDyeReplacementTargets(sourceColors);
         for (DyeColor source : sourceColors) {
             targets.put(source, initialTargets.getOrDefault(source, source));
@@ -105,10 +106,12 @@ public class BannerColorSwitchScreen extends Screen {
             DyeColor source = sourceColors.get(i);
             int btnX = px + PAD + ICON_SIZE + 6 + ARROW_W + 6;
             int btnY = py + titleAreaH() + i * ROW_H + (ROW_H - TARGET_BTN_H) / 2;
+            int btnCenterX = btnX + TARGET_BTN_W / 2;
+            int btnCenterY = btnY + TARGET_BTN_H / 2;
             int fi = i;
             this.addRenderableWidget(new Button.Plain(btnX, btnY, TARGET_BTN_W, TARGET_BTN_H,
                     Component.empty(),
-                    button -> openPicker(source, btnX, btnY + TARGET_BTN_H + 2),
+                    button -> openPicker(source, btnCenterX, btnCenterY),
                     s -> s.get()) {
                 @Override
                 public void extractContents(GuiGraphicsExtractor g, int mx, int my, float a) {
@@ -121,17 +124,12 @@ public class BannerColorSwitchScreen extends Screen {
 
         int bottomY = py + panelH - 28;
 
-        persistentButton = this.addRenderableWidget(Button.builder(persistentLabel(),
-                button -> { persistent = !persistent; button.setMessage(persistentLabel()); })
-                .bounds(px + PAD, bottomY, PANEL_W - PAD * 2, 20)
-                .build());
-
         this.addRenderableWidget(Button.builder(Component.translatable("loom-assistant.common.ok"), button -> applyAndClose())
-                .bounds(px + PAD, bottomY + 22, (PANEL_W - PAD * 2 - 4) / 2, 20)
+                .bounds(px + PAD, bottomY, (PANEL_W - PAD * 2 - 4) / 2, 20)
                 .build());
 
         this.addRenderableWidget(Button.builder(Component.translatable("loom-assistant.common.cancel"), button -> this.onClose())
-                .bounds(px + PAD + (PANEL_W - PAD * 2 - 4) / 2 + 4, bottomY + 22, (PANEL_W - PAD * 2 - 4) / 2, 20)
+                .bounds(px + PAD + (PANEL_W - PAD * 2 - 4) / 2 + 4, bottomY, (PANEL_W - PAD * 2 - 4) / 2, 20)
                 .build());
     }
 
@@ -187,20 +185,15 @@ public class BannerColorSwitchScreen extends Screen {
     private void drawPicker(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
         drawPanel(ctx, pickerX, pickerY, PICKER_W, PICKER_H);
 
-        // Close button (red X)
-        int closeX = pickerX + PICKER_W - PICKER_PAD - PICKER_CLOSE_SIZE;
-        int closeY = pickerY + PICKER_PAD;
-        boolean closeHover = isIn(mouseX, mouseY, closeX, closeY, PICKER_CLOSE_SIZE, PICKER_CLOSE_SIZE);
-        ctx.fill(closeX, closeY, closeX + PICKER_CLOSE_SIZE, closeY + PICKER_CLOSE_SIZE,
-                closeHover ? 0xFFFF4444 : 0xFFCC2222);
-        ctx.text(this.font, Component.literal("x"), closeX + 2, closeY + 1, 0xFFFFFFFF, false);
-
         int gridX = pickerX + PICKER_PAD;
-        int gridY = pickerY + PICKER_PAD + PICKER_CLOSE_SIZE + 4;
+        int gridY = pickerY + PICKER_PAD;
         DyeColor selected = targets.getOrDefault(pickerOpenFor, pickerOpenFor);
 
-        for (int i = 0; i < ALL_COLORS.length; i++) {
-            DyeColor color = ALL_COLORS[i];
+        // Draw grid separator background first, then each cell inset by 1px
+        ctx.fill(gridX, gridY, gridX + PICKER_GRID_W, gridY + PICKER_GRID_ROWS * PICKER_CELL, BG_COLOR);
+
+        for (int i = 0; i < pickerColors.length; i++) {
+            DyeColor color = pickerColors[i];
             int col = i % PICKER_COLS;
             int row = i / PICKER_COLS;
             int cellX = gridX + col * PICKER_CELL;
@@ -209,8 +202,9 @@ public class BannerColorSwitchScreen extends Screen {
             boolean isSel = color == selected;
             boolean hover = isIn(mouseX, mouseY, cellX, cellY, PICKER_CELL, PICKER_CELL);
 
+            // Inset cell by 1px to leave grid-line gap
             int bgCol = isSel ? 0xFF4477CC : (hover ? 0xFFAAAAAA : 0xFF888888);
-            ctx.fill(cellX, cellY, cellX + PICKER_CELL, cellY + PICKER_CELL, bgCol);
+            ctx.fill(cellX + 1, cellY + 1, cellX + PICKER_CELL - 1, cellY + PICKER_CELL - 1, bgCol);
             ctx.fakeItem(dyeStack(color), cellX + 2, cellY + 2);
 
             if (hover) {
@@ -248,24 +242,15 @@ public class BannerColorSwitchScreen extends Screen {
     }
 
     private boolean handlePickerClick(int mx, int my) {
-        // Close button
-        int closeX = pickerX + PICKER_W - PICKER_PAD - PICKER_CLOSE_SIZE;
-        int closeY = pickerY + PICKER_PAD;
-        if (isIn(mx, my, closeX, closeY, PICKER_CLOSE_SIZE, PICKER_CLOSE_SIZE)) {
-            pickerOpenFor = null;
-            return true;
-        }
-
-        // Color grid
         int gridX = pickerX + PICKER_PAD;
-        int gridY = pickerY + PICKER_PAD + PICKER_CLOSE_SIZE + 4;
-        for (int i = 0; i < ALL_COLORS.length; i++) {
+        int gridY = pickerY + PICKER_PAD;
+        for (int i = 0; i < pickerColors.length; i++) {
             int col = i % PICKER_COLS;
             int row = i / PICKER_COLS;
             int cellX = gridX + col * PICKER_CELL;
             int cellY = gridY + row * PICKER_CELL;
             if (isIn(mx, my, cellX, cellY, PICKER_CELL, PICKER_CELL)) {
-                targets.put(pickerOpenFor, ALL_COLORS[i]);
+                targets.put(pickerOpenFor, pickerColors[i]);
                 pickerOpenFor = null;
                 return true;
             }
@@ -295,17 +280,27 @@ public class BannerColorSwitchScreen extends Screen {
     // Helpers
     // -------------------------------------------------------------------------
 
-    private void openPicker(DyeColor source, int btnX, int preferY) {
+    // btnCenterX/Y is the center of the target button that was clicked.
+    private void openPicker(DyeColor source, int btnCenterX, int btnCenterY) {
         pickerOpenFor = source;
-        // Clamp picker so it stays on screen
-        pickerX = Math.min(btnX, this.width - PICKER_W - 4);
-        pickerY = Math.min(preferY, this.height - PICKER_H - 4);
-        pickerX = Math.max(4, pickerX);
-        pickerY = Math.max(4, pickerY);
+        DyeColor selected = targets.getOrDefault(source, source);
+        int selIdx = indexOf(pickerColors, selected);
+        int selCol = selIdx % PICKER_COLS;
+        int selRow = selIdx / PICKER_COLS;
+        // Position so the selected cell is centered over the button
+        int gridOffX = PICKER_PAD + selCol * PICKER_CELL + PICKER_CELL / 2;
+        int gridOffY = PICKER_PAD + selRow * PICKER_CELL + PICKER_CELL / 2;
+        pickerX = Math.max(4, Math.min(btnCenterX - gridOffX, this.width - PICKER_W - 4));
+        pickerY = Math.max(4, Math.min(btnCenterY - gridOffY, this.height - PICKER_H - 4));
+    }
+
+    private static int indexOf(DyeColor[] arr, DyeColor color) {
+        for (int i = 0; i < arr.length; i++) if (arr[i] == color) return i;
+        return 0;
     }
 
     private void applyAndClose() {
-        boolean changed = panel.applyDyeSwitch(targets, persistent);
+        boolean changed = panel.applyDyeSwitch(targets, true);
         if (changed && previousScreen instanceof LoomActiveBannerHost host) {
             host.loomassistant$setPendingActiveBannerStack(panel.getActiveBannerStack());
         }
@@ -327,7 +322,7 @@ public class BannerColorSwitchScreen extends Screen {
 
     private int panelHeight() {
         int rowsH = sourceColors.size() * ROW_H;
-        int bottomH = 28 + 22 + 4; // persistent button + ok/cancel + gap
+        int bottomH = 20 + 8; // ok/cancel + gap
         return titleAreaH() + rowsH + 8 + bottomH;
     }
 
@@ -337,11 +332,6 @@ public class BannerColorSwitchScreen extends Screen {
 
     private static boolean isIn(int mx, int my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
-    }
-
-    private Component persistentLabel() {
-        String prefix = persistent ? "[x] " : "[ ] ";
-        return Component.literal(prefix).append(Component.translatable("loom-assistant.screen.color_switch.persistent"));
     }
 
     @Override

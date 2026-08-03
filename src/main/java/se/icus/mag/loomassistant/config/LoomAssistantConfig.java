@@ -17,10 +17,22 @@ public class LoomAssistantConfig implements ConfigData {
         SHOW
     }
 
+    public enum ColorSortOrder {
+        RAINBOW,
+        VANILLA
+    }
+
     @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
     DefaultAction defaultAction = DefaultAction.ENQUEUE;
 
+    @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+    ColorSortOrder colorSortOrder = ColorSortOrder.RAINBOW;
+
     public DefaultAction getDefaultAction() {
         return defaultAction;
+    }
+
+    public ColorSortOrder getColorSortOrder() {
+        return colorSortOrder;
     }
 }

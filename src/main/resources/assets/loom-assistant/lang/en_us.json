@@ -63,5 +63,8 @@
   "loom-assistant.side_panel.rename_icon": "E",
   "loom-assistant.side_panel.delete_icon": "X",
   "loom-assistant.side_panel.weave_count": "Weave (%s)",
-  "subtitles.loom-assistant.ui.active_slot_set": "Banner recipe selected"
+  "subtitles.loom-assistant.ui.active_slot_set": "Banner recipe selected",
+  "text.autoconfig.loom-assistant.option.colorSortOrder": "Color Sort Order",
+  "text.autoconfig.loom-assistant.option.colorSortOrder.RAINBOW": "Rainbow",
+  "text.autoconfig.loom-assistant.option.colorSortOrder.VANILLA": "Vanilla"
 }
