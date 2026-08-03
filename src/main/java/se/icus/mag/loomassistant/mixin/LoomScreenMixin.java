@@ -16,6 +16,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
@@ -77,7 +78,22 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
     @Unique
     private static final int LOOMASSISTANT_CUSTOM_BG_HEIGHT = 256;
     @Unique
-    private static final Identifier LOOMASSISTANT_BG_LOCATION = Identifier.fromNamespaceAndPath("loom-assistant", "textures/loom.png");
+    private static final Identifier LOOMASSISTANT_BG_LOCATION = Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/loom-gui.png");
+    @Unique
+    private static final Identifier LOOMASSISTANT_RECIPE_WEAVE_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
+        @Unique
+        private static final Identifier LOOMASSISTANT_RECIPE_ADD_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-add.png");
+        @Unique
+        private static final Identifier LOOMASSISTANT_RECIPE_EDIT_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-edit.png");
+        @Unique
+        private static final Identifier LOOMASSISTANT_RECIPE_SWAP_COLORS_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-swap-colors.png");
+        @Unique
+        private static final Identifier LOOMASSISTANT_RECIPE_IMPORT_EXPORT_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-import-export.png");
         @Unique
         private static final SoundEvent LOOMASSISTANT_ACTIVE_SLOT_SET_SOUND =
             SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("loom-assistant", "ui.active_slot_set"));
@@ -190,10 +206,20 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Override
             public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
                 this.extractDefaultSprite(graphics);
-                ItemStack icon = loomassistant$shouldUseEditIconOnSaveButton()
-                        ? Items.WRITABLE_BOOK.getDefaultInstance()
-                        : Items.CHEST.getDefaultInstance();
-                graphics.fakeItem(icon, this.getX() + 2, this.getY() + 1);
+                Identifier icon = loomassistant$shouldUseEditIconOnSaveButton()
+                    ? LOOMASSISTANT_RECIPE_EDIT_ICON
+                    : LOOMASSISTANT_RECIPE_ADD_ICON;
+                graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    icon,
+                    this.getX() + 2,
+                    this.getY() + 1,
+                    0.0F,
+                    0.0F,
+                    16,
+                    16,
+                    16,
+                    16);
             }
         });
 
@@ -212,7 +238,17 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Override
             public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
                 this.extractDefaultSprite(graphics);
-                graphics.fakeItem(Items.LOOM.getDefaultInstance(), this.getX() + 2, this.getY() + 1);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        LOOMASSISTANT_RECIPE_WEAVE_ICON,
+                        this.getX() + 2,
+                        this.getY() + 1,
+                        0.0F,
+                        0.0F,
+                        16,
+                        16,
+                        16,
+                        16);
             }
         });
 
@@ -227,7 +263,11 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             @Override
             public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
                 this.extractDefaultSprite(graphics);
-                graphics.fakeItem(Items.OAK_BOAT.getDefaultInstance(), this.getX() + 2, this.getY() + 1);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        LOOMASSISTANT_RECIPE_IMPORT_EXPORT_ICON,
+                        this.getX() + 2, this.getY() + 1,
+                        0.0F, 0.0F, 16, 16, 16, 16);
             }
         });
 
@@ -253,7 +293,12 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                 this.extractDefaultSprite(graphics);
                 boolean persistent = loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled();
                 int iconOffset = persistent ? 1 : 0;
-                graphics.fakeItem(Items.DYE.red().getDefaultInstance(), this.getX() + 2 + iconOffset, this.getY() + 1 + iconOffset);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        LOOMASSISTANT_RECIPE_SWAP_COLORS_ICON,
+                        this.getX() + 2 + iconOffset,
+                        this.getY() + 1 + iconOffset,
+                        0.0F, 0.0F, 16, 16, 16, 16);
                 if (loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled()) {
                     // Small shadow line reinforces a pressed visual without obscuring the icon.
                     graphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.getWidth() - 1, this.getY() + 2, 0x55000000);
@@ -261,7 +306,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             }
         });
         this.loomassistant$colorButton.setOverrideRenderHighlightedSprite(
-                () -> loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled());
+                () -> (loomassistant$panel != null && loomassistant$panel.isPersistentDyeSwitchEnabled())
+                        || this.loomassistant$colorButton.isHoveredOrFocused());
 
         this.loomassistant$craftButton.active = false;
         this.loomassistant$saveButton.active = false;

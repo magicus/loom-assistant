@@ -790,9 +790,26 @@ public class LoomPanel {
         }
 
         ItemStack result = BannerPreviewRenderer.createBannerWithPatterns(banner);
-        int selectedHotbarSlot = mc.player.getInventory().getSelectedSlot();
-        int creativeSlot = 36 + selectedHotbarSlot;
-        mc.player.getInventory().setItem(selectedHotbarSlot, result.copy());
+        var inventory = mc.player.getInventory();
+
+        // Find first free hotbar slot, then rest of main inventory, then fall back to selected.
+        int inventorySlot = -1;
+        for (int i = 0; i < 9; i++) {
+            if (inventory.getItem(i).isEmpty()) {
+                inventorySlot = i;
+                break;
+            }
+        }
+        if (inventorySlot == -1) {
+            inventorySlot = inventory.getFreeSlot(); // slots 0-35; -1 if full
+        }
+        if (inventorySlot == -1) {
+            inventorySlot = inventory.getSelectedSlot();
+        }
+
+        // Hotbar (0-8) maps to creative container slots 36-44; rest maps 1:1.
+        int creativeSlot = inventorySlot < 9 ? 36 + inventorySlot : inventorySlot;
+        inventory.setItem(inventorySlot, result.copy());
         mc.gameMode.handleCreativeModeItemAdd(result.copy(), creativeSlot);
     }
 
