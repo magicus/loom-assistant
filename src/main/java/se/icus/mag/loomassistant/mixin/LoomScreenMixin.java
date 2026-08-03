@@ -102,19 +102,19 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("loom-assistant", "ui.active_slot_clear"));
             @Unique
             private static final Component LOOMASSISTANT_SAVE_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.save");
+                Component.translatable("loom-assistant.tooltip.add_recipe");
             @Unique
                 private static final Component LOOMASSISTANT_WEAVE_TOOLTIP =
                     Component.translatable("loom-assistant.tooltip.weave");
             @Unique
             private static final Component LOOMASSISTANT_EDIT_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.edit");
+                Component.translatable("loom-assistant.tooltip.edit_recipe");
             @Unique
             private static final Component LOOMASSISTANT_IMPORT_EXPORT_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.import_export");
+                Component.translatable("loom-assistant.tooltip.import_export_recipes");
             @Unique
             private static final Component LOOMASSISTANT_CHANGE_COLORS_TOOLTIP =
-                Component.translatable("loom-assistant.tooltip.change_colors");
+                Component.translatable("loom-assistant.tooltip.replace_colors");
     @Unique
     private boolean loomassistant$panelOpen = false;
     @Unique
