@@ -72,13 +72,13 @@ public class LoomPanel {
     private static final Identifier RECIPE_BOOK_TEXTURE =
         Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
     private static final Identifier FILTER_ENABLED =
-        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_enabled");
+        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled");
     private static final Identifier FILTER_DISABLED =
-        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_disabled");
+        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled");
     private static final Identifier FILTER_ENABLED_HOVER =
-        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_enabled_highlighted");
+        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled_highlighted");
     private static final Identifier FILTER_DISABLED_HOVER =
-        Identifier.fromNamespaceAndPath("loom-assistant", "recipe_book/filter_disabled_highlighted");
+        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled_highlighted");
     private static final Component ALL_RECIPES_TOOLTIP =
         Component.translatable("gui.recipebook.toggleRecipes.all");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
