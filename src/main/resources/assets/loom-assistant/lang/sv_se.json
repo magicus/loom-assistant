@@ -5,6 +5,7 @@
   "loom-assistant.active.missing_header": "Saknas:",
   "loom-assistant.active.select_banner": "Välj en aktiv fana",
   "loom-assistant.banner.unnamed": "Namnlös fana",
+  "loom-assistant.banner.modified_suffix": " (ändrad)",
   "loom-assistant.common.back_symbol": "<",
   "loom-assistant.common.cancel": "Avbryt",
   "loom-assistant.common.close": "Stäng",

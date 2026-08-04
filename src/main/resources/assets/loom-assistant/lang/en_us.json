@@ -5,6 +5,7 @@
   "loom-assistant.active.missing_header": "Missing:",
   "loom-assistant.active.select_banner": "Select an active banner",
   "loom-assistant.banner.unnamed": "Unnamed banner",
+  "loom-assistant.banner.modified_suffix": " (modified)",
   "loom-assistant.common.back_symbol": "<",
   "loom-assistant.common.cancel": "Cancel",
   "loom-assistant.common.close": "Close",

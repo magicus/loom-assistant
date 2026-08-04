@@ -86,6 +86,7 @@ public class LoomPanel {
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
             Component.translatable("loom-assistant.panel.show_weavable");
     private static final Component WEAVING_LABEL = Component.translatable("loom-assistant.panel.weaving");
+    private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
     private static final Component NO_BANNERS_LABEL = Component.translatable("loom-assistant.panel.no_banners");
     private static final Component CATEGORY_SCROLL_UP_TOOLTIP = Component.literal("Scroll tabs up");
     private static final Component CATEGORY_SCROLL_DOWN_TOOLTIP = Component.literal("Scroll tabs down");
@@ -781,7 +782,9 @@ public class LoomPanel {
             return;
         }
 
-        setBannerTooltip(ctx, selectedBanner, mouseX, mouseY);
+        Optional<TooltipComponent> image = buildTooltipImage(selectedBanner);
+        ctx.setTooltipForNextFrame(
+                Minecraft.getInstance().font, List.of(Component.literal(effectiveActiveName())), image, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
@@ -797,7 +800,9 @@ public class LoomPanel {
     public void craftSelectedBanner() {
         BannerRecipe selectedBanner = getSelectedBanner();
         if (selectedBanner != null) {
-            Weaver.getWeaver(handler).weave(selectedBanner);
+            // Apply modified name to the woven item so it persists in the result.
+            BannerRecipe toWeave = selectedBanner.withDescription(effectiveActiveName());
+            Weaver.getWeaver(handler).weave(toWeave);
         }
     }
 
@@ -875,7 +880,28 @@ public class LoomPanel {
             return existingName;
         }
 
+        // For new saves, pre-fill with the banner's own name if it has one.
+        String name = effectiveActiveName();
+        if (!name.equals(Component.translatable("loom-assistant.banner.unnamed").getString())) {
+            return name;
+        }
         return Component.translatable("loom-assistant.banner.unnamed").getString();
+    }
+
+    // Returns the display name for the active banner, appending MODIFIED_SUFFIX when color replacement is active.
+    private String effectiveActiveName() {
+        BannerRecipe selected = getSelectedBanner();
+        if (selected == null) {
+            return Component.translatable("loom-assistant.banner.unnamed").getString();
+        }
+        String base = selected.getName();
+        if (base == null || base.isBlank() || base.equals(BannerRecipe.DEFAULT_DESCRIPTION)) {
+            return Component.translatable("loom-assistant.banner.unnamed").getString();
+        }
+        if (persistentDyeSwitchEnabled) {
+            return base + Component.translatable(MODIFIED_SUFFIX_KEY).getString();
+        }
+        return base;
     }
 
     public String getActiveBannerDialogCategory(boolean editMode) {
