@@ -22,17 +22,14 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.object.banner.BannerFlagModel;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.LoomMenu;
-import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -611,18 +608,6 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
         if (this.loomassistant$colorButton != null
                 && loomassistant$isMouseOverWidget(this.loomassistant$colorButton, mouseX, mouseY)) {
             loomassistant$setSingleLineTooltip(context, LOOMASSISTANT_CHANGE_COLORS_TOOLTIP, mouseX, mouseY);
-        }
-
-        if (!loomassistant$activeBannerStack.isEmpty()
-                && loomassistant$previewFlag != null
-                && loomassistant$activeBannerStack.getItem() instanceof BannerItem bannerItem
-                // Only show when the loom has no banner in its own slot (vanilla preview takes precedence).
-                && this.menu.getBannerSlot().getItem().isEmpty()) {
-            BannerPatternLayers patterns = loomassistant$activeBannerStack.get(DataComponents.BANNER_PATTERNS);
-            if (patterns == null) patterns = new BannerPatternLayers.Builder().build();
-            int px = this.leftPos + 141;
-            int py = this.topPos + 8;
-            context.bannerPattern(loomassistant$previewFlag, bannerItem.getColor(), patterns, px, py, px + 20, py + 40);
         }
 
         if (!loomassistant$activeBannerStack.isEmpty()) {

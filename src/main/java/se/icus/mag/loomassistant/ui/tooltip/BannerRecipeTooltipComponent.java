@@ -7,17 +7,45 @@ package se.icus.mag.loomassistant.ui.tooltip;
 import java.util.List;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import org.jspecify.annotations.Nullable;
 
 public final class BannerRecipeTooltipComponent implements TooltipComponent {
     private final List<Row> rows;
 
+    @Nullable
+    private final DyeColor previewBaseColor;
+
+    @Nullable
+    private final BannerPatternLayers previewPatterns;
+
     public BannerRecipeTooltipComponent(List<Row> rows) {
+        this(rows, null, null);
+    }
+
+    public BannerRecipeTooltipComponent(
+            List<Row> rows, @Nullable DyeColor previewBaseColor, @Nullable BannerPatternLayers previewPatterns) {
         this.rows = rows.stream().map(Row::copy).toList();
+        this.previewBaseColor = previewBaseColor;
+        this.previewPatterns = previewPatterns;
     }
 
     public List<Row> rows() {
         return this.rows;
+    }
+
+    public boolean hasPreview() {
+        return previewBaseColor != null;
+    }
+
+    public @Nullable DyeColor previewBaseColor() {
+        return previewBaseColor;
+    }
+
+    public @Nullable BannerPatternLayers previewPatterns() {
+        return previewPatterns;
     }
 
     public record Row(ItemStack primary, ItemStack secondary, Component text) {

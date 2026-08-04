@@ -364,7 +364,12 @@ public class LoomPanel {
             return Optional.empty();
         }
 
-        return Optional.of(new BannerRecipeTooltipComponent(rows));
+        // Build ItemStack to extract the colour and pattern layers for the preview.
+        ItemStack previewStack = BannerPreviewRenderer.createBannerWithPatterns(banner);
+        net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
+                previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
+        net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
+        return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns));
     }
 
     private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(BannerRecipe banner) {
