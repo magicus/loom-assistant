@@ -204,6 +204,20 @@ public class LoomPanel {
 
         if (weaver.isActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
+        } else {
+            int progress = detectCraftingProgress();
+            if (progress >= 0
+                    && activeBanner != null
+                    && progress < activeBanner.getLayers().size()) {
+                String nextStep = getPatternDisplayName(activeBanner.getLayers().get(progress));
+                ctx.text(
+                        font,
+                        Component.translatable("loom-assistant.panel.next_step", nextStep),
+                        x + 8,
+                        y + PANEL_HEIGHT + 2,
+                        0xFFAAAAAA,
+                        true);
+            }
         }
     }
 
@@ -358,7 +372,7 @@ public class LoomPanel {
         }
     }
 
-    private static Optional<TooltipComponent> buildTooltipImage(BannerRecipe banner) {
+    private static Optional<TooltipComponent> buildTooltipImage(BannerRecipe banner, int currentRowIndex) {
         List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
         if (rows.isEmpty()) {
             return Optional.empty();
@@ -369,7 +383,7 @@ public class LoomPanel {
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
-        return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns));
+        return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns, currentRowIndex));
     }
 
     private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(BannerRecipe banner) {
@@ -775,6 +789,45 @@ public class LoomPanel {
         return Weaver.getWeaver(handler).canWeave(banner);
     }
 
+    /**
+     * Checks the loom's banner slot against the active recipe.
+     * Returns the index of the NEXT layer to craft (0 = blank banner is in, start first layer),
+     * or -1 if the slot is empty, wrong color, or layers don't match the recipe so far.
+     */
+    public int detectCraftingProgress() {
+        BannerRecipe recipe = getSelectedBanner();
+        if (recipe == null) return -1;
+
+        net.minecraft.world.item.ItemStack bannerInSlot =
+                handler.getBannerSlot().getItem();
+        if (bannerInSlot.isEmpty()) return -1;
+        if (!(bannerInSlot.getItem() instanceof net.minecraft.world.item.BannerItem bannerItem)) return -1;
+        if (bannerItem.getColor() != recipe.getBannerColorEnum()) return -1;
+
+        net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
+                bannerInSlot.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
+        java.util.List<net.minecraft.world.level.block.entity.BannerPatternLayers.Layer> currentLayers =
+                patterns != null ? patterns.layers() : java.util.List.of();
+        java.util.List<BannerRecipeLayer> recipeLayers = recipe.getLayers();
+
+        int k = currentLayers.size();
+        if (k >= recipeLayers.size()) return -1; // fully crafted or over-crafted
+
+        for (int i = 0; i < k; i++) {
+            net.minecraft.world.level.block.entity.BannerPatternLayers.Layer cur = currentLayers.get(i);
+            BannerRecipeLayer exp = recipeLayers.get(i);
+            if (cur.color() != exp.getDyeColorEnum()) return -1;
+            String curId = cur.pattern()
+                    .unwrapKey()
+                    .map(key -> key.identifier().toString())
+                    .orElse(null);
+            if (curId == null) return -1;
+            String expId = exp.patternId().contains(":") ? exp.patternId() : "minecraft:" + exp.patternId();
+            if (!curId.equals(expId)) return -1;
+        }
+        return k;
+    }
+
     private BannerRecipe getSelectedBanner() {
         return activeBanner;
     }
@@ -797,13 +850,17 @@ public class LoomPanel {
             return;
         }
 
-        Optional<TooltipComponent> image = buildTooltipImage(selectedBanner);
+        // currentRowIndex: row 0 = base banner (always "done" when banner is in slot)
+        // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
+        int progress = detectCraftingProgress();
+        int currentRowIndex = progress >= 0 ? progress + 1 : -1;
+        Optional<TooltipComponent> image = buildTooltipImage(selectedBanner, currentRowIndex);
         ctx.setTooltipForNextFrame(
                 Minecraft.getInstance().font, List.of(Component.literal(effectiveActiveName())), image, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
-        Optional<TooltipComponent> image = buildTooltipImage(banner);
+        Optional<TooltipComponent> image = buildTooltipImage(banner, -1);
         ctx.setTooltipForNextFrame(
                 Minecraft.getInstance().font,
                 List.of(Component.literal(banner.getDisplayName())),

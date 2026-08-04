@@ -22,15 +22,31 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
     @Nullable
     private final BannerPatternLayers previewPatterns;
 
+    /** Row index to highlight as the current crafting step (-1 = no highlighting). */
+    private final int currentRowIndex;
+
     public BannerRecipeTooltipComponent(List<Row> rows) {
-        this(rows, null, null);
+        this(rows, null, null, -1);
     }
 
     public BannerRecipeTooltipComponent(
             List<Row> rows, @Nullable DyeColor previewBaseColor, @Nullable BannerPatternLayers previewPatterns) {
+        this(rows, previewBaseColor, previewPatterns, -1);
+    }
+
+    public BannerRecipeTooltipComponent(
+            List<Row> rows,
+            @Nullable DyeColor previewBaseColor,
+            @Nullable BannerPatternLayers previewPatterns,
+            int currentRowIndex) {
         this.rows = rows.stream().map(Row::copy).toList();
         this.previewBaseColor = previewBaseColor;
         this.previewPatterns = previewPatterns;
+        this.currentRowIndex = currentRowIndex;
+    }
+
+    public int currentRowIndex() {
+        return currentRowIndex;
     }
 
     public List<Row> rows() {

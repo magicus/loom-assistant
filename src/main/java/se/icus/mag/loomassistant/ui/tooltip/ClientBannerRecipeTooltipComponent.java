@@ -68,8 +68,19 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     public void extractText(GuiGraphicsExtractor graphics, Font font, int x, int y) {
         int textX = x + stepsOffsetX() + ICON_AREA_W + TEXT_GAP;
         int drawY = y + 5;
-        for (BannerRecipeTooltipComponent.Row row : component.rows()) {
-            graphics.text(font, row.text(), textX, drawY, 0xFFFFFFFF, false);
+        int current = component.currentRowIndex();
+        for (int i = 0; i < component.rows().size(); i++) {
+            int color;
+            if (current < 0) {
+                color = 0xFFFFFFFF;
+            } else if (i < current) {
+                color = 0xFF888888; // done
+            } else if (i == current) {
+                color = 0xFFFF5555; // current step
+            } else {
+                color = 0xFFFFFFFF; // future
+            }
+            graphics.text(font, component.rows().get(i).text(), textX, drawY, color, false);
             drawY += ROW_HEIGHT;
         }
     }

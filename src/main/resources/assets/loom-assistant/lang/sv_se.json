@@ -17,6 +17,7 @@
   "loom-assistant.panel.all_recipes": "Alla recept",
   "loom-assistant.panel.auto_weave": "Autoväva",
   "loom-assistant.panel.edit": "Redigera",
+  "loom-assistant.panel.next_step": "Nästa: %s",
   "loom-assistant.panel.no_banners": "Inga fanor",
   "loom-assistant.panel.no_packs": "Inga paket installerade",
   "loom-assistant.panel.pack_entry": "- %s",
