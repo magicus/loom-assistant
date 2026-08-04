@@ -81,7 +81,7 @@ public class LoomPanel {
             Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled_highlighted");
     private static final Identifier FILTER_DISABLED_HOVER =
             Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled_highlighted");
-    private static final Component ALL_RECIPES_TOOLTIP = Component.translatable("gui.recipebook.toggleRecipes.all");
+    private static final Component ALL_RECIPES_TOOLTIP = Component.translatable("loom-assistant.panel.showing_all");
     private static final Component ALL_CATEGORIES_TOOLTIP = Component.translatable("loom-assistant.panel.all_recipes");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
             Component.translatable("loom-assistant.panel.show_weavable");

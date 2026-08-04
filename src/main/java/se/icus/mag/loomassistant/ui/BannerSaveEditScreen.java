@@ -88,7 +88,7 @@ public class BannerSaveEditScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(
                         Component.translatable(
-                                editMode ? "loom-assistant.tooltip.edit" : "loom-assistant.tooltip.save"),
+                                editMode ? "loom-assistant.tooltip.edit_recipe" : "loom-assistant.tooltip.add_recipe"),
                         button -> applyAndClose())
                 .bounds(x + 16, y + 102, 104, 20)
                 .build());
