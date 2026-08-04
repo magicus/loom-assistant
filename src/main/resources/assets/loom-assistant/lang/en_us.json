@@ -21,6 +21,7 @@
   "loom-assistant.panel.select_banner": "Select a banner",
   "loom-assistant.panel.select_banner_hint": "to see the weave guide.",
   "loom-assistant.panel.show_weavable": "Show Weavable",
+  "loom-assistant.panel.all_recipes": "All Recipes",
   "loom-assistant.panel.weave_guide": "Weave guide",
   "loom-assistant.panel.weaving": "Weaving...",
   "loom-assistant.screen.banner_browser.banners_count": "Banners (%s)",

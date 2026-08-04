@@ -17,6 +17,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookTabButton;
@@ -80,6 +82,7 @@ public class LoomPanel {
     private static final Identifier FILTER_DISABLED_HOVER =
             Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled_highlighted");
     private static final Component ALL_RECIPES_TOOLTIP = Component.translatable("gui.recipebook.toggleRecipes.all");
+    private static final Component ALL_CATEGORIES_TOOLTIP = Component.translatable("loom-assistant.panel.all_recipes");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
             Component.translatable("loom-assistant.panel.show_weavable");
     private static final Component WEAVING_LABEL = Component.translatable("loom-assistant.panel.weaving");
@@ -97,6 +100,16 @@ public class LoomPanel {
             Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
             Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
+    private static final WidgetSprites PAGE_FORWARD_SPRITES = new WidgetSprites(
+            Identifier.withDefaultNamespace("recipe_book/page_forward"),
+            Identifier.withDefaultNamespace("recipe_book/page_forward_highlighted"));
+    private static final WidgetSprites PAGE_BACKWARD_SPRITES = new WidgetSprites(
+            Identifier.withDefaultNamespace("recipe_book/page_backward"),
+            Identifier.withDefaultNamespace("recipe_book/page_backward_highlighted"));
+    // Page button size matches vanilla recipe book
+    private static final int PAGE_BTN_W = 12;
+    private static final int PAGE_BTN_H = 17;
+    private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
     private final LoomScreen screen;
     private final LoomMenu handler;
@@ -116,6 +129,8 @@ public class LoomPanel {
     private String activeBannerSourceId = null;
     private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
     private boolean persistentDyeSwitchEnabled = false;
+    private ImageButton pageForwardButton;
+    private ImageButton pageBackButton;
 
     public LoomPanel(LoomScreen screen, LoomMenu handler, int x, int y) {
         this.screen = screen;
@@ -139,6 +154,17 @@ public class LoomPanel {
         this.tabs = List.of();
         this.selectedCategoryId = null;
         refreshVisibleTabs();
+
+        pageForwardButton = new ImageButton(
+                x + 93, y + PAGE_BTN_Y_OFFSET, PAGE_BTN_W, PAGE_BTN_H,
+                PAGE_FORWARD_SPRITES,
+                button -> { page++; },
+                Component.translatable("gui.recipebook.next_page"));
+        pageBackButton = new ImageButton(
+                x + 38, y + PAGE_BTN_Y_OFFSET, PAGE_BTN_W, PAGE_BTN_H,
+                PAGE_BACKWARD_SPRITES,
+                button -> { page--; },
+                Component.translatable("gui.recipebook.previous_page"));
     }
 
     // -------------------------------------------------------------------------
@@ -282,6 +308,8 @@ public class LoomPanel {
 
     private void renderBannerGrid(GuiGraphicsExtractor ctx, Font font, int mouseX, int mouseY) {
         List<SavedBanner> items = getFilteredBanners();
+        int totalPages = Math.max(1, (int) Math.ceil(items.size() / (double) (GRID_COLUMNS * GRID_ROWS)));
+        page = Math.min(page, totalPages - 1);
         int start = page * GRID_COLUMNS * GRID_ROWS;
         int end = Math.min(items.size(), start + GRID_COLUMNS * GRID_ROWS);
         for (int i = start; i < end; i++) {
@@ -304,6 +332,18 @@ public class LoomPanel {
 
         if (items.isEmpty()) {
             ctx.text(font, NO_BANNERS_LABEL, x + 38, y + 76, 0xFF777777, false);
+        }
+
+        // Page navigation (only when there is more than one page)
+        if (totalPages > 1) {
+            pageForwardButton.visible = page < totalPages - 1;
+            pageBackButton.visible = page > 0;
+            if (pageForwardButton.visible) pageForwardButton.extractRenderState(ctx, mouseX, mouseY, 0f);
+            if (pageBackButton.visible) pageBackButton.extractRenderState(ctx, mouseX, mouseY, 0f);
+
+            Component pageText = Component.translatable("gui.recipebook.page", page + 1, totalPages);
+            int textW = font.width(pageText);
+            ctx.text(font, pageText, x - textW / 2 + 73, y + 141, -1, false);
         }
     }
 
@@ -437,6 +477,15 @@ public class LoomPanel {
             return true;
         }
 
+        if (pageForwardButton.visible && pageForwardButton.mouseClicked(event, false)) {
+            playUiClickSound();
+            return true;
+        }
+        if (pageBackButton.visible && pageBackButton.mouseClicked(event, false)) {
+            playUiClickSound();
+            return true;
+        }
+
         return false;
     }
 
@@ -552,7 +601,7 @@ public class LoomPanel {
         }
 
         List<TabDescriptor> out = new ArrayList<>();
-        out.add(new TabDescriptor(null, ALL_RECIPES_TOOLTIP, -1));
+        out.add(new TabDescriptor(null, ALL_CATEGORIES_TOOLTIP, -1));
         for (int i = 0; i < categories.size(); i++) {
             BannerRecipeCategories.Category category = categories.get(i);
             if (nonEmptyCategoryIds.contains(category.id().toLowerCase(Locale.ROOT))) {
@@ -663,17 +712,6 @@ public class LoomPanel {
                 return true;
             }
         }
-
-        List<SavedBanner> items = getFilteredBanners();
-        int maxPage = Math.max(0, (items.size() - 1) / (GRID_COLUMNS * GRID_ROWS));
-        if (vAmt > 0 && page > 0) {
-            page--;
-            return true;
-        }
-        if (vAmt < 0 && page < maxPage) {
-            page++;
-            return true;
-        }
         return false;
     }
 
@@ -685,6 +723,8 @@ public class LoomPanel {
         this.x = x;
         this.y = y;
         this.searchBox.setPosition(x + SEARCH_X, y + SEARCH_Y);
+        this.pageForwardButton.setPosition(x + 93, y + PAGE_BTN_Y_OFFSET);
+        this.pageBackButton.setPosition(x + 38, y + PAGE_BTN_Y_OFFSET);
     }
 
     // -------------------------------------------------------------------------

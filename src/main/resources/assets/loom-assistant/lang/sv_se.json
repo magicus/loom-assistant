@@ -21,6 +21,7 @@
   "loom-assistant.panel.select_banner": "Välj en fana",
   "loom-assistant.panel.select_banner_hint": "för att se vävguiden.",
   "loom-assistant.panel.show_weavable": "Visa vävbara",
+  "loom-assistant.panel.all_recipes": "Alla recept",
   "loom-assistant.panel.weave_guide": "Vävguide",
   "loom-assistant.panel.weaving": "Väver...",
   "loom-assistant.screen.banner_browser.banners_count": "Fanor (%s)",
