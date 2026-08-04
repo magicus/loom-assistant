@@ -10,7 +10,7 @@ import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.data.BannerStorage;
+import se.icus.mag.loomassistant.storage.BannerStorage;
 
 public class LoomAssistantMod implements ModInitializer {
     public static final String MOD_ID = "loom-assistant";

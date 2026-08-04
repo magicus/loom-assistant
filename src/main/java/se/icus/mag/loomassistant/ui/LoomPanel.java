@@ -42,13 +42,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
-import se.icus.mag.loomassistant.data.BannerStorage;
+import se.icus.mag.loomassistant.storage.BannerStorage;
 import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.types.BannerRecipeCategories;
 import se.icus.mag.loomassistant.types.BannerRecipeCategory;
 import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
+import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomPanel {
     public static final int PANEL_WIDTH = 147;
@@ -115,7 +115,7 @@ public class LoomPanel {
     private final LoomMenu handler;
     private int x;
     private int y;
-    private final AutoCraftStateMachine autoCraft;
+    private final Weaver weaver;
     private final EditBox searchBox;
     private final List<BannerRecipeCategory> categoryTabs;
     private List<TabDescriptor> tabs;
@@ -137,7 +137,7 @@ public class LoomPanel {
         this.handler = handler;
         this.x = x;
         this.y = y;
-        this.autoCraft = new AutoCraftStateMachine(handler);
+        this.weaver = Weaver.getWeaver(handler);
         this.searchBox = new EditBox(
                 Minecraft.getInstance().font,
                 x + SEARCH_X,
@@ -201,7 +201,7 @@ public class LoomPanel {
         renderFilterButton(ctx, mouseX, mouseY);
         renderBannerGrid(ctx, font, mouseX, mouseY);
 
-        if (autoCraft.isActive()) {
+        if (weaver.isActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
         }
     }
@@ -725,7 +725,7 @@ public class LoomPanel {
     }
 
     public void tick() {
-        autoCraft.tick();
+        weaver.tick();
     }
 
     public void setPosition(int x, int y) {
@@ -760,10 +760,7 @@ public class LoomPanel {
     }
 
     private boolean isCraftableNow(BannerRecipe banner) {
-        if (isCreativeMode()) {
-            return true;
-        }
-        return autoCraft.canCraft(banner);
+        return Weaver.getWeaver(handler).canWeave(banner);
     }
 
     private BannerRecipe getSelectedBanner() {
@@ -800,11 +797,7 @@ public class LoomPanel {
     public void craftSelectedBanner() {
         BannerRecipe selectedBanner = getSelectedBanner();
         if (selectedBanner != null) {
-            if (isCreativeMode()) {
-                giveBannerToCreativePlayer(selectedBanner);
-                return;
-            }
-            autoCraft.start(selectedBanner);
+            Weaver.getWeaver(handler).weave(selectedBanner);
         }
     }
 
@@ -813,10 +806,7 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return false;
         }
-        if (isCreativeMode()) {
-            return true;
-        }
-        return autoCraft.canCraft(selectedBanner);
+        return Weaver.getWeaver(handler).canWeave(selectedBanner);
     }
 
     public String getActiveBannerMissingMaterialMessage() {
@@ -824,54 +814,12 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return Component.translatable("loom-assistant.active.select_banner").getString();
         }
-        if (isCreativeMode()) {
-            return null;
-        }
-
-        List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(selectedBanner);
+        List<String> missingMaterials = Weaver.getWeaver(handler).getMissingMaterialDescriptions(selectedBanner);
         if (missingMaterials.isEmpty()) {
             return null;
         }
         return Component.translatable("loom-assistant.active.missing_header").getString() + "\n"
                 + String.join("\n", missingMaterials);
-    }
-
-    private boolean isCreativeMode() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc != null && mc.player != null && mc.player.hasInfiniteMaterials();
-    }
-
-    private void giveBannerToCreativePlayer(BannerRecipe banner) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null || mc.gameMode == null) {
-            return;
-        }
-
-        ItemStack result = BannerPreviewRenderer.createBannerWithPatterns(banner);
-        var inventory = mc.player.getInventory();
-
-        // Mirror what /give does: stack into an existing slot if possible, otherwise use free slot.
-        int targetSlot = inventory.getSlotWithRemainingSpace(result);
-        if (targetSlot == -1) {
-            // No stackable slot found; find a free one (prefer hotbar)
-            targetSlot = -1;
-            for (int i = 0; i < 9; i++) {
-                if (inventory.getItem(i).isEmpty()) {
-                    targetSlot = i;
-                    break;
-                }
-            }
-            if (targetSlot == -1) targetSlot = inventory.getFreeSlot();
-            if (targetSlot == -1) targetSlot = inventory.getSelectedSlot();
-            inventory.setItem(targetSlot, result.copy());
-        } else {
-            // Stack onto existing items in that slot
-            inventory.getItem(targetSlot).grow(result.getCount());
-        }
-
-        // Hotbar (0-8) maps to creative container slots 36-44; rest maps 1:1.
-        int creativeSlot = targetSlot < 9 ? 36 + targetSlot : targetSlot;
-        mc.gameMode.handleCreativeModeItemAdd(inventory.getItem(targetSlot).copy(), creativeSlot);
     }
 
     public void editSelectedBanner() {}
@@ -933,7 +881,7 @@ public class LoomPanel {
     public String getActiveBannerDialogCategory(boolean editMode) {
         BannerRecipe selected = getSelectedBanner();
         if (selected == null) {
-            return BannerRecipe.DEFAULT_CATEGORY;
+            return defaultSaveCategory();
         }
 
         BannerRecipe matched = findMatchingSavedBanner(selected);
@@ -941,7 +889,12 @@ public class LoomPanel {
             return matched.getCategory();
         }
 
-        return BannerRecipe.DEFAULT_CATEGORY;
+        return defaultSaveCategory();
+    }
+
+    // Returns the currently open tab's category, falling back to MISC for the all-categories tab.
+    private String defaultSaveCategory() {
+        return selectedCategoryId != null ? selectedCategoryId : BannerRecipeCategories.MISC.id();
     }
 
     public boolean applyActiveBannerMetadata(String nameInput, String categoryInput) {

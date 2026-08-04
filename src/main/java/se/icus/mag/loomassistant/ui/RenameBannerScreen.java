@@ -11,7 +11,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.BannerStorage;
+import se.icus.mag.loomassistant.storage.BannerStorage;
 
 /**
  * Screen for renaming a saved banner.

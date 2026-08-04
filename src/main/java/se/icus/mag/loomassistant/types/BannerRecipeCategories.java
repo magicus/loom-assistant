@@ -25,6 +25,10 @@ import net.minecraft.world.item.Items;
  * Tabs are sorted alphabetically by id.
  */
 public final class BannerRecipeCategories {
+    /** Hardcoded fallback category used when a recipe specifies no category. */
+    public static final BannerRecipeCategory MISC =
+            new BannerRecipeCategory(BannerRecipe.DEFAULT_CATEGORY, "Misc", "minecraft:lava_bucket");
+
     /** @deprecated Use {@link BannerRecipeCategory} directly. */
     @Deprecated
     public record Category(String id, Identifier itemId, String name) {}
@@ -37,9 +41,11 @@ public final class BannerRecipeCategories {
     // Registry management (called by BannerStorage after loading packs)
     // -------------------------------------------------------------------------
 
-    /** Replaces the entire registry. Entries are sorted alphabetically by id. */
+    /** Replaces the entire registry. Entries are sorted alphabetically by id. MISC is always present. */
     public static void setCategories(Collection<BannerRecipeCategory> categories) {
         registry.clear();
+        // Seed with the hardcoded fallback so it's always available.
+        registry.put(MISC.id(), MISC);
         categories.stream().sorted((a, b) -> a.id().compareToIgnoreCase(b.id())).forEach(c -> registry.put(c.id(), c));
     }
 
