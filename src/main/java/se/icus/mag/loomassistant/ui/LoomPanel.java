@@ -948,7 +948,8 @@ public class LoomPanel {
             if (source != null) {
                 String existingName = source.getName();
                 if (existingName == null || existingName.isBlank()) {
-                    return Component.translatable("loom-assistant.banner.unnamed").getString();
+                    return Component.translatable("loom-assistant.banner.unnamed")
+                            .getString();
                 }
                 return existingName;
             }

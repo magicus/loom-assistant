@@ -18,16 +18,17 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
  */
 public class BannerRecipeImportExportScreen extends Screen {
     private static final int PANEL_W = 320;
-    private static final int PANEL_H = 236;
+    private static final int PANEL_H = 290;
     private static final int PAD = 10;
     private static final int HEADER_H = 18;
-    private static final int SECTION_H = 90;
-    private static final int SECTION_GAP = 8;
+    private static final int SECTION_H = 116;
+    private static final int SECTION_GAP = 2;
     private static final int PREVIEW_SIZE = 18;
     private static final int PREVIEW_BOX = 28;
     private static final int INPUT_H = 18;
     private static final int BTN_H = 20;
     private static final int BTN_W = 72;
+    private static final int STATUS_H = 12;
 
     private static final int BG_COLOR = 0xFFC6C6C6;
     private static final int BG_DARK = 0xFF555555;
@@ -47,8 +48,8 @@ public class BannerRecipeImportExportScreen extends Screen {
     private Button importButton;
     private Button copyButton;
 
-    private BannerRecipe.CommandParseResult importParseResult = new BannerRecipe.CommandParseResult(
-            null, "Invalid syntax", null);
+    private BannerRecipe.CommandParseResult importParseResult =
+            new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
     private boolean copiedFeedback;
 
     public BannerRecipeImportExportScreen(Screen previousScreen, LoomPanel loomPanel) {
@@ -77,47 +78,35 @@ public class BannerRecipeImportExportScreen extends Screen {
     protected void init() {
         int px = panelX();
 
-        this.importBox = this.addRenderableWidget(new EditBox(
-                this.font,
-                px + PAD,
-                importY() + 38,
-                PANEL_W - PAD * 2,
-                INPUT_H,
-                Component.empty()));
+        this.importBox = this.addRenderableWidget(
+                new EditBox(this.font, px + PAD, importY() + 20, PANEL_W - PAD * 2, INPUT_H, Component.empty()));
         this.importBox.setMaxLength(2048);
         this.importBox.setResponder(this::onImportTextChanged);
         this.importBox.setFocused(true);
         this.setFocused(this.importBox);
 
-        int buttonY = importY() + SECTION_H - BTN_H - 6;
+        int importBtnY = importY() + SECTION_H - BTN_H - PAD;
         this.pasteButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("loom-assistant.screen.import_export.paste"),
-                        b -> pasteFromClipboard())
-                .bounds(px + PAD, buttonY, BTN_W, BTN_H)
+                        Component.translatable("loom-assistant.screen.import_export.paste"), b -> pasteFromClipboard())
+                .bounds(px + PAD, importBtnY, BTN_W, BTN_H)
                 .build());
 
-        this.importButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("loom-assistant.screen.import_export.import"),
-                        b -> doImport())
-                .bounds(px + PANEL_W - PAD - BTN_W, buttonY, BTN_W, BTN_H)
-                .build());
+        this.importButton = this.addRenderableWidget(
+                Button.builder(Component.translatable("loom-assistant.screen.import_export.import"), b -> doImport())
+                        .bounds(px + PANEL_W - PAD - BTN_W, importBtnY, BTN_W, BTN_H)
+                        .build());
         this.importButton.active = false;
 
-        this.exportBox = this.addRenderableWidget(new EditBox(
-                this.font,
-                px + PAD + PREVIEW_BOX + 8,
-                exportY() + 38,
-                PANEL_W - (PAD * 2 + PREVIEW_BOX + 8),
-                INPUT_H,
-                Component.empty()));
+        this.exportBox = this.addRenderableWidget(
+                new EditBox(this.font, px + PAD, exportY() + 20, PANEL_W - PAD * 2, INPUT_H, Component.empty()));
         this.exportBox.setMaxLength(2048);
         this.exportBox.active = false;
         this.exportBox.setValue(buildExportCommand());
 
+        int exportBtnY = exportY() + SECTION_H - BTN_H - PAD;
         this.copyButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("loom-assistant.screen.import_export.copy"),
-                        b -> copyToClipboard())
-                .bounds(px + PANEL_W - PAD - BTN_W, exportY() + SECTION_H - BTN_H - 6, BTN_W, BTN_H)
+                        Component.translatable("loom-assistant.screen.import_export.copy"), b -> copyToClipboard())
+                .bounds(px + PANEL_W - PAD - BTN_W, exportBtnY, BTN_W, BTN_H)
                 .build());
         this.copyButton.active = hasExportTarget();
     }
@@ -131,12 +120,14 @@ public class BannerRecipeImportExportScreen extends Screen {
         int iy = importY();
         int ey = exportY();
 
-        drawPanel(ctx, px, py, PANEL_W, PANEL_H);
+        // Draw two separate panels for import and export
+        drawPanel(ctx, px + PAD, iy, PANEL_W - PAD * 2, SECTION_H);
+        drawPanel(ctx, px + PAD, ey, PANEL_W - PAD * 2, SECTION_H);
+
+        // Title
         ctx.text(this.font, this.title, px + PAD, py + 7, TEXT_COLOR, false);
 
-        drawSectionFrame(ctx, px + PAD, iy, PANEL_W - PAD * 2, SECTION_H);
-        drawSectionFrame(ctx, px + PAD, ey, PANEL_W - PAD * 2, SECTION_H);
-
+        // Import section labels
         ctx.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.import_label"),
@@ -146,50 +137,54 @@ public class BannerRecipeImportExportScreen extends Screen {
                 false);
         ctx.text(
                 this.font,
+                Component.translatable("loom-assistant.screen.import_export.import_command_label"),
+                px + PAD,
+                iy + 10,
+                TEXT_DIM,
+                false);
+
+        // Export section labels
+        ctx.text(
+                this.font,
                 Component.translatable("loom-assistant.screen.import_export.export_label"),
                 px + PAD + 4,
                 ey + 6,
                 TEXT_COLOR,
                 false);
-
-        ctx.text(
-                this.font,
-                Component.translatable("loom-assistant.screen.import_export.import_command_label"),
-                px + PAD,
-                iy + 22,
-                TEXT_DIM,
-                false);
         ctx.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.export_command_label"),
-                px + PAD + PREVIEW_BOX + 8,
-                ey + 22,
+                px + PAD,
+                ey + 10,
                 TEXT_DIM,
                 false);
 
-        renderImportPreview(ctx, px + PAD, iy + 58, mouseX, mouseY);
-        renderExportPreview(ctx, px + PAD, ey + 58, mouseX, mouseY);
+        // Render previews and status messages
+        renderImportPreview(ctx, px + PAD, iy + 42, mouseX, mouseY);
+        renderExportPreview(ctx, px + PAD, ey + 42, mouseX, mouseY);
 
+        // Status text for import (below preview)
         String statusText = getImportStatusText();
         if (statusText != null) {
             int color = importParseResult.recipe() != null ? OK_COLOR : ERROR_COLOR;
-            ctx.text(this.font, Component.literal(statusText), px + PAD + PREVIEW_BOX + 8, iy + 60, color, false);
+            ctx.text(this.font, Component.literal(statusText), px + PAD, iy + 74, color, false);
         }
 
+        // Status/feedback for export (below preview)
         if (!hasExportTarget()) {
             ctx.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.import_export.select_banner_to_export"),
-                    px + PAD + PREVIEW_BOX + 8,
-                    ey + 60,
+                    px + PAD,
+                    ey + 74,
                     TEXT_DISABLED,
                     false);
         } else if (copiedFeedback) {
             ctx.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.import_export.copied"),
-                    px + PAD + PREVIEW_BOX + 8,
-                    ey + 60,
+                    px + PAD,
+                    ey + 74,
                     OK_COLOR,
                     false);
         }
@@ -205,11 +200,11 @@ public class BannerRecipeImportExportScreen extends Screen {
         }
 
         ItemStack stack = BannerPreviewRenderer.createBannerWithPatterns(recipe);
-        ctx.item(stack, x + 6, y + 6);
+        ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
         }
-        ctx.text(this.font, Component.literal(recipe.getDisplayName()), x + PREVIEW_BOX + 8, y + 5, TEXT_COLOR, false);
+        drawPreviewSlot(ctx, x, y);
     }
 
     private void renderExportPreview(GuiGraphicsExtractor ctx, int x, int y, int mouseX, int mouseY) {
@@ -220,11 +215,11 @@ public class BannerRecipeImportExportScreen extends Screen {
         }
 
         ItemStack stack = BannerPreviewRenderer.createBannerWithPatterns(recipe);
-        ctx.item(stack, x + 6, y + 6);
+        ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
         }
-        ctx.text(this.font, Component.literal(recipe.getDisplayName()), x + PREVIEW_BOX + 8, y + 5, TEXT_COLOR, false);
+        drawPreviewSlot(ctx, x, y);
     }
 
     private void drawPreviewSlot(GuiGraphicsExtractor ctx, int x, int y) {
@@ -241,10 +236,6 @@ public class BannerRecipeImportExportScreen extends Screen {
         ctx.fill(x, y, x + 1, y + h, BG_LIGHT);
         ctx.fill(x, y + h - 1, x + w, y + h, BG_DARK);
         ctx.fill(x + w - 1, y, x + w, y + h, BG_DARK);
-    }
-
-    private void drawSectionFrame(GuiGraphicsExtractor ctx, int x, int y, int w, int h) {
-        drawPanel(ctx, x, y, w, h);
     }
 
     private void onImportTextChanged(String text) {

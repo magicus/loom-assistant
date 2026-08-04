@@ -306,13 +306,17 @@ public record BannerRecipe(
             return new CommandParseResult(manual, null, null);
         }
 
-        Integer errorPosition = parseError != null && parseError.getCursor() >= 0 ? offset + parseError.getCursor() : null;
+        Integer errorPosition =
+                parseError != null && parseError.getCursor() >= 0 ? offset + parseError.getCursor() : null;
         return new CommandParseResult(null, "Invalid syntax", errorPosition);
     }
 
     private static BannerRecipe parseModernCommandManually(String objectText) {
         String trimmed = objectText == null ? null : objectText.trim();
-        if (trimmed == null || trimmed.length() < 2 || trimmed.charAt(0) != '{' || trimmed.charAt(trimmed.length() - 1) != '}') {
+        if (trimmed == null
+                || trimmed.length() < 2
+                || trimmed.charAt(0) != '{'
+                || trimmed.charAt(trimmed.length() - 1) != '}') {
             return null;
         }
 
@@ -567,7 +571,8 @@ public record BannerRecipe(
     }
 
     private static BannerRecipe parseLegacyCommand(String working) {
-        Matcher itemMatcher = Pattern.compile("(?:^|\\s)(?:minecraft:)?([a-z_]+)_banner(?=\\b|\\[)").matcher(working);
+        Matcher itemMatcher = Pattern.compile("(?:^|\\s)(?:minecraft:)?([a-z_]+)_banner(?=\\b|\\[)")
+                .matcher(working);
         if (!itemMatcher.find()) {
             return null;
         }
@@ -593,14 +598,16 @@ public record BannerRecipe(
                     }
                     String patternId = patternObj.get("pattern").getAsString();
                     String namespacedPattern = patternId.contains(":") ? patternId : "minecraft:" + patternId;
-                    parsedLayers.add(BannerRecipeLayer.of(namespacedPattern, patternObj.get("color").getAsString()));
+                    parsedLayers.add(BannerRecipeLayer.of(
+                            namespacedPattern, patternObj.get("color").getAsString()));
                 }
             } catch (IllegalArgumentException | JsonSyntaxException ignored) {
                 return null;
             }
         }
 
-        return new BannerRecipe(null, DEFAULT_DESCRIPTION, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
+        return new BannerRecipe(
+                null, DEFAULT_DESCRIPTION, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
     }
 
     private static DyeColor parseBannerColor(String itemId) {
@@ -665,5 +672,4 @@ public record BannerRecipe(
             return builder.toString();
         }
     }
-
 }

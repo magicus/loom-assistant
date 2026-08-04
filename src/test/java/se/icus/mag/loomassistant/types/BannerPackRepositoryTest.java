@@ -118,10 +118,9 @@ class BannerPackRepositoryTest {
 
     @Test
     void supportsGiveImportAndExportFormats() {
-        String complexBanner =
-                "{id:light_blue_banner,components:{banner_patterns:[{pattern:cross,color:white},"
-                        + "{pattern:minecraft:curly_border,color:black},"
-                        + "{pattern:triangle_top,color:yellow}],custom_name:\"Letter C\"},count:16}";
+        String complexBanner = "{id:light_blue_banner,components:{banner_patterns:[{pattern:cross,color:white},"
+                + "{pattern:minecraft:curly_border,color:black},"
+                + "{pattern:triangle_top,color:yellow}],custom_name:\"Letter C\"},count:16}";
         BannerRecipe fromGive = BannerRecipe.fromCommand("/give @p " + complexBanner);
         assertNotNull(fromGive);
         assertEquals("Letter C", fromGive.description());
@@ -129,9 +128,11 @@ class BannerPackRepositoryTest {
         assertEquals(3, fromGive.layers().size());
         assertEquals("minecraft:cross", fromGive.layers().get(0).pattern().toString());
         assertEquals(DyeColor.WHITE, fromGive.layers().get(0).color());
-        assertEquals("minecraft:curly_border", fromGive.layers().get(1).pattern().toString());
+        assertEquals(
+                "minecraft:curly_border", fromGive.layers().get(1).pattern().toString());
         assertEquals(DyeColor.BLACK, fromGive.layers().get(1).color());
-        assertEquals("minecraft:triangle_top", fromGive.layers().get(2).pattern().toString());
+        assertEquals(
+                "minecraft:triangle_top", fromGive.layers().get(2).pattern().toString());
         assertEquals(DyeColor.YELLOW, fromGive.layers().get(2).color());
 
         BannerRecipe fromBareItem = BannerRecipe.fromCommand("light_blue_banner");
