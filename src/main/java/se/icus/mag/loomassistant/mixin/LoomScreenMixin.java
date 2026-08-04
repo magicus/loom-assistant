@@ -313,7 +313,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                         18,
                         Component.empty(),
                         button -> this.minecraft.gui.setScreen(
-                                new BannerRecipeImportExportScreen((LoomScreen) (Object) this)),
+                                new BannerRecipeImportExportScreen((LoomScreen) (Object) this, loomassistant$panel)),
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
                     @Override
                     public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {

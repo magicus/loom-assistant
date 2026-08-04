@@ -787,6 +787,10 @@ public class LoomPanel {
         return BannerPreviewRenderer.createBannerWithPatterns(selectedBanner);
     }
 
+    public BannerRecipe getActiveBannerRecipe() {
+        return activeBanner;
+    }
+
     public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
         BannerRecipe selectedBanner = getSelectedBanner();
         if (selectedBanner == null) {
@@ -991,6 +995,10 @@ public class LoomPanel {
             selectedBannerId = matched.getId();
         }
         return true;
+    }
+
+    public void loadImportedBanner(BannerRecipe imported) {
+        setActiveBannerFromSource(imported, null);
     }
 
     private BannerRecipe cloneBannerForSave(BannerRecipe source) {

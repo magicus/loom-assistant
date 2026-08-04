@@ -103,15 +103,18 @@ The repository always ensures an editable `root` pack exists:
 
 ## Give string conversion
 
-The backend supports importing designs from:
+The backend supports importing give commands in both the legacy and modern object formats:
 
 - `/give ...`
 - `give ...`
 - `minecraft:<color>_banner`
 - `<color>_banner`
+- `/give @p {id:<color>_banner,components:{banner_patterns:[...],custom_name:"..."},count:...}`
 
-Exported give strings always start with:
+Exported give strings use the modern object format:
 
-- `/give @p minecraft:<color>_banner`
+- `/give @p {id:<color>_banner}`
+- `/give @p {id:<color>_banner,components:{banner_patterns:[...]}}`
+- `/give @p {id:<color>_banner,components:{banner_patterns:[...],custom_name:"..."}}`
 
-and include `banner_patterns=[...]` when layers exist.
+`custom_name` is included when the banner has a non-default name.
