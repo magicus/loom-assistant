@@ -9,11 +9,12 @@ import java.nio.file.Path;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 public class ZipBannerPack extends BannerPack {
-    public ZipBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath)
+    public ZipBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath, Path langPath)
             throws IOException {
         super(metadata, path);
         loadRecipesFromPath(bannersPath);
         loadCategoriesFromPath(categoriesPath);
+        loadCategoryLangFiles(langPath);
     }
 
     @Override

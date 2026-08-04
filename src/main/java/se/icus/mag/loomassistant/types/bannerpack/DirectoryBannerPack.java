@@ -17,11 +17,13 @@ public class DirectoryBannerPack extends BannerPack {
         super(metadata, path);
     }
 
-    public DirectoryBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath)
+    public DirectoryBannerPack(
+            BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath, Path langPath)
             throws IOException {
         this(metadata, path);
         loadRecipesFromPath(bannersPath);
         loadCategoriesFromPath(categoriesPath);
+        loadCategoryLangFiles(langPath);
     }
 
     @Override

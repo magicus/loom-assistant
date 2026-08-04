@@ -63,7 +63,7 @@ public class BannerStorage {
     private void rebuildCategoryRegistry() {
         Map<String, BannerRecipeCategory> merged = new LinkedHashMap<>();
 
-        // Collect from every pack; later packs can override earlier ones.
+        // Collect categories from every pack; later packs can override earlier ones.
         for (BannerPack pack : repository.getPacks().values()) {
             for (BannerRecipeCategory c : pack.getCategories()) {
                 merged.merge(c.id(), c, BannerRecipeCategory::mergedWith);
@@ -79,6 +79,18 @@ public class BannerStorage {
         }
 
         BannerRecipeCategories.setCategories(merged.values());
+
+        // Collect and merge translations from all packs.
+        Map<String, Map<String, String>> mergedTranslations = new LinkedHashMap<>();
+        for (BannerPack pack : repository.getPacks().values()) {
+            for (Map.Entry<String, Map<String, String>> e :
+                    pack.getCategoryTranslations().entrySet()) {
+                mergedTranslations
+                        .computeIfAbsent(e.getKey(), k -> new LinkedHashMap<>())
+                        .putAll(e.getValue());
+            }
+        }
+        BannerRecipeCategories.setTranslations(mergedTranslations);
     }
 
     public void save() {

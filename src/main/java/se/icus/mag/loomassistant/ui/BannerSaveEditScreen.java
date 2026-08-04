@@ -125,7 +125,7 @@ public class BannerSaveEditScreen extends Screen {
                 0xFFDDDDDD,
                 false);
 
-        Component category = Component.literal(selectedCategoryId);
+        Component category = Component.literal(BannerRecipeCategories.getLocalizedDescription(selectedCategoryId));
         int categoryX = x + (PANEL_W - this.font.width(category)) / 2;
         ctx.text(this.font, category, categoryX, y + 79, 0xFFFFFFFF, false);
 

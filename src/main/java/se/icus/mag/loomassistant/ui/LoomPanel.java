@@ -615,7 +615,10 @@ public class LoomPanel {
         out.add(new TabDescriptor(null, ALL_CATEGORIES_TOOLTIP, null));
         for (BannerRecipeCategory category : categories) {
             if (nonEmptyCategoryIds.contains(category.id().toLowerCase(Locale.ROOT))) {
-                out.add(new TabDescriptor(category.id(), Component.literal(category.description()), category));
+                out.add(new TabDescriptor(
+                        category.id(),
+                        Component.literal(BannerRecipeCategories.getLocalizedDescription(category.id())),
+                        category));
             }
         }
         return List.copyOf(out);

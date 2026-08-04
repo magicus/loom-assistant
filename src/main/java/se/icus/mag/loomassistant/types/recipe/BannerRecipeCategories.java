@@ -7,7 +7,9 @@ package se.icus.mag.loomassistant.types.recipe;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +36,8 @@ public final class BannerRecipeCategories {
     public record Category(String id, Identifier itemId, String name) {}
 
     private static final Map<String, BannerRecipeCategory> registry = new LinkedHashMap<>();
+    /** locale code → (category id → localized name) */
+    private static final Map<String, Map<String, String>> translations = new LinkedHashMap<>();
 
     private BannerRecipeCategories() {}
 
@@ -49,6 +53,12 @@ public final class BannerRecipeCategories {
         categories.stream().sorted((a, b) -> a.id().compareToIgnoreCase(b.id())).forEach(c -> registry.put(c.id(), c));
     }
 
+    /** Replaces all locale translations collected from packs. */
+    public static void setTranslations(Map<String, Map<String, String>> allTranslations) {
+        translations.clear();
+        translations.putAll(allTranslations);
+    }
+
     // -------------------------------------------------------------------------
     // Query API
     // -------------------------------------------------------------------------
@@ -59,6 +69,35 @@ public final class BannerRecipeCategories {
 
     public static BannerRecipeCategory get(String id) {
         return registry.getOrDefault(id, BannerRecipeCategory.fallback(id));
+    }
+
+    /**
+     * Returns the category name localized for the current game language.
+     * Falls back to description field, then the id itself.
+     */
+    public static String getLocalizedDescription(String catId) {
+        String locale = currentLocale();
+        Map<String, String> localeMap = translations.get(locale);
+        if (localeMap != null && localeMap.containsKey(catId)) {
+            return localeMap.get(catId);
+        }
+        // Fallback: try stripping country variant (e.g. "en_gb" → "en")
+        String lang = locale.split("_")[0];
+        for (Map.Entry<String, Map<String, String>> e : translations.entrySet()) {
+            if (e.getKey().startsWith(lang) && e.getValue().containsKey(catId)) {
+                return e.getValue().get(catId);
+            }
+        }
+        BannerRecipeCategory cat = registry.get(catId);
+        return cat != null ? cat.description() : catId;
+    }
+
+    private static String currentLocale() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc != null && mc.options != null) {
+            return mc.options.languageCode.toLowerCase(Locale.ROOT);
+        }
+        return "en_us";
     }
 
     /** Resolves the tab icon for a category. Falls back to lava bucket on unknown item id. */

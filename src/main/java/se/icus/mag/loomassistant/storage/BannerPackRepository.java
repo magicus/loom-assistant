@@ -190,6 +190,26 @@ public class BannerPackRepository {
         }) {
             BannerPack.writeCategoryFile(categoriesDir, ns, cat);
         }
+        writeCategoryLangFile(categoriesDir, "sv_se", new String[][] {
+            {"flags", "Flaggor"},
+            {"letters", "Bokst\u00e4ver"},
+            {"logos", "Logotyper"},
+            {"misc", "\u00d6vrigt"},
+            {"nature", "Natur"},
+        });
+    }
+
+    private static void writeCategoryLangFile(Path categoriesDir, String locale, String[][] entries)
+            throws IOException {
+        Path langDir = categoriesDir.resolve("lang");
+        Files.createDirectories(langDir);
+        com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+        for (String[] entry : entries) {
+            obj.addProperty(entry[0], entry[1]);
+        }
+        try (java.io.Writer w = java.nio.file.Files.newBufferedWriter(langDir.resolve(locale + ".json"))) {
+            new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(obj, w);
+        }
     }
 
     private BannerPack requirePack(String packId) {

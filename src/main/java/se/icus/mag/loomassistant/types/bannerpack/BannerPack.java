@@ -36,6 +36,8 @@ public abstract class BannerPack {
     private final Path path;
     private final Map<String, BannerRecipe> recipes = new LinkedHashMap<>();
     private List<BannerRecipeCategory> categories = List.of();
+    /** locale → (category id → localized name) */
+    private Map<String, Map<String, String>> categoryTranslations = Map.of();
 
     protected BannerPack(BannerPackMetadata metadata, Path path) {
         this.metadata = metadata;
@@ -60,6 +62,10 @@ public abstract class BannerPack {
 
     public List<BannerRecipeCategory> getCategories() {
         return categories;
+    }
+
+    public Map<String, Map<String, String>> getCategoryTranslations() {
+        return categoryTranslations;
     }
 
     public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
@@ -103,7 +109,11 @@ public abstract class BannerPack {
         }
 
         return new DirectoryBannerPack(
-                metadata, packDir, packDir.resolve(BANNERS_DIR), packDir.resolve(CATEGORIES_DIR));
+                metadata,
+                packDir,
+                packDir.resolve(BANNERS_DIR),
+                packDir.resolve(CATEGORIES_DIR),
+                packDir.resolve(CATEGORIES_DIR).resolve("lang"));
     }
 
     public static ZipBannerPack loadZipPack(Path zipPath, String packId) throws IOException {
@@ -115,7 +125,12 @@ public abstract class BannerPack {
                 return null;
             }
 
-            pack = new ZipBannerPack(metadata, zipPath, root.resolve(BANNERS_DIR), root.resolve(CATEGORIES_DIR));
+            pack = new ZipBannerPack(
+                    metadata,
+                    zipPath,
+                    root.resolve(BANNERS_DIR),
+                    root.resolve(CATEGORIES_DIR),
+                    root.resolve(CATEGORIES_DIR).resolve("lang"));
         }
         return pack;
     }
@@ -220,6 +235,35 @@ public abstract class BannerPack {
             });
         }
         categories = List.copyOf(loaded);
+    }
+
+    protected final void loadCategoryLangFiles(Path langDir) throws IOException {
+        if (!Files.exists(langDir) || !Files.isDirectory(langDir)) {
+            return;
+        }
+        Map<String, Map<String, String>> loaded = new LinkedHashMap<>();
+        try (Stream<Path> files = Files.list(langDir)) {
+            files.filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .sorted()
+                    .forEach(filePath -> {
+                        String locale = filePath.getFileName().toString();
+                        locale = locale.substring(0, locale.length() - ".json".length())
+                                .toLowerCase(java.util.Locale.ROOT);
+                        try (Reader reader = Files.newBufferedReader(filePath)) {
+                            com.google.gson.JsonObject obj = GSON.fromJson(reader, com.google.gson.JsonObject.class);
+                            if (obj != null) {
+                                Map<String, String> map = new LinkedHashMap<>();
+                                for (Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
+                                    map.put(e.getKey(), e.getValue().getAsString());
+                                }
+                                loaded.put(locale, map);
+                            }
+                        } catch (IOException e) {
+                            throw new IllegalStateException("Failed to read category lang file " + filePath, e);
+                        }
+                    });
+        }
+        categoryTranslations = Map.copyOf(loaded);
     }
 
     public static void writeCategoryFile(Path categoriesDir, String namespace, BannerRecipeCategory category)
