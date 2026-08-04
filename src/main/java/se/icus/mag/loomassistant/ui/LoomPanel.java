@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.ui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -12,12 +13,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookTabButton;
@@ -25,6 +24,7 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
@@ -32,21 +32,21 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.types.BannerRecipeCategories;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
-import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.types.BannerRecipe;
 
 public class LoomPanel {
     public static final int PANEL_WIDTH = 147;
@@ -70,37 +70,33 @@ public class LoomPanel {
     private static final int FILTER_W = 26;
     private static final int FILTER_H = 16;
     private static final Identifier RECIPE_BOOK_TEXTURE =
-        Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
+            Identifier.withDefaultNamespace("textures/gui/recipe_book.png");
     private static final Identifier FILTER_ENABLED =
-        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled");
+            Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled");
     private static final Identifier FILTER_DISABLED =
-        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled");
+            Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled");
     private static final Identifier FILTER_ENABLED_HOVER =
-        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled_highlighted");
+            Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_enabled_highlighted");
     private static final Identifier FILTER_DISABLED_HOVER =
-        Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled_highlighted");
-    private static final Component ALL_RECIPES_TOOLTIP =
-        Component.translatable("gui.recipebook.toggleRecipes.all");
+            Identifier.fromNamespaceAndPath("loom-assistant", "loom_recipe_book/filter_disabled_highlighted");
+    private static final Component ALL_RECIPES_TOOLTIP = Component.translatable("gui.recipebook.toggleRecipes.all");
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
-        Component.translatable("loom-assistant.panel.show_weavable");
-    private static final Component WEAVING_LABEL =
-        Component.translatable("loom-assistant.panel.weaving");
-    private static final Component NO_BANNERS_LABEL =
-        Component.translatable("loom-assistant.panel.no_banners");
+            Component.translatable("loom-assistant.panel.show_weavable");
+    private static final Component WEAVING_LABEL = Component.translatable("loom-assistant.panel.weaving");
+    private static final Component NO_BANNERS_LABEL = Component.translatable("loom-assistant.panel.no_banners");
     private static final Component CATEGORY_SCROLL_UP_TOOLTIP = Component.literal("Scroll tabs up");
     private static final Component CATEGORY_SCROLL_DOWN_TOOLTIP = Component.literal("Scroll tabs down");
-    private static final Identifier TAB_SCROLL_UP_SPRITE =
-        Identifier.withDefaultNamespace("transferable_list/move_up");
+    private static final Identifier TAB_SCROLL_UP_SPRITE = Identifier.withDefaultNamespace("transferable_list/move_up");
     private static final Identifier TAB_SCROLL_UP_HIGHLIGHTED_SPRITE =
-        Identifier.withDefaultNamespace("transferable_list/move_up_highlighted");
+            Identifier.withDefaultNamespace("transferable_list/move_up_highlighted");
     private static final Identifier TAB_SCROLL_DOWN_SPRITE =
-        Identifier.withDefaultNamespace("transferable_list/move_down");
+            Identifier.withDefaultNamespace("transferable_list/move_down");
     private static final Identifier TAB_SCROLL_DOWN_HIGHLIGHTED_SPRITE =
-        Identifier.withDefaultNamespace("transferable_list/move_down_highlighted");
+            Identifier.withDefaultNamespace("transferable_list/move_down_highlighted");
     private static final Identifier SLOT_CRAFTABLE_SPRITE =
-        Identifier.withDefaultNamespace("recipe_book/slot_craftable");
+            Identifier.withDefaultNamespace("recipe_book/slot_craftable");
     private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
-        Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
+            Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
 
     private final LoomScreen screen;
     private final LoomMenu handler;
@@ -137,7 +133,8 @@ public class LoomPanel {
         this.searchBox.setMaxLength(50);
         this.searchBox.setVisible(true);
         this.searchBox.setTextColor(-1);
-        this.searchBox.setHint(Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
+        this.searchBox.setHint(
+                Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
         this.tabs = List.of();
         this.selectedCategoryId = null;
@@ -152,7 +149,17 @@ public class LoomPanel {
         refreshVisibleTabs();
         Font font = Minecraft.getInstance().font;
 
-        ctx.blit(RenderPipelines.GUI_TEXTURED, RECIPE_BOOK_TEXTURE, x, y, 1.0F, 1.0F, PANEL_WIDTH, PANEL_HEIGHT, 256, 256);
+        ctx.blit(
+                RenderPipelines.GUI_TEXTURED,
+                RECIPE_BOOK_TEXTURE,
+                x,
+                y,
+                1.0F,
+                1.0F,
+                PANEL_WIDTH,
+                PANEL_HEIGHT,
+                256,
+                256);
         renderTabs(ctx, mouseX, mouseY);
         searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
         renderFilterButton(ctx, mouseX, mouseY);
@@ -178,19 +185,14 @@ public class LoomPanel {
             if (isIn(mouseX, mouseY, tx - 2, ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
-                        Minecraft.getInstance().font,
-                        List.of(tab.tooltip()),
-                        Optional.empty(),
-                        mouseX,
-                        mouseY);
+                        Minecraft.getInstance().font, List.of(tab.tooltip()), Optional.empty(), mouseX, mouseY);
             }
         }
 
         renderTabScrollArrows(ctx, mouseX, mouseY, tx, visibleTabCount);
     }
 
-    private void renderTabScrollArrows(
-            GuiGraphicsExtractor ctx, int mouseX, int mouseY, int tx, int visibleTabCount) {
+    private void renderTabScrollArrows(GuiGraphicsExtractor ctx, int mouseX, int mouseY, int tx, int visibleTabCount) {
         if (!hasScrollableTabs()) {
             return;
         }
@@ -202,7 +204,8 @@ public class LoomPanel {
         if (upEnabled) {
             boolean upHover = isIn(mouseX, mouseY, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
             Identifier upSprite = upHover ? TAB_SCROLL_UP_HIGHLIGHTED_SPRITE : TAB_SCROLL_UP_SPRITE;
-            ctx.blitSprite(RenderPipelines.GUI_TEXTURED, upSprite, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            ctx.blitSprite(
+                    RenderPipelines.GUI_TEXTURED, upSprite, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
             if (upHover) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
@@ -220,7 +223,13 @@ public class LoomPanel {
         if (downEnabled) {
             boolean downHover = isIn(mouseX, mouseY, arrowX, downArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
             Identifier downSprite = downHover ? TAB_SCROLL_DOWN_HIGHLIGHTED_SPRITE : TAB_SCROLL_DOWN_SPRITE;
-            ctx.blitSprite(RenderPipelines.GUI_TEXTURED, downSprite, arrowX, downArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
+            ctx.blitSprite(
+                    RenderPipelines.GUI_TEXTURED,
+                    downSprite,
+                    arrowX,
+                    downArrowY,
+                    TAB_SCROLL_ARROW_W,
+                    TAB_SCROLL_ARROW_H);
             if (downHover) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
@@ -247,7 +256,9 @@ public class LoomPanel {
     }
 
     private boolean isTabSelected(TabDescriptor tab) {
-        return tab.categoryId() == null ? selectedCategoryId == null : tab.categoryId().equals(selectedCategoryId);
+        return tab.categoryId() == null
+                ? selectedCategoryId == null
+                : tab.categoryId().equals(selectedCategoryId);
     }
 
     private void renderFilterButton(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
@@ -265,11 +276,7 @@ public class LoomPanel {
             ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
             Component tooltip = craftableOnly ? ONLY_CRAFTABLES_TOOLTIP : ALL_RECIPES_TOOLTIP;
             ctx.setTooltipForNextFrame(
-                    Minecraft.getInstance().font,
-                    List.of(tooltip),
-                    Optional.empty(),
-                    mouseX,
-                    mouseY);
+                    Minecraft.getInstance().font, List.of(tooltip), Optional.empty(), mouseX, mouseY);
         }
     }
 
@@ -314,8 +321,7 @@ public class LoomPanel {
         String baseKey = "block.minecraft." + banner.getBaseColorEnum().getSerializedName() + "_banner";
         String baseName = Language.getInstance().getOrDefault(baseKey);
         rows.add(BannerRecipeTooltipComponent.Row.single(
-                new ItemStack(banner.getBaseBannerItem()),
-                Component.literal("1. " + baseName)));
+                new ItemStack(banner.getBaseBannerItem()), Component.literal("1. " + baseName)));
 
         int idx = 2;
         for (BannerPatternLayer layer : banner.getLayers()) {
@@ -325,9 +331,7 @@ public class LoomPanel {
             }
             ItemStack dyeStack = new ItemStack(SavedBanner.getDyeItem(layer.getDyeColorEnum()));
             rows.add(BannerRecipeTooltipComponent.Row.pair(
-                    patternIcon,
-                    dyeStack,
-                    Component.literal(idx + ". " + getPatternDisplayName(layer))));
+                    patternIcon, dyeStack, Component.literal(idx + ". " + getPatternDisplayName(layer))));
             idx++;
         }
         return rows;
@@ -442,7 +446,13 @@ public class LoomPanel {
         for (int slot = 0; slot < visibleTabCount; slot++) {
             TabDescriptor tab = tabs.get(tabScrollOffset + slot);
             int ty = y + TAB_Y_START + slot * RecipeBookTabButton.HEIGHT;
-            if (isIn(mx, my, tx - (isTabSelected(tab) ? 2 : 0), ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
+            if (isIn(
+                    mx,
+                    my,
+                    tx - (isTabSelected(tab) ? 2 : 0),
+                    ty,
+                    RecipeBookTabButton.WIDTH,
+                    RecipeBookTabButton.HEIGHT)) {
                 selectedCategoryId = tab.categoryId();
                 page = 0;
                 searchBox.setFocused(true);
@@ -575,15 +585,15 @@ public class LoomPanel {
         }
     }
 
-    private record TabDescriptor(String categoryId, Component tooltip, int categoryIndex) {
-    }
+    private record TabDescriptor(String categoryId, Component tooltip, int categoryIndex) {}
 
     private boolean clickBannerGrid(int mx, int my) {
         List<SavedBanner> items = getFilteredBanners();
         int start = page * GRID_COLUMNS * GRID_ROWS;
         int end = Math.min(items.size(), start + GRID_COLUMNS * GRID_ROWS);
-        boolean isShiftPressed = InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
-                || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+        boolean isShiftPressed =
+                InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
+                        || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
 
         for (int i = start; i < end; i++) {
             int local = i - start;
@@ -617,10 +627,7 @@ public class LoomPanel {
 
     public boolean keyPressed(KeyEvent event) {
         Minecraft mc = Minecraft.getInstance();
-        if (searchBox.canConsumeInput()
-                && mc != null
-                && mc.options != null
-                && mc.options.keyInventory.matches(event)) {
+        if (searchBox.canConsumeInput() && mc != null && mc.options != null && mc.options.keyInventory.matches(event)) {
             return true;
         }
 
@@ -691,7 +698,8 @@ public class LoomPanel {
             if (selectedCategoryId != null && !selectedCategoryId.equalsIgnoreCase(banner.getCategory())) {
                 continue;
             }
-            if (!query.isEmpty() && !banner.getDisplayName().toLowerCase(Locale.ROOT).contains(query)) {
+            if (!query.isEmpty()
+                    && !banner.getDisplayName().toLowerCase(Locale.ROOT).contains(query)) {
                 continue;
             }
             if (craftableOnly && !isCraftableNow(banner)) {
@@ -775,7 +783,8 @@ public class LoomPanel {
         if (missingMaterials.isEmpty()) {
             return null;
         }
-        return Component.translatable("loom-assistant.active.missing_header").getString() + "\n" + String.join("\n", missingMaterials);
+        return Component.translatable("loom-assistant.active.missing_header").getString() + "\n"
+                + String.join("\n", missingMaterials);
     }
 
     private boolean isCreativeMode() {
@@ -798,7 +807,10 @@ public class LoomPanel {
             // No stackable slot found; find a free one (prefer hotbar)
             targetSlot = -1;
             for (int i = 0; i < 9; i++) {
-                if (inventory.getItem(i).isEmpty()) { targetSlot = i; break; }
+                if (inventory.getItem(i).isEmpty()) {
+                    targetSlot = i;
+                    break;
+                }
             }
             if (targetSlot == -1) targetSlot = inventory.getFreeSlot();
             if (targetSlot == -1) targetSlot = inventory.getSelectedSlot();
@@ -813,8 +825,7 @@ public class LoomPanel {
         mc.gameMode.handleCreativeModeItemAdd(inventory.getItem(targetSlot).copy(), creativeSlot);
     }
 
-    public void editSelectedBanner() {
-    }
+    public void editSelectedBanner() {}
 
     public void clearSelectedBanner() {
         selectedBannerId = null;
@@ -893,9 +904,8 @@ public class LoomPanel {
         String name = (nameInput == null || nameInput.isBlank())
                 ? Component.translatable("loom-assistant.banner.unnamed").getString()
                 : nameInput.trim();
-        String category = (categoryInput == null || categoryInput.isBlank())
-                ? BannerRecipe.DEFAULT_CATEGORY
-                : categoryInput;
+        String category =
+                (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
 
         SavedBanner matched = findMatchingSavedBanner(selected);
         if (matched != null) {
@@ -939,7 +949,8 @@ public class LoomPanel {
     }
 
     private SavedBanner cloneBannerForSave(SavedBanner source) {
-        SavedBanner copy = new SavedBanner(source.getName(), source.getBaseColorEnum(), new ArrayList<>(source.getLayers()));
+        SavedBanner copy =
+                new SavedBanner(source.getName(), source.getBaseColorEnum(), new ArrayList<>(source.getLayers()));
         if (source.getName() != null) {
             copy.setName(source.getName());
         }
@@ -1136,8 +1147,10 @@ public class LoomPanel {
                         var entry = regOpt.get().get(id);
                         if (entry.isPresent()) {
                             net.minecraft.world.level.block.entity.BannerPattern pattern =
-                                    (net.minecraft.world.level.block.entity.BannerPattern) entry.get().value();
-                            String key = pattern.translationKey() + "." + layer.getDyeColorEnum().getName();
+                                    (net.minecraft.world.level.block.entity.BannerPattern)
+                                            entry.get().value();
+                            String key = pattern.translationKey() + "."
+                                    + layer.getDyeColorEnum().getName();
                             return Component.translatable(key).getString();
                         }
                     }
@@ -1153,7 +1166,8 @@ public class LoomPanel {
         StringBuilder sb = new StringBuilder();
         for (String word : raw.split("_")) {
             if (!sb.isEmpty()) sb.append(' ');
-            if (!word.isEmpty()) sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+            if (!word.isEmpty())
+                sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
         }
         return sb.toString();
     }

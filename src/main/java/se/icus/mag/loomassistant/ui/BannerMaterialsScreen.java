@@ -67,7 +67,7 @@ public class BannerMaterialsScreen extends Screen {
         // Draw title
         context.text(
                 this.font,
-            Component.translatable("loom-assistant.screen.banner_materials.required_materials"),
+                Component.translatable("loom-assistant.screen.banner_materials.required_materials"),
                 contentX + PADDING,
                 contentY + PADDING,
                 0xFF4169E1,
@@ -76,7 +76,7 @@ public class BannerMaterialsScreen extends Screen {
         // Draw crafting order header
         context.text(
                 this.font,
-            Component.translatable("loom-assistant.screen.banner_materials.weaving_order"),
+                Component.translatable("loom-assistant.screen.banner_materials.weaving_order"),
                 contentX + PADDING,
                 contentY + PADDING + 15,
                 0xFF4169E1,
@@ -88,8 +88,7 @@ public class BannerMaterialsScreen extends Screen {
         context.item(baseStack, contentX + PADDING, contentY + PADDING + 28);
         context.text(
                 this.font,
-            Component.translatable(
-                "loom-assistant.screen.banner_materials.step_base", baseStack.getHoverName()),
+                Component.translatable("loom-assistant.screen.banner_materials.step_base", baseStack.getHoverName()),
                 contentX + PADDING + 20,
                 contentY + PADDING + 31,
                 0xFFFFFFFF,
@@ -199,10 +198,12 @@ public class BannerMaterialsScreen extends Screen {
             String patternName = extractPatternName(patternId);
 
             // Get dye color name
-                String displayColor = new ItemStack(SavedBanner.getDyeItem(dyeColor)).getHoverName().getString();
+            String displayColor = new ItemStack(SavedBanner.getDyeItem(dyeColor))
+                    .getHoverName()
+                    .getString();
 
-                String displayName = Component.translatable(
-                        "loom-assistant.screen.banner_materials.pattern_with_dye", patternName, displayColor)
+            String displayName = Component.translatable(
+                            "loom-assistant.screen.banner_materials.pattern_with_dye", patternName, displayColor)
                     .getString();
 
             // Check if this pattern requires an item

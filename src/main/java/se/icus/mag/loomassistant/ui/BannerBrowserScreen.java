@@ -8,18 +8,18 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.locale.Language;
-import net.minecraft.resources.Identifier;
-import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
+import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
 
@@ -141,20 +141,13 @@ public class BannerBrowserScreen extends Screen {
 
                 boolean hovered = mx >= cellX && mx < cellX + cellW && my >= cellY && my < cellY + CELL_H;
                 boolean selected = banner.getId().equals(selectedBannerId);
-                ctx.fill(
-                        cellX, cellY, cellX + cellW, cellY + CELL_H, selected ? COL_SEL : (hovered ? COL_HOVER : 0));
+                ctx.fill(cellX, cellY, cellX + cellW, cellY + CELL_H, selected ? COL_SEL : (hovered ? COL_HOVER : 0));
 
                 BannerPreviewRenderer.render(ctx, banner, null, cellX + (cellW - 16) / 2, cellY + 6, 16);
 
                 String label = truncate(banner.getDisplayName(), cellW - 4);
                 int lw = this.font.width(label);
-                ctx.text(
-                        this.font,
-                        Component.literal(label),
-                        cellX + (cellW - lw) / 2,
-                        cellY + 25,
-                        COL_TEXT_DIM,
-                        true);
+                ctx.text(this.font, Component.literal(label), cellX + (cellW - lw) / 2, cellY + 25, COL_TEXT_DIM, true);
             }
         }
 
@@ -205,7 +198,8 @@ public class BannerBrowserScreen extends Screen {
 
         SavedBanner sel = getSelectedBanner();
         if (sel == null) {
-            String hint = Component.translatable("loom-assistant.panel.select_banner").getString();
+            String hint =
+                    Component.translatable("loom-assistant.panel.select_banner").getString();
             int hw = this.font.width(hint);
             ctx.text(this.font, Component.literal(hint), dx + (dw - hw) / 2, dy + TOTAL_H / 2, COL_TEXT_DIM, true);
             return;
@@ -234,40 +228,41 @@ public class BannerBrowserScreen extends Screen {
         renderMaterialsList(ctx, sel, dx, ty, dw, startBtnY - ty - PADDING);
 
         renderButton(ctx, mx, my, bbx, startBtnY, btnW, BTN_H, defaultActionLabel(), true);
-    renderButton(
-        ctx,
-        mx,
-        my,
-        bbx,
-        startBtnY + (BTN_H + 3),
-        btnW,
-        BTN_H,
-        Component.translatable("loom-assistant.tooltip.weave").getString(),
-        false);
-    renderButton(
-        ctx,
-        mx,
-        my,
-        bbx,
-        startBtnY + (BTN_H + 3) * 2,
-        btnW,
-        BTN_H,
-        Component.translatable("loom-assistant.screen.banner_browser.edit_soon").getString(),
-        false);
-    renderButton(
-        ctx,
-        mx,
-        my,
-        bbx,
-        startBtnY + (BTN_H + 3) * 3,
-        btnW,
-        BTN_H,
-        Component.translatable("loom-assistant.screen.banner_browser.change_colors_soon").getString(),
-        false);
+        renderButton(
+                ctx,
+                mx,
+                my,
+                bbx,
+                startBtnY + (BTN_H + 3),
+                btnW,
+                BTN_H,
+                Component.translatable("loom-assistant.tooltip.weave").getString(),
+                false);
+        renderButton(
+                ctx,
+                mx,
+                my,
+                bbx,
+                startBtnY + (BTN_H + 3) * 2,
+                btnW,
+                BTN_H,
+                Component.translatable("loom-assistant.screen.banner_browser.edit_soon")
+                        .getString(),
+                false);
+        renderButton(
+                ctx,
+                mx,
+                my,
+                bbx,
+                startBtnY + (BTN_H + 3) * 3,
+                btnW,
+                BTN_H,
+                Component.translatable("loom-assistant.screen.banner_browser.change_colors_soon")
+                        .getString(),
+                false);
     }
 
-    private void renderMaterialsList(
-            GuiGraphicsExtractor ctx, SavedBanner sel, int dx, int ty, int dw, int availH) {
+    private void renderMaterialsList(GuiGraphicsExtractor ctx, SavedBanner sel, int dx, int ty, int dw, int availH) {
         int rowH = 18;
         int iconW = 16;
         int lx = dx + PADDING;
@@ -314,8 +309,7 @@ public class BannerBrowserScreen extends Screen {
         if (visible < layers.size()) {
             ctx.text(
                     this.font,
-                Component.translatable(
-                    "loom-assistant.screen.banner_browser.more_count", layers.size() - visible),
+                    Component.translatable("loom-assistant.screen.banner_browser.more_count", layers.size() - visible),
                     lx,
                     ty,
                     COL_TEXT_DIM,
@@ -335,8 +329,10 @@ public class BannerBrowserScreen extends Screen {
                         var entry = regOpt.get().get(id);
                         if (entry.isPresent()) {
                             net.minecraft.world.level.block.entity.BannerPattern pattern =
-                                    (net.minecraft.world.level.block.entity.BannerPattern) entry.get().value();
-                            String key = pattern.translationKey() + "." + layer.getDyeColorEnum().getName();
+                                    (net.minecraft.world.level.block.entity.BannerPattern)
+                                            entry.get().value();
+                            String key = pattern.translationKey() + "."
+                                    + layer.getDyeColorEnum().getName();
                             return Component.translatable(key).getString();
                         }
                     }
@@ -353,7 +349,8 @@ public class BannerBrowserScreen extends Screen {
         StringBuilder sb = new StringBuilder();
         for (String word : raw.split("_")) {
             if (!sb.isEmpty()) sb.append(' ');
-            if (!word.isEmpty()) sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+            if (!word.isEmpty())
+                sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
         }
         return sb.toString();
     }
@@ -405,8 +402,7 @@ public class BannerBrowserScreen extends Screen {
                 int cellY = gridStartY + (row - gridScrollOffset) * CELL_H;
                 if (mx >= cellX && mx < cellX + cellW && my >= cellY && my < cellY + CELL_H) {
                     long now = System.currentTimeMillis();
-                    boolean isDoubleClick =
-                            banner.getId().equals(lastClickedBannerId) && (now - lastClickTime) < 400;
+                    boolean isDoubleClick = banner.getId().equals(lastClickedBannerId) && (now - lastClickTime) < 400;
                     selectedBannerId = banner.getId();
                     lastClickedBannerId = banner.getId();
                     lastClickTime = now;
@@ -529,12 +525,18 @@ public class BannerBrowserScreen extends Screen {
         try {
             LoomAssistantConfig cfg = LoomAssistantMod.getConfig();
             return switch (cfg.getDefaultAction()) {
-                case ENQUEUE -> Component.translatable("loom-assistant.action.enqueue_default").getString();
-                case CRAFT -> Component.translatable("loom-assistant.action.weave_default").getString();
-                case SHOW -> Component.translatable("loom-assistant.action.show_default").getString();
+                case ENQUEUE ->
+                    Component.translatable("loom-assistant.action.enqueue_default")
+                            .getString();
+                case CRAFT ->
+                    Component.translatable("loom-assistant.action.weave_default")
+                            .getString();
+                case SHOW ->
+                    Component.translatable("loom-assistant.action.show_default").getString();
             };
         } catch (Exception e) {
-            return Component.translatable("loom-assistant.action.enqueue_default").getString();
+            return Component.translatable("loom-assistant.action.enqueue_default")
+                    .getString();
         }
     }
 

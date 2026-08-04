@@ -53,7 +53,13 @@ public record BannerRecipe(
         layers = List.copyOf(layers == null ? List.of() : layers);
     }
 
-    public BannerRecipe(String id, String description, String author, String url, String bannerColor, List<BannerRecipeLayer> layers) {
+    public BannerRecipe(
+            String id,
+            String description,
+            String author,
+            String url,
+            String bannerColor,
+            List<BannerRecipeLayer> layers) {
         this(id, description, author, url, DEFAULT_CATEGORY, bannerColor, layers);
     }
 
@@ -130,19 +136,21 @@ public record BannerRecipe(
                         Codec.STRING.fieldOf("description").forGetter(BannerRecipe::description),
                         Codec.STRING.optionalFieldOf("author").forGetter(d -> Optional.ofNullable(d.author())),
                         Codec.STRING.optionalFieldOf("url").forGetter(d -> Optional.ofNullable(d.url())),
-                        Codec.STRING.optionalFieldOf("category", DEFAULT_CATEGORY).forGetter(BannerRecipe::category),
+                        Codec.STRING
+                                .optionalFieldOf("category", DEFAULT_CATEGORY)
+                                .forGetter(BannerRecipe::category),
                         Codec.STRING.fieldOf("banner_color").forGetter(BannerRecipe::bannerColor),
                         BannerRecipeLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerRecipe::layers))
                 .apply(
                         instance,
                         (description, author, url, category, bannerColor, layers) -> new BannerRecipe(
-                            null,
-                            description,
-                            author.orElse(null),
-                            url.orElse(null),
-                            category,
-                            bannerColor,
-                            layers)));
+                                null,
+                                description,
+                                author.orElse(null),
+                                url.orElse(null),
+                                category,
+                                bannerColor,
+                                layers)));
     }
 
     private static final class CommandFormat {
@@ -218,7 +226,7 @@ public record BannerRecipe(
                 }
             }
 
-                return new BannerRecipe(
+            return new BannerRecipe(
                     null, DEFAULT_DESCRIPTION, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
         }
 

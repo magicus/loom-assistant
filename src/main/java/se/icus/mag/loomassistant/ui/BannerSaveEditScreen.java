@@ -32,9 +32,10 @@ public class BannerSaveEditScreen extends Screen {
     private String selectedCategoryId;
 
     public BannerSaveEditScreen(Screen previousScreen, LoomPanel panel, boolean editMode) {
-        super(Component.translatable(editMode
-                ? "loom-assistant.screen.save_edit.title_edit"
-                : "loom-assistant.screen.save_edit.title_save"));
+        super(Component.translatable(
+                editMode
+                        ? "loom-assistant.screen.save_edit.title_edit"
+                        : "loom-assistant.screen.save_edit.title_save"));
         this.previousScreen = previousScreen;
         this.panel = panel;
         this.editMode = editMode;
@@ -78,14 +79,16 @@ public class BannerSaveEditScreen extends Screen {
                 .build());
 
         this.addRenderableWidget(Button.builder(
-                        Component.translatable(editMode ? "loom-assistant.tooltip.edit" : "loom-assistant.tooltip.save"),
+                        Component.translatable(
+                                editMode ? "loom-assistant.tooltip.edit" : "loom-assistant.tooltip.save"),
                         button -> applyAndClose())
                 .bounds(x + 16, y + 102, 104, 20)
                 .build());
 
-        this.addRenderableWidget(Button.builder(Component.translatable("loom-assistant.common.cancel"), button -> this.onClose())
-                .bounds(x + PANEL_W - 120, y + 102, 104, 20)
-                .build());
+        this.addRenderableWidget(
+                Button.builder(Component.translatable("loom-assistant.common.cancel"), button -> this.onClose())
+                        .bounds(x + PANEL_W - 120, y + 102, 104, 20)
+                        .build());
     }
 
     @Override

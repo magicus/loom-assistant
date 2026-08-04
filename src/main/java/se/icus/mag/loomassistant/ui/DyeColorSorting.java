@@ -8,7 +8,6 @@ import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
 
 public final class DyeColorSorting {
-
     // Spectrum order: warm reds → orange/yellow → greens → cool blues → purples/pinks → neutrals
     private static final DyeColor[] RAINBOW_ORDER = {
         DyeColor.RED,

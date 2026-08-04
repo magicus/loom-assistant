@@ -126,7 +126,12 @@ public class BannerDetailsScreen extends Screen {
     }
 
     private int panelHeight() {
-        return PADDING + 20 + 11 + PADDING + 1 + PADDING
+        return PADDING
+                + 20
+                + 11
+                + PADDING
+                + 1
+                + PADDING
                 + (1 + banner.getLayers().size()) * ROW_H
                 + PADDING
                 + BTN_H
@@ -145,9 +150,10 @@ public class BannerDetailsScreen extends Screen {
                         var entry = regOpt.get().get(id);
                         if (entry.isPresent()) {
                             net.minecraft.world.level.block.entity.BannerPattern pat =
-                                    (net.minecraft.world.level.block.entity.BannerPattern) entry.get().value();
-                            return Component.translatable(
-                                            pat.translationKey() + "." + layer.getDyeColorEnum().getName())
+                                    (net.minecraft.world.level.block.entity.BannerPattern)
+                                            entry.get().value();
+                            return Component.translatable(pat.translationKey() + "."
+                                            + layer.getDyeColorEnum().getName())
                                     .getString();
                         }
                     }

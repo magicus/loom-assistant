@@ -16,8 +16,7 @@ import net.minecraft.world.item.Items;
  * This starts as hardcoded Java data and is designed to be replaced by JSON loading later.
  */
 public final class BannerRecipeCategories {
-    public record Category(String id, Identifier itemId, String name) {
-    }
+    public record Category(String id, Identifier itemId, String name) {}
 
     private static final List<Category> DEFAULT_CATEGORIES = List.of(
             new Category("letters", Identifier.withDefaultNamespace("book"), "letters"),
@@ -28,8 +27,7 @@ public final class BannerRecipeCategories {
             new Category("test1", Identifier.withDefaultNamespace("stone"), "test1"),
             new Category("test2", Identifier.withDefaultNamespace("oak_planks"), "test2"));
 
-    private BannerRecipeCategories() {
-    }
+    private BannerRecipeCategories() {}
 
     public static List<Category> getCategories() {
         return DEFAULT_CATEGORIES;

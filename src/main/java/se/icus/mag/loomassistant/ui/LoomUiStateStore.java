@@ -48,8 +48,7 @@ public final class LoomUiStateStore {
         }
     }
 
-    private LoomUiStateStore() {
-    }
+    private LoomUiStateStore() {}
 
     public static synchronized boolean isLoomPanelOpen(Minecraft minecraft) {
         loadIfNeeded();
@@ -165,7 +164,8 @@ public final class LoomUiStateStore {
                 if (bannersPerWorld != null) {
                     for (Map.Entry<String, JsonElement> entry : bannersPerWorld.entrySet()) {
                         if (entry.getValue().isJsonPrimitive()) {
-                            activeBannerRecipeByWorld.put(entry.getKey(), entry.getValue().getAsString());
+                            activeBannerRecipeByWorld.put(
+                                    entry.getKey(), entry.getValue().getAsString());
                         }
                     }
                 }
@@ -229,9 +229,11 @@ public final class LoomUiStateStore {
                 stateObj.addProperty(DYE_ENABLED_KEY, state.enabled());
 
                 JsonObject replacementsObj = new JsonObject();
-                for (Map.Entry<DyeColor, DyeColor> replacement : state.replacements().entrySet()) {
+                for (Map.Entry<DyeColor, DyeColor> replacement :
+                        state.replacements().entrySet()) {
                     replacementsObj.addProperty(
-                            replacement.getKey().getName(), replacement.getValue().getName());
+                            replacement.getKey().getName(),
+                            replacement.getValue().getName());
                 }
                 stateObj.add(DYE_REPLACEMENTS_KEY, replacementsObj);
                 persistentDyesPerWorld.add(entry.getKey(), stateObj);
@@ -253,7 +255,10 @@ public final class LoomUiStateStore {
 
         IntegratedServer singleplayerServer = minecraft.getSingleplayerServer();
         if (singleplayerServer != null) {
-            Path worldRoot = singleplayerServer.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
+            Path worldRoot = singleplayerServer
+                    .getWorldPath(LevelResource.ROOT)
+                    .toAbsolutePath()
+                    .normalize();
             return "sp:" + worldRoot;
         }
 

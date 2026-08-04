@@ -49,12 +49,12 @@ public class RenameBannerScreen extends Screen {
 
         // Draw title
         context.text(
-            this.font,
-            Component.translatable("loom-assistant.screen.rename_banner.enter_new_name"),
-            editorX + PADDING,
-            editorY - 20,
-            0xFFFFFFFF,
-            true);
+                this.font,
+                Component.translatable("loom-assistant.screen.rename_banner.enter_new_name"),
+                editorX + PADDING,
+                editorY - 20,
+                0xFFFFFFFF,
+                true);
 
         // Draw text content
         int textStartX = editorX + PADDING;
@@ -79,12 +79,12 @@ public class RenameBannerScreen extends Screen {
         int okColor = okHovered ? 0xFF4CAF50 : 0xFF2E7D32;
         context.fill(okButtonX, buttonY, okButtonX + 50, buttonY + 20, okColor);
         context.text(
-            this.font,
-            Component.translatable("loom-assistant.common.ok"),
-            okButtonX + 15,
-            buttonY + 6,
-            0xFFFFFFFF,
-            true);
+                this.font,
+                Component.translatable("loom-assistant.common.ok"),
+                okButtonX + 15,
+                buttonY + 6,
+                0xFFFFFFFF,
+                true);
 
         // Cancel button
         int cancelButtonX = (this.width / 2) + 10;
@@ -93,12 +93,12 @@ public class RenameBannerScreen extends Screen {
         int cancelColor = cancelHovered ? 0xFFFF5555 : 0xFFCC0000;
         context.fill(cancelButtonX, buttonY, cancelButtonX + 50, buttonY + 20, cancelColor);
         context.text(
-            this.font,
-            Component.translatable("loom-assistant.common.cancel"),
-            cancelButtonX + 5,
-            buttonY + 6,
-            0xFFFFFFFF,
-            true);
+                this.font,
+                Component.translatable("loom-assistant.common.cancel"),
+                cancelButtonX + 5,
+                buttonY + 6,
+                0xFFFFFFFF,
+                true);
 
         super.extractRenderState(context, mouseX, mouseY, delta);
     }
