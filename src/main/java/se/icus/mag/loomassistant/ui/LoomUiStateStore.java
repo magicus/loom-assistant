@@ -24,7 +24,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 public final class LoomUiStateStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

@@ -6,7 +6,7 @@ package se.icus.mag.loomassistant.ui;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
  * Renders banner thumbnails using proper 3D item rendering.

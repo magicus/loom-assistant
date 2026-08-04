@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types;
+package se.icus.mag.loomassistant.types.bannerpack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";
@@ -220,7 +222,7 @@ public abstract class BannerPack {
         categories = List.copyOf(loaded);
     }
 
-    protected static void writeCategoryFile(Path categoriesDir, String namespace, BannerRecipeCategory category)
+    public static void writeCategoryFile(Path categoriesDir, String namespace, BannerRecipeCategory category)
             throws IOException {
         Path nsDir = categoriesDir.resolve(namespace);
         Files.createDirectories(nsDir);

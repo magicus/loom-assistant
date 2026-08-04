@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types;
+package se.icus.mag.loomassistant.storage;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +15,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.types.bannerpack.BannerPackMetadata;
+import se.icus.mag.loomassistant.types.bannerpack.DirectoryBannerPack;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 
 public class BannerPackRepository {
     public static final String ROOT_PACK_ID = "root";

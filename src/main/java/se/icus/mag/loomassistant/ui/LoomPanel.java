@@ -43,10 +43,10 @@ import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.storage.BannerStorage;
-import se.icus.mag.loomassistant.types.BannerRecipe;
-import se.icus.mag.loomassistant.types.BannerRecipeCategories;
-import se.icus.mag.loomassistant.types.BannerRecipeCategory;
-import se.icus.mag.loomassistant.types.BannerRecipeLayer;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.weaving.Weaver;
 

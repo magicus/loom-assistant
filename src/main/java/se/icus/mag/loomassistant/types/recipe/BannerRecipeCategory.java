@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types;
+package se.icus.mag.loomassistant.types.recipe;
 
 /**
  * A named banner recipe category with a human-readable description and an icon item id.

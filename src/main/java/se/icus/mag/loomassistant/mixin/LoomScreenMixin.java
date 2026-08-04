@@ -36,14 +36,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomPanelHost;
-import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.ui.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
 import se.icus.mag.loomassistant.ui.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.ui.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.ui.LoomPanel;
 import se.icus.mag.loomassistant.ui.LoomUiStateStore;
+import se.icus.mag.loomassistant.weaving.AutoCraftStateMachine;
 
 @Mixin(LoomScreen.class)
 public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>

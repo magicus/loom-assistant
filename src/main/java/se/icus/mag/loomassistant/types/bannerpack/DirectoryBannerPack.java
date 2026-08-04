@@ -2,13 +2,15 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types;
+package se.icus.mag.loomassistant.types.bannerpack;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 
 public class DirectoryBannerPack extends BannerPack {
     public DirectoryBannerPack(BannerPackMetadata metadata, Path path) {

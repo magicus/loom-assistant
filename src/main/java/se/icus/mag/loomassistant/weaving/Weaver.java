@@ -7,7 +7,7 @@ package se.icus.mag.loomassistant.weaving;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.LoomMenu;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /** Encapsulates how a banner recipe is woven; hides the creative/survival distinction. */
 public abstract class Weaver {

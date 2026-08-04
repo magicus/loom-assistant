@@ -6,8 +6,7 @@ package se.icus.mag.loomassistant.weaving;
 
 import java.util.List;
 import net.minecraft.world.inventory.LoomMenu;
-import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
  * Weaver for survival mode: drives the loom UI by simulating slot clicks via

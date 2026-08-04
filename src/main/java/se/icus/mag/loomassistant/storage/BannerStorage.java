@@ -18,11 +18,10 @@ import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.BannerPack;
-import se.icus.mag.loomassistant.types.BannerPackRepository;
-import se.icus.mag.loomassistant.types.BannerRecipe;
-import se.icus.mag.loomassistant.types.BannerRecipeCategories;
-import se.icus.mag.loomassistant.types.BannerRecipeCategory;
+import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 
 /**
  * Compatibility wrapper around the new types-based banner pack backend.

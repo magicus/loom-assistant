@@ -17,9 +17,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.LoomMenu;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.storage.BannerStorage;
-import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.weaving.AutoCraftStateMachine;
 
 /**
  * Side panel UI for the loom screen showing saved banner patterns.
