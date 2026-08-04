@@ -98,13 +98,14 @@ public class BannerStorage {
         refreshBannerCache();
     }
 
-    public void addBanner(BannerRecipe banner) {
+    public BannerRecipe addBanner(BannerRecipe banner) {
         ensureRepositoryLoaded();
         BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
         try {
             BannerRecipe created = rootPack.addBannerRecipe(banner);
             LoomAssistantMod.LOGGER.debug("Added banner {} to root", created.id());
             refreshBannerCache();
+            return created;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to add banner to root pack", e);
         }

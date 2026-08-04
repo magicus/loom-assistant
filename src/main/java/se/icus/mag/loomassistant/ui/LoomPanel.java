@@ -864,28 +864,20 @@ public class LoomPanel {
         return activeBanner != null;
     }
 
+    private boolean isActiveBannerFromWritableSource() {
+        return activeBannerSourceId != null && !BannerStorage.getInstance().isRecipeReadOnly(activeBannerSourceId);
+    }
+
     public boolean isActiveBannerSavable() {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return false;
-        }
-        return findMatchingSavedBanner(selected) == null;
+        return !isActiveBannerFromWritableSource();
     }
 
     public boolean isActiveBannerAlreadySaved() {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return false;
-        }
-        return findMatchingSavedBanner(selected) != null;
+        return isActiveBannerFromWritableSource();
     }
 
     public boolean isActiveBannerFromReadOnlySource() {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) return false;
-        BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (matched == null || matched.id() == null) return false;
-        return BannerStorage.getInstance().isRecipeReadOnly(matched.id());
+        return activeBannerSourceId != null && BannerStorage.getInstance().isRecipeReadOnly(activeBannerSourceId);
     }
 
     public String getActiveBannerDialogName(boolean editMode) {
@@ -894,13 +886,15 @@ public class LoomPanel {
             return Component.translatable("loom-assistant.banner.unnamed").getString();
         }
 
-        BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (editMode && matched != null) {
-            String existingName = matched.getName();
-            if (existingName == null || existingName.isBlank()) {
-                return Component.translatable("loom-assistant.banner.unnamed").getString();
+        if (editMode && isActiveBannerFromWritableSource()) {
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
+            if (source != null) {
+                String existingName = source.getName();
+                if (existingName == null || existingName.isBlank()) {
+                    return Component.translatable("loom-assistant.banner.unnamed").getString();
+                }
+                return existingName;
             }
-            return existingName;
         }
 
         // For new saves, pre-fill with the banner's own name if it has one.
@@ -933,9 +927,11 @@ public class LoomPanel {
             return defaultSaveCategory();
         }
 
-        BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (editMode && matched != null) {
-            return matched.getCategory();
+        if (editMode && isActiveBannerFromWritableSource()) {
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
+            if (source != null) {
+                return source.getCategory();
+            }
         }
 
         return defaultSaveCategory();
@@ -958,10 +954,9 @@ public class LoomPanel {
         String category =
                 (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
 
-        BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (matched != null && !BannerStorage.getInstance().isRecipeReadOnly(matched.id())) {
-            BannerStorage.getInstance().updateBannerMetadata(matched.getId(), name, category);
-            BannerRecipe updated = BannerStorage.getInstance().getBannerById(matched.getId());
+        if (isActiveBannerFromWritableSource()) {
+            BannerStorage.getInstance().updateBannerMetadata(activeBannerSourceId, name, category);
+            BannerRecipe updated = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
             if (updated != null) {
                 setActiveBannerFromSource(updated, updated.getId());
             }
@@ -969,9 +964,7 @@ public class LoomPanel {
         }
 
         BannerRecipe toSave = cloneBannerForSave(selected).withDescription(name).withCategory(category);
-        BannerStorage.getInstance().addBanner(toSave);
-
-        BannerRecipe created = findMatchingSavedBanner(selected);
+        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
         if (created != null) {
             setActiveBannerFromSource(created, created.getId());
             return true;
@@ -987,12 +980,10 @@ public class LoomPanel {
         }
 
         BannerRecipe toSave = cloneBannerForSave(selected);
-        BannerStorage.getInstance().addBanner(toSave);
-
-        BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (matched != null) {
-            activeBanner = matched;
-            selectedBannerId = matched.getId();
+        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
+        if (created != null) {
+            activeBanner = created;
+            selectedBannerId = created.getId();
         }
         return true;
     }
