@@ -123,6 +123,14 @@ public class BannerStorage {
         return banners.stream().filter(b -> b.getId().equals(id)).findFirst().orElse(null);
     }
 
+    public boolean isRecipeReadOnly(String id) {
+        ensureRepositoryLoaded();
+        String packId = repository.getBannerRecipePackId(id);
+        if (packId == null) return false;
+        var pack = repository.getPack(packId);
+        return pack != null && pack.isReadOnly();
+    }
+
     public void renameBanner(String id, String newName) {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);

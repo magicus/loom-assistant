@@ -865,6 +865,14 @@ public class LoomPanel {
         return findMatchingSavedBanner(selected) != null;
     }
 
+    public boolean isActiveBannerFromReadOnlySource() {
+        BannerRecipe selected = getSelectedBanner();
+        if (selected == null) return false;
+        BannerRecipe matched = findMatchingSavedBanner(selected);
+        if (matched == null || matched.id() == null) return false;
+        return BannerStorage.getInstance().isRecipeReadOnly(matched.id());
+    }
+
     public String getActiveBannerDialogName(boolean editMode) {
         BannerRecipe selected = getSelectedBanner();
         if (selected == null) {
@@ -936,7 +944,7 @@ public class LoomPanel {
                 (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
 
         BannerRecipe matched = findMatchingSavedBanner(selected);
-        if (matched != null) {
+        if (matched != null && !BannerStorage.getInstance().isRecipeReadOnly(matched.id())) {
             BannerStorage.getInstance().updateBannerMetadata(matched.getId(), name, category);
             BannerRecipe updated = BannerStorage.getInstance().getBannerById(matched.getId());
             if (updated != null) {

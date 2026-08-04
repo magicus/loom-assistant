@@ -22,11 +22,13 @@ import se.icus.mag.loomassistant.types.BannerRecipeCategory;
  */
 public class BannerSaveEditScreen extends Screen {
     private static final int PANEL_W = 250;
-    private static final int PANEL_H = 130;
+    private static final int PANEL_H_BASE = 130;
+    private static final int NOTICE_EXTRA_H = 20;
 
     private final Screen previousScreen;
     private final LoomPanel panel;
     private final boolean editMode;
+    private final boolean readOnlySource;
     private final List<BannerRecipeCategory> categories;
 
     private EditBox nameBox;
@@ -40,13 +42,18 @@ public class BannerSaveEditScreen extends Screen {
         this.previousScreen = previousScreen;
         this.panel = panel;
         this.editMode = editMode;
+        this.readOnlySource = editMode && panel.isActiveBannerFromReadOnlySource();
         this.categories = BannerRecipeCategories.getCategories();
+    }
+
+    private int panelH() {
+        return readOnlySource ? PANEL_H_BASE + NOTICE_EXTRA_H : PANEL_H_BASE;
     }
 
     @Override
     protected void init() {
         int x = (this.width - PANEL_W) / 2;
-        int y = (this.height - PANEL_H) / 2;
+        int y = (this.height - panelH()) / 2;
 
         String initialName = panel.getActiveBannerDialogName(editMode);
         this.selectedCategoryId = normalizeCategory(panel.getActiveBannerDialogCategory(editMode));
@@ -97,10 +104,10 @@ public class BannerSaveEditScreen extends Screen {
         ctx.fill(0, 0, this.width, this.height, 0xAA000000);
 
         int x = (this.width - PANEL_W) / 2;
-        int y = (this.height - PANEL_H) / 2;
+        int y = (this.height - panelH()) / 2;
 
-        ctx.fill(x, y, x + PANEL_W, y + PANEL_H, 0xFF222222);
-        ctx.outline(x, y, PANEL_W, PANEL_H, 0xFFFFFFFF);
+        ctx.fill(x, y, x + PANEL_W, y + panelH(), 0xFF222222);
+        ctx.outline(x, y, PANEL_W, panelH(), 0xFFFFFFFF);
 
         ctx.text(this.font, this.title, x + 16, y + 12, 0xFFFFFFFF, false);
         ctx.text(
@@ -121,6 +128,16 @@ public class BannerSaveEditScreen extends Screen {
         Component category = Component.literal(selectedCategoryId);
         int categoryX = x + (PANEL_W - this.font.width(category)) / 2;
         ctx.text(this.font, category, categoryX, y + 79, 0xFFFFFFFF, false);
+
+        if (readOnlySource) {
+            ctx.text(
+                    this.font,
+                    Component.translatable("loom-assistant.screen.save_edit.read_only_notice"),
+                    x + 16,
+                    y + PANEL_H_BASE + 4,
+                    0xFFFFAA44,
+                    false);
+        }
 
         super.extractRenderState(ctx, mouseX, mouseY, delta);
     }

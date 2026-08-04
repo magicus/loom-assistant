@@ -48,6 +48,7 @@
   "loom-assistant.screen.rename_banner.title": "Rename Banner",
   "loom-assistant.screen.save_edit.category": "Category",
   "loom-assistant.screen.save_edit.name": "Name",
+  "loom-assistant.screen.save_edit.read_only_notice": "Read-only source. Edits will create a new copy.",
   "loom-assistant.screen.save_edit.title_edit": "Edit Banner",
   "loom-assistant.screen.save_edit.title_save": "Save Banner",
   "loom-assistant.side_panel.browse_all": "Browse all banners...",

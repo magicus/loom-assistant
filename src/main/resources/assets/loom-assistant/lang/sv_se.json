@@ -48,6 +48,7 @@
   "loom-assistant.screen.rename_banner.title": "Byt namn på fana",
   "loom-assistant.screen.save_edit.category": "Kategori",
   "loom-assistant.screen.save_edit.name": "Namn",
+  "loom-assistant.screen.save_edit.read_only_notice": "Skrivskyddad källa. Ändringar skapar en ny kopia.",
   "loom-assistant.screen.save_edit.title_edit": "Redigera fana",
   "loom-assistant.screen.save_edit.title_save": "Spara fana",
   "loom-assistant.side_panel.browse_all": "Bläddra alla fanor...",
