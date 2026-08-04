@@ -26,7 +26,6 @@ public final class DyeColorSorting {
         DyeColor.WHITE,
         DyeColor.LIGHT_GRAY,
         DyeColor.GRAY,
-        DyeColor.BROWN,
         DyeColor.BLACK,
     };
 
