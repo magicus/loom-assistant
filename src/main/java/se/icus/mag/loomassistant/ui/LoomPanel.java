@@ -156,14 +156,24 @@ public class LoomPanel {
         refreshVisibleTabs();
 
         pageForwardButton = new ImageButton(
-                x + 93, y + PAGE_BTN_Y_OFFSET, PAGE_BTN_W, PAGE_BTN_H,
+                x + 93,
+                y + PAGE_BTN_Y_OFFSET,
+                PAGE_BTN_W,
+                PAGE_BTN_H,
                 PAGE_FORWARD_SPRITES,
-                button -> { page++; },
+                button -> {
+                    page++;
+                },
                 Component.translatable("gui.recipebook.next_page"));
         pageBackButton = new ImageButton(
-                x + 38, y + PAGE_BTN_Y_OFFSET, PAGE_BTN_W, PAGE_BTN_H,
+                x + 38,
+                y + PAGE_BTN_Y_OFFSET,
+                PAGE_BTN_W,
+                PAGE_BTN_H,
                 PAGE_BACKWARD_SPRITES,
-                button -> { page--; },
+                button -> {
+                    page--;
+                },
                 Component.translatable("gui.recipebook.previous_page"));
     }
 
