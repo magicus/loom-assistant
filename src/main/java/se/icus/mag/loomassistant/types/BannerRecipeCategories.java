@@ -4,41 +4,84 @@
  */
 package se.icus.mag.loomassistant.types;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * Registry-like holder for banner recipe categories.
+ * Dynamic registry for banner recipe categories.
  *
- * This starts as hardcoded Java data and is designed to be replaced by JSON loading later.
+ * Categories are assembled at load time from three sources (in priority order):
+ *  1. The global categories.json in the loom-assistant config directory.
+ *  2. Category definitions inside each banner pack's bannerpack.mcmeta.
+ *  3. Implicit fallback categories auto-created for any category id used in a recipe
+ *     that has no explicit definition.
+ *
+ * Tabs are sorted alphabetically by id.
  */
 public final class BannerRecipeCategories {
+    /** @deprecated Use {@link BannerRecipeCategory} directly. */
+    @Deprecated
     public record Category(String id, Identifier itemId, String name) {}
 
-    private static final List<Category> DEFAULT_CATEGORIES = List.of(
-            new Category("letters", Identifier.withDefaultNamespace("book"), "letters"),
-            new Category("flags", Identifier.withDefaultNamespace("map"), "flags"),
-            new Category("logos", Identifier.withDefaultNamespace("blaze_powder"), "logos"),
-            new Category("nature", Identifier.withDefaultNamespace("poppy"), "nature"),
-            new Category("misc", Identifier.withDefaultNamespace("lava_bucket"), "misc"),
-            new Category("test1", Identifier.withDefaultNamespace("stone"), "test1"),
-            new Category("test2", Identifier.withDefaultNamespace("oak_planks"), "test2"));
+    private static final Map<String, BannerRecipeCategory> registry = new LinkedHashMap<>();
 
     private BannerRecipeCategories() {}
 
-    public static List<Category> getCategories() {
-        return DEFAULT_CATEGORIES;
+    // -------------------------------------------------------------------------
+    // Registry management (called by BannerStorage after loading packs)
+    // -------------------------------------------------------------------------
+
+    /** Replaces the entire registry. Entries are sorted alphabetically by id. */
+    public static void setCategories(Collection<BannerRecipeCategory> categories) {
+        registry.clear();
+        categories.stream().sorted((a, b) -> a.id().compareToIgnoreCase(b.id())).forEach(c -> registry.put(c.id(), c));
     }
 
+    // -------------------------------------------------------------------------
+    // Query API
+    // -------------------------------------------------------------------------
+
+    public static List<BannerRecipeCategory> getCategories() {
+        return List.copyOf(registry.values());
+    }
+
+    public static BannerRecipeCategory get(String id) {
+        return registry.getOrDefault(id, BannerRecipeCategory.fallback(id));
+    }
+
+    /** Resolves the tab icon for a category. Falls back to lava bucket on unknown item id. */
+    public static ItemStack resolveIcon(BannerRecipeCategory category) {
+        Identifier itemId = Identifier.tryParse(category.iconItemId());
+        if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId)) {
+            return new ItemStack(BuiltInRegistries.ITEM.getValue(itemId));
+        }
+        return new ItemStack(Items.LAVA_BUCKET);
+    }
+
+    // -------------------------------------------------------------------------
+    // Legacy compat for code that still uses the old Category record
+    // -------------------------------------------------------------------------
+
+    /** @deprecated Use {@link #getCategories()} returning {@link BannerRecipeCategory}. */
+    @Deprecated
+    public static List<Category> getLegacyCategories() {
+        return getCategories().stream()
+                .map(c -> new Category(c.id(), Identifier.tryParse(c.iconItemId()), c.description()))
+                .toList();
+    }
+
+    /** @deprecated Use {@link #resolveIcon(BannerRecipeCategory)}. */
+    @Deprecated
     public static ItemStack resolveIcon(Category category) {
-        if (BuiltInRegistries.ITEM.containsKey(category.itemId())) {
+        if (category.itemId() != null && BuiltInRegistries.ITEM.containsKey(category.itemId())) {
             return new ItemStack(BuiltInRegistries.ITEM.getValue(category.itemId()));
         }
-
-        // Fallback for invalid/missing item ids (e.g. temporary placeholders).
-        return new ItemStack(Items.BARRIER);
+        return new ItemStack(Items.LAVA_BUCKET);
     }
 }

@@ -48,6 +48,7 @@ import se.icus.mag.loomassistant.data.BannerStorage;
 import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.types.BannerRecipeCategories;
+import se.icus.mag.loomassistant.types.BannerRecipeCategory;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 
 public class LoomPanel {
@@ -117,7 +118,7 @@ public class LoomPanel {
     private int y;
     private final AutoCraftStateMachine autoCraft;
     private final EditBox searchBox;
-    private final List<BannerRecipeCategories.Category> categoryTabs;
+    private final List<BannerRecipeCategory> categoryTabs;
     private List<TabDescriptor> tabs;
     private String selectedCategoryId;
     private int tabScrollOffset = 0;
@@ -279,9 +280,9 @@ public class LoomPanel {
     }
 
     private RecipeBookTabButton createTabButton(TabDescriptor tab, int tx, int ty) {
-        ItemStack icon = tab.categoryId() == null
+        ItemStack icon = tab.category() == null
                 ? new ItemStack(Items.COMPASS)
-                : BannerRecipeCategories.resolveIcon(categoryTabs.get(tab.categoryIndex()));
+                : BannerRecipeCategories.resolveIcon(tab.category());
         RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(icon.getItem(), new RecipeBookCategory());
 
         return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
@@ -601,7 +602,7 @@ public class LoomPanel {
         return -1;
     }
 
-    private List<TabDescriptor> buildTabs(List<BannerRecipeCategories.Category> categories) {
+    private List<TabDescriptor> buildTabs(List<BannerRecipeCategory> categories) {
         LinkedHashSet<String> nonEmptyCategoryIds = new LinkedHashSet<>();
         for (SavedBanner banner : BannerStorage.getInstance().getBanners()) {
             String categoryId = banner.getCategory();
@@ -611,11 +612,10 @@ public class LoomPanel {
         }
 
         List<TabDescriptor> out = new ArrayList<>();
-        out.add(new TabDescriptor(null, ALL_CATEGORIES_TOOLTIP, -1));
-        for (int i = 0; i < categories.size(); i++) {
-            BannerRecipeCategories.Category category = categories.get(i);
+        out.add(new TabDescriptor(null, ALL_CATEGORIES_TOOLTIP, null));
+        for (BannerRecipeCategory category : categories) {
             if (nonEmptyCategoryIds.contains(category.id().toLowerCase(Locale.ROOT))) {
-                out.add(new TabDescriptor(category.id(), Component.literal(category.name()), i));
+                out.add(new TabDescriptor(category.id(), Component.literal(category.description()), category));
             }
         }
         return List.copyOf(out);
@@ -644,7 +644,7 @@ public class LoomPanel {
         }
     }
 
-    private record TabDescriptor(String categoryId, Component tooltip, int categoryIndex) {}
+    private record TabDescriptor(String categoryId, Component tooltip, BannerRecipeCategory category) {}
 
     private boolean clickBannerGrid(int mx, int my) {
         List<SavedBanner> items = getFilteredBanners();

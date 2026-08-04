@@ -6,6 +6,7 @@ package se.icus.mag.loomassistant.types;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.Reader;
@@ -14,9 +15,11 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -30,10 +33,12 @@ public abstract class BannerPack {
     private final BannerPackMetadata metadata;
     private final Path path;
     private final Map<String, BannerRecipe> recipes = new LinkedHashMap<>();
+    private List<BannerRecipeCategory> categories = List.of();
 
     protected BannerPack(BannerPackMetadata metadata, Path path) {
         this.metadata = metadata;
         this.path = path;
+        this.categories = List.copyOf(metadata.categories());
     }
 
     public BannerPackMetadata getMetadata() {
@@ -50,6 +55,10 @@ public abstract class BannerPack {
 
     public Collection<BannerRecipe> getDesigns() {
         return Collections.unmodifiableCollection(recipes.values());
+    }
+
+    public List<BannerRecipeCategory> getCategories() {
+        return categories;
     }
 
     public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
@@ -135,6 +144,7 @@ public abstract class BannerPack {
 
             String author = null;
             String url = null;
+            List<BannerRecipeCategory> packCategories = new ArrayList<>();
             if (root.has("bannerpack")) {
                 JsonObject bannerpackObj = root.getAsJsonObject("bannerpack");
                 if (bannerpackObj.has("author")) {
@@ -143,9 +153,22 @@ public abstract class BannerPack {
                 if (bannerpackObj.has("url")) {
                     url = bannerpackObj.get("url").getAsString();
                 }
+                if (bannerpackObj.has("categories")) {
+                    for (JsonElement el : bannerpackObj.getAsJsonArray("categories")) {
+                        JsonObject cat = el.getAsJsonObject();
+                        String catId = cat.has("id") ? cat.get("id").getAsString() : null;
+                        if (catId != null && !catId.isBlank()) {
+                            String catDesc = cat.has("description")
+                                    ? cat.get("description").getAsString()
+                                    : catId;
+                            String catIcon = cat.has("icon") ? cat.get("icon").getAsString() : "minecraft:lava_bucket";
+                            packCategories.add(new BannerRecipeCategory(catId, catDesc, catIcon));
+                        }
+                    }
+                }
             }
 
-            return new BannerPackMetadata(packId, description, author, url);
+            return new BannerPackMetadata(packId, description, author, url, packCategories);
         }
     }
 

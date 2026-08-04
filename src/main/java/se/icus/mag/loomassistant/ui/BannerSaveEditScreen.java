@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.types.BannerRecipeCategories;
+import se.icus.mag.loomassistant.types.BannerRecipeCategory;
 
 /**
  * Simple modal for naming a banner and selecting category before save/edit.
@@ -26,7 +27,7 @@ public class BannerSaveEditScreen extends Screen {
     private final Screen previousScreen;
     private final LoomPanel panel;
     private final boolean editMode;
-    private final List<BannerRecipeCategories.Category> categories;
+    private final List<BannerRecipeCategory> categories;
 
     private EditBox nameBox;
     private String selectedCategoryId;

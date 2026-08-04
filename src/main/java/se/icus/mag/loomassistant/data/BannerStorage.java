@@ -8,11 +8,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
@@ -20,6 +25,8 @@ import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.BannerPack;
 import se.icus.mag.loomassistant.types.BannerPackRepository;
 import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeCategories;
+import se.icus.mag.loomassistant.types.BannerRecipeCategory;
 
 /**
  * Compatibility wrapper around the new types-based banner pack backend.
@@ -30,11 +37,14 @@ public class BannerStorage {
     private static BannerStorage instance;
 
     private final Path packRootPath;
+    // Config dir used for the global categories.json
+    private final Path configDir;
     private BannerPackRepository repository;
     private final List<SavedBanner> banners = new ArrayList<>();
 
     public BannerStorage() {
         this.packRootPath = FabricLoader.getInstance().getGameDir().resolve("bannerpacks");
+        this.configDir = FabricLoader.getInstance().getConfigDir().resolve(LoomAssistantMod.MOD_ID);
     }
 
     public static BannerStorage getInstance() {
@@ -48,10 +58,85 @@ public class BannerStorage {
         repository = new BannerPackRepository(packRootPath);
         repository.load();
         refreshBannerCache();
+        rebuildCategoryRegistry();
         LoomAssistantMod.LOGGER.info(
                 "Loaded {} banners from {} packs",
                 banners.size(),
                 repository.getPacks().size());
+    }
+
+    private void rebuildCategoryRegistry() {
+        // Priority: global categories.json > pack definitions; fallbacks added for unknown ids.
+        Map<String, BannerRecipeCategory> merged = new LinkedHashMap<>();
+
+        // 1. Global categories.json – write default if missing, then read it
+        Path globalFile = configDir.resolve("categories.json");
+        ensureDefaultCategoriesFile(globalFile);
+        if (Files.exists(globalFile)) {
+            try (Reader r = Files.newBufferedReader(globalFile)) {
+                JsonArray arr = GSON.fromJson(r, JsonArray.class);
+                if (arr != null) {
+                    for (JsonElement el : arr) {
+                        BannerRecipeCategory c = parseCategoryJson(el.getAsJsonObject());
+                        if (c != null) merged.put(c.id(), c);
+                    }
+                }
+            } catch (Exception e) {
+                LoomAssistantMod.LOGGER.warn("Failed to read global categories.json", e);
+            }
+        }
+
+        // 2. Pack-level category definitions (may override global)
+        for (BannerPack pack : repository.getPacks().values()) {
+            for (BannerRecipeCategory c : pack.getCategories()) {
+                merged.merge(c.id(), c, BannerRecipeCategory::mergedWith);
+            }
+        }
+
+        // 3. Implicit fallbacks for every category id mentioned in any recipe
+        for (BannerRecipe recipe : repository.getAllBannerRecipes()) {
+            String catId = recipe.category();
+            if (catId != null && !catId.isBlank() && !merged.containsKey(catId)) {
+                merged.put(catId, BannerRecipeCategory.fallback(catId));
+            }
+        }
+
+        BannerRecipeCategories.setCategories(merged.values());
+    }
+
+    private void ensureDefaultCategoriesFile(Path file) {
+        if (Files.exists(file)) return;
+        JsonArray arr = new JsonArray();
+        for (String[] cat : new String[][] {
+            {"flags", "Flags", "minecraft:map"},
+            {"letters", "Letters", "minecraft:book"},
+            {"logos", "Logos", "minecraft:blaze_powder"},
+            {"misc", "Misc", "minecraft:lava_bucket"},
+            {"nature", "Nature", "minecraft:poppy"},
+        }) {
+            JsonObject o = new JsonObject();
+            o.addProperty("id", cat[0]);
+            o.addProperty("description", cat[1]);
+            o.addProperty("icon", cat[2]);
+            arr.add(o);
+        }
+        try {
+            Files.createDirectories(file.getParent());
+            try (Writer w = Files.newBufferedWriter(file)) {
+                new GsonBuilder().setPrettyPrinting().create().toJson(arr, w);
+            }
+        } catch (IOException e) {
+            LoomAssistantMod.LOGGER.warn("Failed to write default categories.json", e);
+        }
+    }
+
+    private static BannerRecipeCategory parseCategoryJson(JsonObject obj) {
+        if (!obj.has("id")) return null;
+        String id = obj.get("id").getAsString();
+        if (id.isBlank()) return null;
+        String description = obj.has("description") ? obj.get("description").getAsString() : id;
+        String icon = obj.has("icon") ? obj.get("icon").getAsString() : "minecraft:lava_bucket";
+        return new BannerRecipeCategory(id, description, icon);
     }
 
     public void save() {
