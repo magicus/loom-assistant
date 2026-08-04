@@ -381,13 +381,16 @@ public class LoomPanel {
 
         int idx = 2;
         for (BannerRecipeLayer layer : banner.getLayers()) {
-            ItemStack patternIcon = getPatternItem(layer.patternId());
-            if (patternIcon.isEmpty()) {
-                patternIcon = createLayerPreviewStack(layer);
-            }
             ItemStack dyeStack = new ItemStack(BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
-            rows.add(BannerRecipeTooltipComponent.Row.pair(
-                    patternIcon, dyeStack, Component.literal(idx + ". " + getPatternDisplayName(layer))));
+            Component stepText = Component.literal(idx + ". " + getPatternDisplayName(layer));
+            Identifier patternId = Identifier.tryParse(layer.patternId());
+            if (patternId != null) {
+                rows.add(BannerRecipeTooltipComponent.Row.withPattern(dyeStack, patternId, stepText));
+            } else {
+                ItemStack patternIcon = getPatternItem(layer.patternId());
+                if (patternIcon.isEmpty()) patternIcon = createLayerPreviewStack(layer);
+                rows.add(BannerRecipeTooltipComponent.Row.pair(dyeStack, patternIcon, stepText));
+            }
             idx++;
         }
         return rows;

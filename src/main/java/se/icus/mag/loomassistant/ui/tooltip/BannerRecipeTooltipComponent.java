@@ -6,6 +6,7 @@ package se.icus.mag.loomassistant.ui.tooltip;
 
 import java.util.List;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -48,21 +49,30 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
         return previewPatterns;
     }
 
-    public record Row(ItemStack primary, ItemStack secondary, Component text) {
+    public record Row(ItemStack primary, ItemStack secondary, Component text, @Nullable Identifier patternSprite) {
         public static Row single(ItemStack primary, Component text) {
-            return new Row(primary, ItemStack.EMPTY, text);
+            return new Row(primary, ItemStack.EMPTY, text, null);
         }
 
         public static Row pair(ItemStack primary, ItemStack secondary, Component text) {
-            return new Row(primary, secondary, text);
+            return new Row(primary, secondary, text, null);
+        }
+
+        /** Row that renders a loom pattern sprite on the right with dye item on the left. */
+        public static Row withPattern(ItemStack dye, Identifier patternId, Component text) {
+            return new Row(dye, ItemStack.EMPTY, text, patternId);
         }
 
         public Row copy() {
-            return new Row(this.primary.copy(), this.secondary.copy(), this.text.copy());
+            return new Row(this.primary.copy(), this.secondary.copy(), this.text.copy(), this.patternSprite);
         }
 
         public boolean hasSecondary() {
             return !this.secondary.isEmpty();
+        }
+
+        public boolean hasPatternSprite() {
+            return patternSprite != null;
         }
     }
 }
