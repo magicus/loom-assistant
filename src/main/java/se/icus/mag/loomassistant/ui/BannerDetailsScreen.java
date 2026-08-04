@@ -17,8 +17,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 public class BannerDetailsScreen extends Screen {
     private static final int PANEL_W = 170;
@@ -27,9 +27,9 @@ public class BannerDetailsScreen extends Screen {
     private static final int ROW_H = 18;
 
     private final Screen previousScreen;
-    private final SavedBanner banner;
+    private final BannerRecipe banner;
 
-    public BannerDetailsScreen(Screen previousScreen, SavedBanner banner) {
+    public BannerDetailsScreen(Screen previousScreen, BannerRecipe banner) {
         super(Component.translatable("loom-assistant.screen.banner_details.title"));
         this.previousScreen = previousScreen;
         this.banner = banner;
@@ -69,10 +69,10 @@ public class BannerDetailsScreen extends Screen {
         ctx.text(this.font, Component.literal(trunc(baseName, textMaxW)), textX, ty + 5, 0xFFAAAAAA, true);
         ty += ROW_H;
 
-        for (BannerPatternLayer layer : banner.getLayers()) {
+        for (BannerRecipeLayer layer : banner.getLayers()) {
             BannerPreviewRenderer.render(
-                    ctx, new SavedBanner(null, DyeColor.WHITE, List.of(layer)), null, lx, ty + 1, 16);
-            ctx.item(new ItemStack(SavedBanner.getDyeItem(layer.getDyeColorEnum())), lx + iconW + 2, ty + 1);
+                    ctx, new BannerRecipe(null, DyeColor.WHITE, List.of(layer)), null, lx, ty + 1, 16);
+            ctx.item(new ItemStack(BannerRecipe.getDyeItem(layer.getDyeColorEnum())), lx + iconW + 2, ty + 1);
             ctx.text(
                     this.font,
                     Component.literal(trunc(getPatternName(layer), textMaxW)),
@@ -139,7 +139,7 @@ public class BannerDetailsScreen extends Screen {
     }
 
     @SuppressWarnings("unchecked")
-    private String getPatternName(BannerPatternLayer layer) {
+    private String getPatternName(BannerRecipeLayer layer) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
             try {

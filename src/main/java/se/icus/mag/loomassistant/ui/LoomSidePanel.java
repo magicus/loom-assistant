@@ -19,7 +19,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
 import se.icus.mag.loomassistant.data.BannerStorage;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 /**
  * Side panel UI for the loom screen showing saved banner patterns.
@@ -163,7 +163,7 @@ public class LoomSidePanel {
                 true);
 
         // Draw saved patterns
-        List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
+        List<BannerRecipe> banners = BannerStorage.getInstance().getBanners();
         int listStartY = browseButtonY + BUTTON_HEIGHT + PADDING;
         int visibleHeight = PANEL_HEIGHT - (listStartY - y) - PADDING;
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
@@ -178,7 +178,7 @@ public class LoomSidePanel {
                 true);
 
         for (int i = 0; i < maxVisible && i + scrollOffset < banners.size(); i++) {
-            SavedBanner banner = banners.get(i + scrollOffset);
+            BannerRecipe banner = banners.get(i + scrollOffset);
             int entryY = listStartY + i * ENTRY_HEIGHT;
 
             boolean hovered = isInPatternEntry(mouseX, mouseY, entryY);
@@ -354,7 +354,7 @@ public class LoomSidePanel {
         }
 
         // Check pattern entries
-        List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
+        List<BannerRecipe> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
         int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
@@ -368,7 +368,7 @@ public class LoomSidePanel {
             craftQueue.addAll(selectedBannerIds);
             if (!craftQueue.isEmpty()) {
                 String nextBannerId = craftQueue.poll();
-                SavedBanner selected = BannerStorage.getInstance().getBannerById(nextBannerId);
+                BannerRecipe selected = BannerStorage.getInstance().getBannerById(nextBannerId);
                 if (selected != null) {
                     autoCraft.start(selected);
                 }
@@ -385,7 +385,7 @@ public class LoomSidePanel {
                         || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
 
         for (int i = 0; i < maxVisible && i + scrollOffset < banners.size(); i++) {
-            SavedBanner banner = banners.get(i + scrollOffset);
+            BannerRecipe banner = banners.get(i + scrollOffset);
             int entryY = listStartY + i * ENTRY_HEIGHT;
 
             if (isInPatternEntry(mx, my, entryY)) {
@@ -442,7 +442,7 @@ public class LoomSidePanel {
             return false;
         }
 
-        List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
+        List<BannerRecipe> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
         int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
@@ -462,7 +462,7 @@ public class LoomSidePanel {
 
         if (autoCraft.getState() == AutoCraftStateMachine.AutoCraftState.COMPLETE && !craftQueue.isEmpty()) {
             String nextBannerId = craftQueue.poll();
-            SavedBanner selected = BannerStorage.getInstance().getBannerById(nextBannerId);
+            BannerRecipe selected = BannerStorage.getInstance().getBannerById(nextBannerId);
             if (selected != null) {
                 autoCraft.start(selected);
             }
@@ -490,7 +490,7 @@ public class LoomSidePanel {
                 return;
             }
 
-            SavedBanner banner = BannerPreviewRenderer.extractBannerData(bannerStack);
+            BannerRecipe banner = BannerPreviewRenderer.extractBannerData(bannerStack);
             LoomAssistantMod.LOGGER.info("Extracted banner from input: {}", banner);
 
             if (banner != null) {
@@ -513,7 +513,7 @@ public class LoomSidePanel {
             return;
         }
 
-        SavedBanner banner = BannerPreviewRenderer.extractBannerData(outputStack);
+        BannerRecipe banner = BannerPreviewRenderer.extractBannerData(outputStack);
         LoomAssistantMod.LOGGER.info("Extracted banner: {}", banner);
 
         if (banner != null) {
@@ -619,7 +619,7 @@ public class LoomSidePanel {
     }
 
     public void importBannerFromClipboard(String jsonString) {
-        SavedBanner imported = BannerStorage.getInstance().importBannerFromJson(jsonString);
+        BannerRecipe imported = BannerStorage.getInstance().importBannerFromJson(jsonString);
         if (imported != null) {
             LoomAssistantMod.LOGGER.info("Banner imported successfully: {}", imported.getId());
         } else {
@@ -641,7 +641,7 @@ public class LoomSidePanel {
         int my = (int) mouseY;
 
         // Check pattern entries for right-click
-        List<SavedBanner> banners = BannerStorage.getInstance().getBanners();
+        List<BannerRecipe> banners = BannerStorage.getInstance().getBanners();
         int saveButtonY = y + HEADER_HEIGHT + PADDING;
         int importButtonY = saveButtonY + SAVE_BUTTON_HEIGHT + PADDING;
         int browseButtonY = importButtonY + BUTTON_HEIGHT + PADDING;
@@ -650,7 +650,7 @@ public class LoomSidePanel {
         int maxVisible = visibleHeight / ENTRY_HEIGHT;
 
         for (int i = 0; i < maxVisible && i + scrollOffset < banners.size(); i++) {
-            SavedBanner banner = banners.get(i + scrollOffset);
+            BannerRecipe banner = banners.get(i + scrollOffset);
             int entryY = listStartY + i * ENTRY_HEIGHT;
 
             if (isInPatternEntry(mx, my, entryY)) {

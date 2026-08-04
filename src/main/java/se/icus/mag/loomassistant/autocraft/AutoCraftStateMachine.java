@@ -17,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 public class AutoCraftStateMachine {
     private static final int TICK_DELAY = 3;
@@ -31,7 +31,7 @@ public class AutoCraftStateMachine {
 
     private final LoomMenu handler;
     private AutoCraftState state = AutoCraftState.IDLE;
-    private SavedBanner targetBanner;
+    private BannerRecipe targetBanner;
     private int currentLayerIndex = 0;
     private int ticksInState = 0;
     private String errorMessage = null;
@@ -65,7 +65,7 @@ public class AutoCraftStateMachine {
         this.handler = handler;
     }
 
-    public void start(SavedBanner banner) {
+    public void start(BannerRecipe banner) {
         this.targetBanner = banner;
         this.currentLayerIndex = 0;
         this.ticksInState = 0;
@@ -101,14 +101,14 @@ public class AutoCraftStateMachine {
         return errorMessage;
     }
 
-    public boolean canCraft(SavedBanner banner) {
+    public boolean canCraft(BannerRecipe banner) {
         if (banner == null) {
             return false;
         }
         return getMissingMaterialsInCraftOrder(banner).isEmpty();
     }
 
-    public MissingMaterialType getMissingMaterialType(SavedBanner banner) {
+    public MissingMaterialType getMissingMaterialType(BannerRecipe banner) {
         if (banner == null) {
             return MissingMaterialType.NONE;
         }
@@ -119,7 +119,7 @@ public class AutoCraftStateMachine {
         return missingMaterials.get(0).type();
     }
 
-    public List<String> getMissingMaterialDescriptions(SavedBanner banner) {
+    public List<String> getMissingMaterialDescriptions(BannerRecipe banner) {
         List<String> descriptions = new ArrayList<>();
         if (banner == null) {
             return descriptions;
@@ -192,8 +192,8 @@ public class AutoCraftStateMachine {
             return;
         }
 
-        BannerPatternLayer layer = targetBanner.getLayers().get(currentLayerIndex);
-        Item dyeItem = SavedBanner.getDyeItem(layer.getDyeColorEnum());
+        BannerRecipeLayer layer = targetBanner.getLayers().get(currentLayerIndex);
+        Item dyeItem = BannerRecipe.getDyeItem(layer.getDyeColorEnum());
 
         ItemStack dyeInSlot = handler.getSlot(DYE_SLOT).getItem();
         if (!dyeInSlot.isEmpty()) {
@@ -216,7 +216,7 @@ public class AutoCraftStateMachine {
     }
 
     private void placePatternItem() {
-        BannerPatternLayer layer = targetBanner.getLayers().get(currentLayerIndex);
+        BannerRecipeLayer layer = targetBanner.getLayers().get(currentLayerIndex);
         String patternId = layer.patternId();
 
         // Check if this pattern requires a pattern item
@@ -246,7 +246,7 @@ public class AutoCraftStateMachine {
     }
 
     private void selectPattern() {
-        BannerPatternLayer layer = targetBanner.getLayers().get(currentLayerIndex);
+        BannerRecipeLayer layer = targetBanner.getLayers().get(currentLayerIndex);
         String patternId = layer.patternId();
 
         // Find the pattern index in the loom's pattern list
@@ -404,11 +404,11 @@ public class AutoCraftStateMachine {
      * Validates that all required materials are available before starting the craft
      * Returns an error message if validation fails, null if all materials are available
      */
-    private String validateAllMaterials(SavedBanner banner) {
+    private String validateAllMaterials(BannerRecipe banner) {
         return validateMaterials(banner).errorMessage();
     }
 
-    private MaterialValidationResult validateMaterials(SavedBanner banner) {
+    private MaterialValidationResult validateMaterials(BannerRecipe banner) {
         List<String> missingDescriptions = getMissingMaterialDescriptions(banner);
         if (missingDescriptions.isEmpty()) {
             return new MaterialValidationResult(null, MissingMaterialType.NONE);
@@ -417,7 +417,7 @@ public class AutoCraftStateMachine {
         return new MaterialValidationResult("Missing " + String.join(", ", missingDescriptions), missingType);
     }
 
-    private List<MissingMaterial> getMissingMaterialsInCraftOrder(SavedBanner banner) {
+    private List<MissingMaterial> getMissingMaterialsInCraftOrder(BannerRecipe banner) {
         List<MissingMaterial> missing = new ArrayList<>();
 
         Map<Item, Integer> availableCounts = getAvailableItemCounts();
@@ -434,8 +434,8 @@ public class AutoCraftStateMachine {
             }
         }
 
-        for (BannerPatternLayer layer : banner.getLayers()) {
-            Item dyeItem = SavedBanner.getDyeItem(layer.getDyeColorEnum());
+        for (BannerRecipeLayer layer : banner.getLayers()) {
+            Item dyeItem = BannerRecipe.getDyeItem(layer.getDyeColorEnum());
             if (!consumeOne(availableCounts, dyeItem)) {
                 missing.add(new MissingMaterial(dyeItem, MissingMaterialType.DYE));
             }

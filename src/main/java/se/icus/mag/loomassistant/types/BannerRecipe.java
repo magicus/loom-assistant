@@ -20,9 +20,12 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 
 public record BannerRecipe(
@@ -85,6 +88,84 @@ public record BannerRecipe(
 
     public BannerRecipe withCategory(String newCategory) {
         return new BannerRecipe(id, description, author, url, newCategory, bannerColor, layers);
+    }
+
+    public BannerRecipe withLayers(List<BannerRecipeLayer> newLayers) {
+        return new BannerRecipe(id, description, author, url, category, bannerColor, newLayers);
+    }
+
+    // Bridge methods matching the old BannerRecipe API
+    public String getName() {
+        return description;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public String getBaseColor() {
+        return bannerColor;
+    }
+
+    public DyeColor getBaseColorEnum() {
+        return getBannerColorEnum();
+    }
+
+    public List<BannerRecipeLayer> getLayers() {
+        return layers;
+    }
+
+    public String getDisplayName() {
+        if (description != null && !description.isEmpty() && !description.equals(DEFAULT_DESCRIPTION)) {
+            return description;
+        }
+        return Component.translatable("loom-assistant.banner.unnamed").getString();
+    }
+
+    public Item getBaseBannerItem() {
+        return switch (getBannerColorEnum()) {
+            case WHITE -> Items.BANNER.white();
+            case ORANGE -> Items.BANNER.orange();
+            case MAGENTA -> Items.BANNER.magenta();
+            case LIGHT_BLUE -> Items.BANNER.lightBlue();
+            case YELLOW -> Items.BANNER.yellow();
+            case LIME -> Items.BANNER.lime();
+            case PINK -> Items.BANNER.pink();
+            case GRAY -> Items.BANNER.gray();
+            case LIGHT_GRAY -> Items.BANNER.lightGray();
+            case CYAN -> Items.BANNER.cyan();
+            case PURPLE -> Items.BANNER.purple();
+            case BLUE -> Items.BANNER.blue();
+            case BROWN -> Items.BANNER.brown();
+            case GREEN -> Items.BANNER.green();
+            case RED -> Items.BANNER.red();
+            case BLACK -> Items.BANNER.black();
+        };
+    }
+
+    public static Item getDyeItem(DyeColor color) {
+        return switch (color) {
+            case WHITE -> Items.DYE.white();
+            case ORANGE -> Items.DYE.orange();
+            case MAGENTA -> Items.DYE.magenta();
+            case LIGHT_BLUE -> Items.DYE.lightBlue();
+            case YELLOW -> Items.DYE.yellow();
+            case LIME -> Items.DYE.lime();
+            case PINK -> Items.DYE.pink();
+            case GRAY -> Items.DYE.gray();
+            case LIGHT_GRAY -> Items.DYE.lightGray();
+            case CYAN -> Items.DYE.cyan();
+            case PURPLE -> Items.DYE.purple();
+            case BLUE -> Items.DYE.blue();
+            case BROWN -> Items.DYE.brown();
+            case GREEN -> Items.DYE.green();
+            case RED -> Items.DYE.red();
+            case BLACK -> Items.DYE.black();
+        };
     }
 
     static BannerRecipe fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {

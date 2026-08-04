@@ -17,8 +17,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 /**
  * Screen showing required materials to craft a banner pattern.
@@ -29,10 +29,10 @@ public class BannerMaterialsScreen extends Screen {
     private static final int PADDING = 10;
 
     private final Screen previousScreen;
-    private final SavedBanner banner;
+    private final BannerRecipe banner;
     private int scrollOffset = 0;
 
-    public BannerMaterialsScreen(Screen previousScreen, SavedBanner banner) {
+    public BannerMaterialsScreen(Screen previousScreen, BannerRecipe banner) {
         super(Component.translatable("loom-assistant.screen.banner_materials.title"));
         this.previousScreen = previousScreen;
         this.banner = banner;
@@ -190,7 +190,7 @@ public class BannerMaterialsScreen extends Screen {
         List<MaterialEntry> materials = new ArrayList<>();
 
         // Add each layer in order with its pattern and dye
-        for (BannerPatternLayer layer : banner.getLayers()) {
+        for (BannerRecipeLayer layer : banner.getLayers()) {
             String patternId = layer.patternId();
             DyeColor dyeColor = layer.getDyeColorEnum();
 
@@ -198,7 +198,7 @@ public class BannerMaterialsScreen extends Screen {
             String patternName = extractPatternName(patternId);
 
             // Get dye color name
-            String displayColor = new ItemStack(SavedBanner.getDyeItem(dyeColor))
+            String displayColor = new ItemStack(BannerRecipe.getDyeItem(dyeColor))
                     .getHoverName()
                     .getString();
 
@@ -213,7 +213,7 @@ public class BannerMaterialsScreen extends Screen {
                 materials.add(new MaterialEntry(patternStack, displayName, 1));
             } else {
                 // Built-in pattern - show dye instead
-                ItemStack dyeStack = new ItemStack(SavedBanner.getDyeItem(dyeColor));
+                ItemStack dyeStack = new ItemStack(BannerRecipe.getDyeItem(dyeColor));
                 materials.add(new MaterialEntry(dyeStack, displayName, 1));
             }
         }

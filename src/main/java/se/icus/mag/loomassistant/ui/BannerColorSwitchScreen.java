@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
@@ -404,7 +404,7 @@ public class BannerColorSwitchScreen extends Screen {
     }
 
     private static ItemStack dyeStack(DyeColor color) {
-        return new ItemStack((Item) SavedBanner.getDyeItem(color));
+        return new ItemStack((Item) BannerRecipe.getDyeItem(color));
     }
 
     private static boolean isIn(int mx, int my, int x, int y, int w, int h) {

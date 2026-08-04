@@ -37,7 +37,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomPanelHost;
 import se.icus.mag.loomassistant.autocraft.AutoCraftStateMachine;
-import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.types.BannerRecipe;
 import se.icus.mag.loomassistant.ui.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
@@ -549,7 +548,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                     canCraftActiveBanner = true;
                     craftDisabledMessage = null;
                 } else {
-                    SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+                    BannerRecipe activeBanner =
+                            BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
                     if (activeBanner != null) {
                         canCraftActiveBanner = loomassistant$craftabilityProbe.canCraft(activeBanner);
                         if (!canCraftActiveBanner) {
@@ -611,7 +611,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                 if (loomassistant$panel != null) {
                     loomassistant$panel.setActiveBannerTooltip(context, mouseX, mouseY);
                 } else {
-                    SavedBanner activeBanner = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+                    BannerRecipe activeBanner =
+                            BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
                     LoomPanel.setBannerTooltip(context, activeBanner, mouseX, mouseY);
                 }
             }
@@ -782,7 +783,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
 
     @Unique
     private static String loomassistant$buildMissingMaterialsMessage(
-            SavedBanner banner, AutoCraftStateMachine autoCraft) {
+            BannerRecipe banner, AutoCraftStateMachine autoCraft) {
         List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(banner);
         if (missingMaterials.isEmpty()) {
             return null;

@@ -35,4 +35,13 @@ public record BannerRecipeLayer(Identifier pattern, DyeColor color) {
         }
         return new BannerRecipeLayer(parsed, parsedColor);
     }
+
+    // Bridge methods matching the old BannerRecipeLayer API
+    public String patternId() {
+        return pattern.toString();
+    }
+
+    public DyeColor getDyeColorEnum() {
+        return color;
+    }
 }

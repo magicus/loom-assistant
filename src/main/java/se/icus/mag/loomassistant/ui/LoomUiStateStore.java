@@ -24,7 +24,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.types.BannerRecipe;
 
 public final class LoomUiStateStore {
@@ -73,7 +72,7 @@ public final class LoomUiStateStore {
 
         try {
             BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
-            SavedBanner banner = SavedBanner.fromType(recipe);
+            BannerRecipe banner = recipe;
             return BannerPreviewRenderer.createBannerWithPatterns(banner);
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);

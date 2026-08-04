@@ -17,16 +17,15 @@ import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
-import se.icus.mag.loomassistant.data.SavedBanner;
 import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 /**
  * Renders banner preview thumbnails in the side panel.
  */
 public class BannerPreviewRenderer {
     public static void render(
-            GuiGraphicsExtractor context, SavedBanner banner, LoomMenu handler, int x, int y, int size) {
+            GuiGraphicsExtractor context, BannerRecipe banner, LoomMenu handler, int x, int y, int size) {
         // Create a banner item stack with patterns applied
         ItemStack bannerStack = createBannerWithPatterns(banner);
 
@@ -35,12 +34,12 @@ public class BannerPreviewRenderer {
     }
 
     /**
-     * Creates a banner ItemStack with all patterns from the SavedBanner applied.
+     * Creates a banner ItemStack with all patterns from the BannerRecipe applied.
      */
-    public static ItemStack createBannerWithPatterns(SavedBanner banner) {
+    public static ItemStack createBannerWithPatterns(BannerRecipe banner) {
         ItemStack stack = new ItemStack(banner.getBaseBannerItem());
 
-        List<BannerPatternLayer> layers = banner.getLayers();
+        List<BannerRecipeLayer> layers = banner.getLayers();
         if (!layers.isEmpty()) {
             try {
                 BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
@@ -48,7 +47,7 @@ public class BannerPreviewRenderer {
                 Registry<Object> registry = getBannerPatternRegistry();
 
                 if (registry != null) {
-                    for (BannerPatternLayer layer : layers) {
+                    for (BannerRecipeLayer layer : layers) {
                         try {
                             String patternIdStr = layer.patternId();
                             Identifier patternId = Identifier.tryParse(patternIdStr);
@@ -97,8 +96,8 @@ public class BannerPreviewRenderer {
         return null;
     }
 
-    public static SavedBanner extractBannerData(ItemStack stack) {
+    public static BannerRecipe extractBannerData(ItemStack stack) {
         BannerRecipe recipe = BannerRecipe.fromItem(stack);
-        return recipe == null ? null : SavedBanner.fromType(recipe);
+        return recipe == null ? null : recipe;
     }
 }

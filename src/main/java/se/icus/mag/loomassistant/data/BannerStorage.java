@@ -40,7 +40,7 @@ public class BannerStorage {
     // Config dir used for the global categories.json
     private final Path configDir;
     private BannerPackRepository repository;
-    private final List<SavedBanner> banners = new ArrayList<>();
+    private final List<BannerRecipe> banners = new ArrayList<>();
 
     public BannerStorage() {
         this.packRootPath = FabricLoader.getInstance().getGameDir().resolve("bannerpacks");
@@ -144,11 +144,11 @@ public class BannerStorage {
         refreshBannerCache();
     }
 
-    public void addBanner(SavedBanner banner) {
+    public void addBanner(BannerRecipe banner) {
         ensureRepositoryLoaded();
         BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
         try {
-            BannerRecipe created = rootPack.addBannerRecipe(banner.toType());
+            BannerRecipe created = rootPack.addBannerRecipe(banner);
             LoomAssistantMod.LOGGER.debug("Added banner {} to root", created.id());
             refreshBannerCache();
         } catch (IOException e) {
@@ -172,11 +172,11 @@ public class BannerStorage {
         }
     }
 
-    public List<SavedBanner> getBanners() {
+    public List<BannerRecipe> getBanners() {
         return Collections.unmodifiableList(banners);
     }
 
-    public SavedBanner getBannerById(String id) {
+    public BannerRecipe getBannerById(String id) {
         return banners.stream().filter(b -> b.getId().equals(id)).findFirst().orElse(null);
     }
 
@@ -241,7 +241,7 @@ public class BannerStorage {
         return recipe.toCommand();
     }
 
-    public SavedBanner importBannerFromJson(String input) {
+    public BannerRecipe importBannerFromJson(String input) {
         ensureRepositoryLoaded();
         if (input == null || input.trim().isEmpty()) {
             return null;
@@ -255,7 +255,7 @@ public class BannerStorage {
             try {
                 BannerRecipe created = rootPack.addBannerRecipe(fromGive);
                 refreshBannerCache();
-                return SavedBanner.fromType(created);
+                return created;
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to import banner from command", e);
             }
@@ -272,7 +272,7 @@ public class BannerStorage {
                 try {
                     BannerRecipe created = rootPack.addBannerRecipe(fromTypesJson);
                     refreshBannerCache();
-                    return SavedBanner.fromType(created);
+                    return created;
                 } catch (IOException e) {
                     throw new IllegalStateException("Failed to import banner from JSON", e);
                 }
@@ -284,13 +284,13 @@ public class BannerStorage {
         return null;
     }
 
-    private SavedBanner importBannerArray(String input) {
+    private BannerRecipe importBannerArray(String input) {
         try {
             JsonArray jsonArray = GSON.fromJson(input, JsonArray.class);
-            SavedBanner last = null;
+            BannerRecipe last = null;
             for (JsonElement element : jsonArray) {
                 String entry = GSON.toJson(element);
-                SavedBanner imported = importBannerFromJson(entry);
+                BannerRecipe imported = importBannerFromJson(entry);
                 if (imported != null) {
                     last = imported;
                 }
@@ -310,7 +310,7 @@ public class BannerStorage {
 
         for (Map.Entry<String, BannerPack> entry : repository.getPacks().entrySet()) {
             for (BannerRecipe recipe : entry.getValue().getDesigns()) {
-                banners.add(SavedBanner.fromType(recipe));
+                banners.add(recipe);
             }
         }
     }

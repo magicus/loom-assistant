@@ -19,9 +19,9 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.data.BannerPatternLayer;
 import se.icus.mag.loomassistant.data.BannerStorage;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
+import se.icus.mag.loomassistant.types.BannerRecipeLayer;
 
 /**
  * Full-screen browser for viewing and acting on saved banner recipes.
@@ -106,7 +106,7 @@ public class BannerBrowserScreen extends Screen {
         // Header
         ctx.fill(cx, cy, cx + ew, cy + HEADER_H, COL_HEADER);
         if (currentPackId == null) {
-            List<SavedBanner> all = BannerStorage.getInstance().getBanners();
+            List<BannerRecipe> all = BannerStorage.getInstance().getBanners();
             ctx.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.banner_browser.banners_count", all.size()),
@@ -126,7 +126,7 @@ public class BannerBrowserScreen extends Screen {
             ctx.text(this.font, Component.literal(currentPackId), cx + PADDING + 12, cy + 3, COL_TEXT, true);
         }
 
-        List<SavedBanner> items = getGridItems();
+        List<BannerRecipe> items = getGridItems();
         int totalRows = (items.size() + GRID_COLS - 1) / GRID_COLS;
         int gridStartY = cy + HEADER_H;
         int maxVisRows = (TOTAL_H - HEADER_H) / CELL_H;
@@ -135,7 +135,7 @@ public class BannerBrowserScreen extends Screen {
             for (int col = 0; col < GRID_COLS; col++) {
                 int idx = row * GRID_COLS + col;
                 if (idx >= items.size()) break;
-                SavedBanner banner = items.get(idx);
+                BannerRecipe banner = items.get(idx);
                 int cellX = cx + PADDING + col * cellW;
                 int cellY = gridStartY + (row - gridScrollOffset) * CELL_H;
 
@@ -176,7 +176,7 @@ public class BannerBrowserScreen extends Screen {
         return currentPackId != null && mx >= cx && mx < cx + 20 && my >= cy && my < cy + HEADER_H;
     }
 
-    private List<SavedBanner> getGridItems() {
+    private List<BannerRecipe> getGridItems() {
         // TODO: filter by currentPackId when packs are implemented
         return BannerStorage.getInstance().getBanners();
     }
@@ -196,7 +196,7 @@ public class BannerBrowserScreen extends Screen {
                 COL_ACCENT,
                 true);
 
-        SavedBanner sel = getSelectedBanner();
+        BannerRecipe sel = getSelectedBanner();
         if (sel == null) {
             String hint =
                     Component.translatable("loom-assistant.panel.select_banner").getString();
@@ -262,7 +262,7 @@ public class BannerBrowserScreen extends Screen {
                 false);
     }
 
-    private void renderMaterialsList(GuiGraphicsExtractor ctx, SavedBanner sel, int dx, int ty, int dw, int availH) {
+    private void renderMaterialsList(GuiGraphicsExtractor ctx, BannerRecipe sel, int dx, int ty, int dw, int availH) {
         int rowH = 18;
         int iconW = 16;
         int lx = dx + PADDING;
@@ -283,17 +283,17 @@ public class BannerBrowserScreen extends Screen {
                 true);
         ty += rowH;
 
-        List<BannerPatternLayer> layers = sel.getLayers();
+        List<BannerRecipeLayer> layers = sel.getLayers();
         int visible = Math.min(layers.size(), Math.max(0, maxRows - 1));
 
         for (int i = 0; i < visible; i++) {
-            BannerPatternLayer layer = layers.get(i);
+            BannerRecipeLayer layer = layers.get(i);
 
             // Pattern preview: white banner with only this layer
             BannerPreviewRenderer.render(
-                    ctx, new SavedBanner(null, DyeColor.WHITE, List.of(layer)), null, lx, ty + 1, 16);
+                    ctx, new BannerRecipe(null, DyeColor.WHITE, List.of(layer)), null, lx, ty + 1, 16);
 
-            ctx.item(new ItemStack(SavedBanner.getDyeItem(layer.getDyeColorEnum())), lx + iconW + 2, ty + 1);
+            ctx.item(new ItemStack(BannerRecipe.getDyeItem(layer.getDyeColorEnum())), lx + iconW + 2, ty + 1);
 
             String label = getPatternDisplayName(layer);
             ctx.text(
@@ -318,7 +318,7 @@ public class BannerBrowserScreen extends Screen {
     }
 
     @SuppressWarnings("unchecked")
-    private String getPatternDisplayName(BannerPatternLayer layer) {
+    private String getPatternDisplayName(BannerRecipeLayer layer) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
             try {
@@ -389,7 +389,7 @@ public class BannerBrowserScreen extends Screen {
         int innerW = PANEL_EXPLORER_W - PADDING * 2;
         int cellW = innerW / GRID_COLS;
         int gridStartY = cy + HEADER_H;
-        List<SavedBanner> items = getGridItems();
+        List<BannerRecipe> items = getGridItems();
         int totalRows = (items.size() + GRID_COLS - 1) / GRID_COLS;
         int maxVisRows = (TOTAL_H - HEADER_H) / CELL_H;
 
@@ -397,7 +397,7 @@ public class BannerBrowserScreen extends Screen {
             for (int col = 0; col < GRID_COLS; col++) {
                 int idx = row * GRID_COLS + col;
                 if (idx >= items.size()) break;
-                SavedBanner banner = items.get(idx);
+                BannerRecipe banner = items.get(idx);
                 int cellX = cx + PADDING + col * cellW;
                 int cellY = gridStartY + (row - gridScrollOffset) * CELL_H;
                 if (mx >= cellX && mx < cellX + cellW && my >= cellY && my < cellY + CELL_H) {
@@ -415,7 +415,7 @@ public class BannerBrowserScreen extends Screen {
         }
 
         // Description panel buttons
-        SavedBanner sel = getSelectedBanner();
+        BannerRecipe sel = getSelectedBanner();
         if (sel != null) {
             int dx = cx + PANEL_EXPLORER_W + 1;
             int dw = PANEL_DESC_W - 1;
@@ -446,7 +446,7 @@ public class BannerBrowserScreen extends Screen {
         int cy = contentY();
 
         if (mx >= cx && mx < cx + PANEL_EXPLORER_W && my >= cy && my < cy + TOTAL_H) {
-            List<SavedBanner> items = getGridItems();
+            List<BannerRecipe> items = getGridItems();
             int totalRows = (items.size() + GRID_COLS - 1) / GRID_COLS;
             int maxVisRows = (TOTAL_H - HEADER_H) / CELL_H;
             int maxScroll = Math.max(0, totalRows - maxVisRows);
@@ -469,7 +469,7 @@ public class BannerBrowserScreen extends Screen {
     // Actions
     // -------------------------------------------------------------------------
 
-    private void handleDefaultAction(SavedBanner banner) {
+    private void handleDefaultAction(BannerRecipe banner) {
         try {
             LoomAssistantConfig cfg = LoomAssistantMod.getConfig();
             switch (cfg.getDefaultAction()) {
@@ -482,18 +482,18 @@ public class BannerBrowserScreen extends Screen {
         }
     }
 
-    private void handleEnqueue(SavedBanner banner) {
+    private void handleEnqueue(BannerRecipe banner) {
         // TODO: wire up to AutoCraftStateMachine queue in a later step
         this.minecraft.gui.setScreen(previousScreen);
     }
 
-    private void handleCraft(SavedBanner banner) {
+    private void handleCraft(BannerRecipe banner) {
         // TODO: trigger auto-craft in a later step
         this.minecraft.gui.setScreen(previousScreen);
     }
 
     @SuppressWarnings("unused")
-    private void handleShow(SavedBanner banner) {
+    private void handleShow(BannerRecipe banner) {
         // Materials are shown inline in the details panel; nothing to navigate to.
     }
 
@@ -509,7 +509,7 @@ public class BannerBrowserScreen extends Screen {
         return (this.height - TOTAL_H) / 2;
     }
 
-    private SavedBanner getSelectedBanner() {
+    private BannerRecipe getSelectedBanner() {
         if (selectedBannerId == null) return null;
         return BannerStorage.getInstance().getBanners().stream()
                 .filter(b -> b.getId().equals(selectedBannerId))

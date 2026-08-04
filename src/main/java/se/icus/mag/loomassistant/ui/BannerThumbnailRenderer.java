@@ -6,7 +6,7 @@ package se.icus.mag.loomassistant.ui;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
-import se.icus.mag.loomassistant.data.SavedBanner;
+import se.icus.mag.loomassistant.types.BannerRecipe;
 
 /**
  * Renders banner thumbnails using proper 3D item rendering.
@@ -15,7 +15,7 @@ public class BannerThumbnailRenderer {
     /**
      * Renders a banner thumbnail at the specified position and size.
      */
-    public static void render(GuiGraphicsExtractor context, SavedBanner banner, int x, int y, int size) {
+    public static void render(GuiGraphicsExtractor context, BannerRecipe banner, int x, int y, int size) {
         // Create a simple item stack from the banner's base color
         ItemStack bannerStack = new ItemStack(banner.getBaseBannerItem());
 
