@@ -159,6 +159,7 @@ public class BannerPackRepository {
     private void ensureRootPackExists() {
         Path rootPackDir = packsRoot.resolve(ROOT_PACK_ID);
         Path rootBannersDir = rootPackDir.resolve(BannerPack.BANNERS_DIR);
+        Path rootCategoriesDir = rootPackDir.resolve(BannerPack.CATEGORIES_DIR);
 
         try {
             Files.createDirectories(rootBannersDir);
@@ -166,9 +167,23 @@ public class BannerPackRepository {
             if (!Files.exists(mcmeta)) {
                 BannerPackMetadata metadata = new BannerPackMetadata(ROOT_PACK_ID, "ROOT");
                 BannerPack.writeMcmeta(rootPackDir, metadata);
+                writeDefaultCategories(rootCategoriesDir);
             }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create root pack", e);
+        }
+    }
+
+    private static void writeDefaultCategories(Path categoriesDir) throws IOException {
+        String ns = "loom-assistant";
+        for (BannerRecipeCategory cat : new BannerRecipeCategory[] {
+            new BannerRecipeCategory("flags", "Flags", "minecraft:map"),
+            new BannerRecipeCategory("letters", "Letters", "minecraft:book"),
+            new BannerRecipeCategory("logos", "Logos", "minecraft:blaze_powder"),
+            new BannerRecipeCategory("misc", "Misc", "minecraft:lava_bucket"),
+            new BannerRecipeCategory("nature", "Nature", "minecraft:poppy"),
+        }) {
+            BannerPack.writeCategoryFile(categoriesDir, ns, cat);
         }
     }
 

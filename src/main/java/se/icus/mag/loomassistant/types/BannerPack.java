@@ -6,7 +6,6 @@ package se.icus.mag.loomassistant.types;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.Reader;
@@ -26,6 +25,7 @@ import java.util.stream.Stream;
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";
     public static final String BANNERS_DIR = "banners";
+    public static final String CATEGORIES_DIR = "categories";
     private static final Gson GSON = new GsonBuilder().create();
     private static final Gson PRETTY_GSON =
             new GsonBuilder().setPrettyPrinting().create();
@@ -38,7 +38,6 @@ public abstract class BannerPack {
     protected BannerPack(BannerPackMetadata metadata, Path path) {
         this.metadata = metadata;
         this.path = path;
-        this.categories = List.copyOf(metadata.categories());
     }
 
     public BannerPackMetadata getMetadata() {
@@ -101,7 +100,8 @@ public abstract class BannerPack {
             return null;
         }
 
-        return new DirectoryBannerPack(metadata, packDir, packDir.resolve(BANNERS_DIR));
+        return new DirectoryBannerPack(
+                metadata, packDir, packDir.resolve(BANNERS_DIR), packDir.resolve(CATEGORIES_DIR));
     }
 
     public static ZipBannerPack loadZipPack(Path zipPath, String packId) throws IOException {
@@ -113,7 +113,7 @@ public abstract class BannerPack {
                 return null;
             }
 
-            pack = new ZipBannerPack(metadata, zipPath, root.resolve(BANNERS_DIR));
+            pack = new ZipBannerPack(metadata, zipPath, root.resolve(BANNERS_DIR), root.resolve(CATEGORIES_DIR));
         }
         return pack;
     }
@@ -144,7 +144,6 @@ public abstract class BannerPack {
 
             String author = null;
             String url = null;
-            List<BannerRecipeCategory> packCategories = new ArrayList<>();
             if (root.has("bannerpack")) {
                 JsonObject bannerpackObj = root.getAsJsonObject("bannerpack");
                 if (bannerpackObj.has("author")) {
@@ -153,22 +152,9 @@ public abstract class BannerPack {
                 if (bannerpackObj.has("url")) {
                     url = bannerpackObj.get("url").getAsString();
                 }
-                if (bannerpackObj.has("categories")) {
-                    for (JsonElement el : bannerpackObj.getAsJsonArray("categories")) {
-                        JsonObject cat = el.getAsJsonObject();
-                        String catId = cat.has("id") ? cat.get("id").getAsString() : null;
-                        if (catId != null && !catId.isBlank()) {
-                            String catDesc = cat.has("description")
-                                    ? cat.get("description").getAsString()
-                                    : catId;
-                            String catIcon = cat.has("icon") ? cat.get("icon").getAsString() : "minecraft:lava_bucket";
-                            packCategories.add(new BannerRecipeCategory(catId, catDesc, catIcon));
-                        }
-                    }
-                }
             }
 
-            return new BannerPackMetadata(packId, description, author, url, packCategories);
+            return new BannerPackMetadata(packId, description, author, url);
         }
     }
 
@@ -194,6 +180,55 @@ public abstract class BannerPack {
 
         try (Writer writer = Files.newBufferedWriter(packDir.resolve(MCMETA_FILE))) {
             PRETTY_GSON.toJson(root, writer);
+        }
+    }
+
+    protected final void loadCategoriesFromPath(Path categoriesPath) throws IOException {
+        if (!Files.exists(categoriesPath) || !Files.isDirectory(categoriesPath)) {
+            return;
+        }
+
+        List<BannerRecipeCategory> loaded = new ArrayList<>();
+        try (Stream<Path> namespaceDirs = Files.list(categoriesPath)) {
+            namespaceDirs.filter(Files::isDirectory).sorted().forEach(nsDir -> {
+                try (Stream<Path> catFiles = Files.list(nsDir)) {
+                    catFiles.filter(p -> p.getFileName().toString().endsWith(".json"))
+                            .sorted()
+                            .forEach(filePath -> {
+                                try (Reader reader = Files.newBufferedReader(filePath)) {
+                                    JsonObject obj = GSON.fromJson(reader, JsonObject.class);
+                                    if (obj != null) {
+                                        String fileName = filePath.getFileName().toString();
+                                        String id = fileName.substring(0, fileName.length() - ".json".length());
+                                        String description = obj.has("description")
+                                                ? obj.get("description").getAsString()
+                                                : id;
+                                        String icon = obj.has("icon")
+                                                ? obj.get("icon").getAsString()
+                                                : "minecraft:lava_bucket";
+                                        loaded.add(new BannerRecipeCategory(id, description, icon));
+                                    }
+                                } catch (IOException e) {
+                                    throw new IllegalStateException("Failed to read category " + filePath, e);
+                                }
+                            });
+                } catch (IOException e) {
+                    throw new IllegalStateException("Failed to list categories dir " + nsDir, e);
+                }
+            });
+        }
+        categories = List.copyOf(loaded);
+    }
+
+    protected static void writeCategoryFile(Path categoriesDir, String namespace, BannerRecipeCategory category)
+            throws IOException {
+        Path nsDir = categoriesDir.resolve(namespace);
+        Files.createDirectories(nsDir);
+        JsonObject obj = new JsonObject();
+        obj.addProperty("description", category.description());
+        obj.addProperty("icon", category.iconItemId());
+        try (Writer writer = Files.newBufferedWriter(nsDir.resolve(category.id() + ".json"))) {
+            PRETTY_GSON.toJson(obj, writer);
         }
     }
 

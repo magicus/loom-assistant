@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public class ZipBannerPack extends BannerPack {
-    public ZipBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath) throws IOException {
+    public ZipBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath)
+            throws IOException {
         super(metadata, path);
         loadRecipesFromPath(bannersPath);
+        loadCategoriesFromPath(categoriesPath);
     }
 
     @Override

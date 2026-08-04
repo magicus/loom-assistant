@@ -15,9 +15,11 @@ public class DirectoryBannerPack extends BannerPack {
         super(metadata, path);
     }
 
-    public DirectoryBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath) throws IOException {
+    public DirectoryBannerPack(BannerPackMetadata metadata, Path path, Path bannersPath, Path categoriesPath)
+            throws IOException {
         this(metadata, path);
         loadRecipesFromPath(bannersPath);
+        loadCategoriesFromPath(categoriesPath);
     }
 
     @Override
@@ -43,6 +45,10 @@ public class DirectoryBannerPack extends BannerPack {
     @Override
     public void removeBannerRecipe(String recipeId) throws IOException {
         deleteRecipeFile(recipeId);
+    }
+
+    public void addBannerCategory(String namespace, BannerRecipeCategory category) throws IOException {
+        writeCategoryFile(getPath().resolve(CATEGORIES_DIR), namespace, category);
     }
 
     public BannerRecipe moveRecipeTo(BannerPack target, String recipeId) throws IOException {
