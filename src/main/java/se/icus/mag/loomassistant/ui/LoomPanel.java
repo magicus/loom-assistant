@@ -792,25 +792,25 @@ public class LoomPanel {
         ItemStack result = BannerPreviewRenderer.createBannerWithPatterns(banner);
         var inventory = mc.player.getInventory();
 
-        // Find first free hotbar slot, then rest of main inventory, then fall back to selected.
-        int inventorySlot = -1;
-        for (int i = 0; i < 9; i++) {
-            if (inventory.getItem(i).isEmpty()) {
-                inventorySlot = i;
-                break;
+        // Mirror what /give does: stack into an existing slot if possible, otherwise use free slot.
+        int targetSlot = inventory.getSlotWithRemainingSpace(result);
+        if (targetSlot == -1) {
+            // No stackable slot found; find a free one (prefer hotbar)
+            targetSlot = -1;
+            for (int i = 0; i < 9; i++) {
+                if (inventory.getItem(i).isEmpty()) { targetSlot = i; break; }
             }
-        }
-        if (inventorySlot == -1) {
-            inventorySlot = inventory.getFreeSlot(); // slots 0-35; -1 if full
-        }
-        if (inventorySlot == -1) {
-            inventorySlot = inventory.getSelectedSlot();
+            if (targetSlot == -1) targetSlot = inventory.getFreeSlot();
+            if (targetSlot == -1) targetSlot = inventory.getSelectedSlot();
+            inventory.setItem(targetSlot, result.copy());
+        } else {
+            // Stack onto existing items in that slot
+            inventory.getItem(targetSlot).grow(result.getCount());
         }
 
         // Hotbar (0-8) maps to creative container slots 36-44; rest maps 1:1.
-        int creativeSlot = inventorySlot < 9 ? 36 + inventorySlot : inventorySlot;
-        inventory.setItem(inventorySlot, result.copy());
-        mc.gameMode.handleCreativeModeItemAdd(result.copy(), creativeSlot);
+        int creativeSlot = targetSlot < 9 ? 36 + targetSlot : targetSlot;
+        mc.gameMode.handleCreativeModeItemAdd(inventory.getItem(targetSlot).copy(), creativeSlot);
     }
 
     public void editSelectedBanner() {
