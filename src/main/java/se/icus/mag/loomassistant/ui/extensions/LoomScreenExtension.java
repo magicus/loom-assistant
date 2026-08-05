@@ -43,7 +43,7 @@ import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.ui.screens.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.ui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.ui.support.LoomUiStateStore;
-import se.icus.mag.loomassistant.weaving.AutoCraftStateMachine;
+import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
 /** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
 public class LoomScreenExtension {
@@ -113,7 +113,7 @@ public class LoomScreenExtension {
     private String lastPersistedActiveBannerJson = null;
     private final EnumMap<DyeColor, DyeColor> lastPersistedDyeMap = new EnumMap<>(DyeColor.class);
     private boolean lastPersistedDyeEnabled = false;
-    private AutoCraftStateMachine craftabilityProbe;
+    private BannerCraftabilityModel craftabilityProbe;
     private BannerFlagModel previewFlag;
 
     public LoomScreenExtension(LoomScreen screen) {
@@ -172,7 +172,7 @@ public class LoomScreenExtension {
     public void onInit() {
         this.panelOpen = LoomUiStateStore.isLoomPanelOpen(screen.minecraft);
         screen.leftPos = panelOpen ? getOpenLeftPos() : getClosedLeftPos();
-        this.craftabilityProbe = new AutoCraftStateMachine(screen.menu);
+        this.craftabilityProbe = new BannerCraftabilityModel(screen.menu);
 
         ModelPart flagPart = screen.minecraft.getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
         this.previewFlag = new BannerFlagModel(flagPart);
@@ -788,7 +788,7 @@ public class LoomScreenExtension {
         }
     }
 
-    private static String buildMissingMaterialsMessage(BannerRecipe banner, AutoCraftStateMachine autoCraft) {
+    private static String buildMissingMaterialsMessage(BannerRecipe banner, BannerCraftabilityModel autoCraft) {
         List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(banner);
         if (missingMaterials.isEmpty()) {
             return null;
