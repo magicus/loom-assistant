@@ -25,7 +25,7 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
 
 /**
  * Full-screen browser for viewing and acting on saved banner recipes.
- * Displays a pack list on the left (currently only "root"), a banner list in the center,
+ * Displays a pack list on the left, a banner list in the center,
  * and a details/actions panel on the right.
  */
 public class BannerBrowserScreen extends Screen {
@@ -60,7 +60,7 @@ public class BannerBrowserScreen extends Screen {
     private final Screen previousScreen;
 
     // Selection / scroll state
-    private String currentPackId = null; // null = root view, string = inside that pack
+    private String currentPackId = null; // null = local view, string = inside that pack
     private String selectedBannerId = null;
     private int gridScrollOffset = 0;
 

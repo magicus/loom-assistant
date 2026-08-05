@@ -22,7 +22,7 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 
 public class BannerPackRepository {
-    public static final String ROOT_PACK_ID = "root";
+    public static final String LOCAL_PACK_ID = "local";
 
     private final Path packsRoot;
     private final Map<String, BannerPack> packs = new LinkedHashMap<>();
@@ -97,8 +97,8 @@ public class BannerPackRepository {
 
     public BannerPack createPack(String packId, String name) {
         String normalizedId = normalizeId(packId);
-        if (ROOT_PACK_ID.equals(normalizedId)) {
-            throw new IllegalArgumentException("root pack already exists and cannot be created manually");
+        if (LOCAL_PACK_ID.equals(normalizedId)) {
+            throw new IllegalArgumentException("local pack already exists and cannot be created manually");
         }
         if (packs.containsKey(normalizedId)) {
             throw new IllegalArgumentException("pack already exists: " + normalizedId);
@@ -117,8 +117,8 @@ public class BannerPackRepository {
 
     public void deletePack(String packId) {
         String normalizedId = normalizeId(packId);
-        if (ROOT_PACK_ID.equals(normalizedId)) {
-            throw new IllegalArgumentException("root pack cannot be deleted");
+        if (LOCAL_PACK_ID.equals(normalizedId)) {
+            throw new IllegalArgumentException("local pack cannot be deleted");
         }
 
         BannerPack pack = requirePack(normalizedId);
@@ -162,20 +162,20 @@ public class BannerPackRepository {
     }
 
     private void ensureRootPackExists() {
-        Path rootPackDir = packsRoot.resolve(ROOT_PACK_ID);
-        Path rootBannersDir = rootPackDir.resolve(BannerPack.BANNERS_DIR);
-        Path rootCategoriesDir = rootPackDir.resolve(BannerPack.CATEGORIES_DIR);
+        Path localPackDir = packsRoot.resolve(LOCAL_PACK_ID);
+        Path localBannersDir = localPackDir.resolve(BannerPack.BANNERS_DIR);
+        Path localCategoriesDir = localPackDir.resolve(BannerPack.CATEGORIES_DIR);
 
         try {
-            Files.createDirectories(rootBannersDir);
-            Path mcmeta = rootPackDir.resolve(BannerPack.MCMETA_FILE);
+            Files.createDirectories(localBannersDir);
+            Path mcmeta = localPackDir.resolve(BannerPack.MCMETA_FILE);
             if (!Files.exists(mcmeta)) {
-                BannerPackMetadata metadata = new BannerPackMetadata(ROOT_PACK_ID, "ROOT");
-                BannerPack.writeMcmeta(rootPackDir, metadata);
-                writeDefaultCategories(rootCategoriesDir);
+                BannerPackMetadata metadata = new BannerPackMetadata(LOCAL_PACK_ID, "Local");
+                BannerPack.writeMcmeta(localPackDir, metadata);
+                writeDefaultCategories(localCategoriesDir);
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to create root pack", e);
+            throw new IllegalStateException("Failed to create local pack", e);
         }
     }
 

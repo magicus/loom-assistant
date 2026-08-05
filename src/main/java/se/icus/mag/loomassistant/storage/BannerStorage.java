@@ -100,14 +100,14 @@ public class BannerStorage {
 
     public BannerRecipe addBanner(BannerRecipe banner) {
         ensureRepositoryLoaded();
-        BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
+        BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
         try {
-            BannerRecipe created = rootPack.addBannerRecipe(banner);
-            LoomAssistantMod.LOGGER.debug("Added banner {} to root", created.id());
+            BannerRecipe created = localPack.addBannerRecipe(banner);
+            LoomAssistantMod.LOGGER.debug("Added banner {} to local", created.id());
             refreshBannerCache();
             return created;
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to add banner to root pack", e);
+            throw new IllegalStateException("Failed to add banner to local pack", e);
         }
     }
 
@@ -214,9 +214,9 @@ public class BannerStorage {
 
         BannerRecipe fromGive = BannerRecipe.fromCommand(trimmed);
         if (fromGive != null) {
-            BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
+            BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
             try {
-                BannerRecipe created = rootPack.addBannerRecipe(fromGive);
+                BannerRecipe created = localPack.addBannerRecipe(fromGive);
                 refreshBannerCache();
                 return created;
             } catch (IOException e) {
@@ -231,9 +231,9 @@ public class BannerStorage {
         try {
             BannerRecipe fromTypesJson = BannerRecipe.fromJson(trimmed);
             if (fromTypesJson != null) {
-                BannerPack rootPack = requirePack(BannerPackRepository.ROOT_PACK_ID);
+                BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
                 try {
-                    BannerRecipe created = rootPack.addBannerRecipe(fromTypesJson);
+                    BannerRecipe created = localPack.addBannerRecipe(fromTypesJson);
                     refreshBannerCache();
                     return created;
                 } catch (IOException e) {

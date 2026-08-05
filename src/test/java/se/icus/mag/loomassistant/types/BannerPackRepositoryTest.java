@@ -38,16 +38,16 @@ class BannerPackRepositoryTest {
     Path tempDir;
 
     @Test
-    void createsRootPackWhenMissing() {
+    void createsLocalPackWhenMissing() {
         Path packsRoot = tempDir.resolve("bannerpacks");
         BannerPackRepository repository = new BannerPackRepository(packsRoot);
 
         repository.load();
 
-        assertTrue(Files.exists(packsRoot.resolve("root")));
-        assertTrue(Files.exists(packsRoot.resolve("root").resolve("bannerpack.mcmeta")));
-        assertTrue(Files.exists(packsRoot.resolve("root").resolve("banners")));
-        assertNotNull(repository.getPack("root"));
+        assertTrue(Files.exists(packsRoot.resolve("local")));
+        assertTrue(Files.exists(packsRoot.resolve("local").resolve("bannerpack.mcmeta")));
+        assertTrue(Files.exists(packsRoot.resolve("local").resolve("banners")));
+        assertNotNull(repository.getPack("local"));
     }
 
     @Test
@@ -100,12 +100,12 @@ class BannerPackRepositoryTest {
                 DyeColor.LIGHT_BLUE,
                 List.of(BannerRecipeLayer.of("minecraft:cross", DyeColor.WHITE.getName())));
         BannerRecipe created =
-                repository.getPack(BannerPackRepository.ROOT_PACK_ID).addBannerRecipe(recipe);
+                repository.getPack(BannerPackRepository.LOCAL_PACK_ID).addBannerRecipe(recipe);
         assertNotNull(created.id());
         assertNotNull(repository.getBannerRecipeById(created.id()));
-        assertEquals(BannerPackRepository.ROOT_PACK_ID, repository.getBannerRecipePackId(created.id()));
+        assertEquals(BannerPackRepository.LOCAL_PACK_ID, repository.getBannerRecipePackId(created.id()));
 
-        BannerRecipe moved = repository.moveBannerRecipe(BannerPackRepository.ROOT_PACK_ID, "letters", created.id());
+        BannerRecipe moved = repository.moveBannerRecipe(BannerPackRepository.LOCAL_PACK_ID, "letters", created.id());
         assertEquals("letters", repository.getBannerRecipePackId(moved.id()));
 
         repository.getPack("letters").removeBannerRecipe(moved.id());
