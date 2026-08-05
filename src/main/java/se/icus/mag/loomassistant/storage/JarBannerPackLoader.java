@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
 
@@ -63,15 +65,9 @@ public class JarBannerPackLoader {
      * based on actual JAR structure and Fabric API capabilities.
      */
     private void loadFromModResources(List<BannerPack> packs) throws IOException {
-        // Note: Loading from JAR resources in Minecraft mods is complex
-        // and depends on the mod loader and resource location setup.
-        // This is a placeholder that can be enhanced.
-
-        // Try to access mod container and iterate resources
         FabricLoader loader = FabricLoader.getInstance();
-        for (var modContainer : loader.getAllMods()) {
+        for (ModContainer modContainer : loader.getAllMods()) {
             if (modContainer.getMetadata().getId().equals(LoomAssistantMod.MOD_ID)) {
-                // Try to find banner pack resources in this mod
                 try {
                     loadFromModContainer(modContainer, packs);
                 } catch (Exception e) {
@@ -85,18 +81,25 @@ public class JarBannerPackLoader {
      * Loads banner packs from a specific mod container.
      * This is framework-specific and may need adjustment.
      */
-    private void loadFromModContainer(net.fabricmc.loader.api.ModContainer modContainer, List<BannerPack> packs)
-            throws IOException {
-        // This is a simplified placeholder.
-        // In a real implementation, you would:
-        // 1. Access the mod's JAR file
-        // 2. Look for zip files in data/loom-assistant/bannerpacks/
-        // 3. Extract them to cache and load as ZipBannerPack
+    private void loadFromModContainer(ModContainer modContainer, List<BannerPack> packs) throws IOException {
+        var resourceDir = modContainer.findPath(JAR_PACK_DIR);
+        if (resourceDir.isEmpty() || !Files.isDirectory(resourceDir.get())) {
+            LoomAssistantMod.LOGGER.debug("No bundled banner pack directory found at {}", JAR_PACK_DIR);
+            return;
+        }
 
-        // For now, this serves as documentation of the intended approach
-        LoomAssistantMod.LOGGER.debug(
-                "Attempting to load bundled packs from mod: {}",
-                modContainer.getMetadata().getId());
+        try (var stream = Files.list(resourceDir.get())) {
+            for (Path zipResource : stream.filter(path -> path.getFileName().toString().endsWith(".zip")).toList()) {
+                String zipName = zipResource.getFileName().toString();
+                String packId = zipName.substring(0, zipName.length() - ".zip".length());
+                Path cachedZip = extractResourceToCache(zipResource, zipName);
+                BannerPack pack = BannerPack.loadZipPack(cachedZip, packId);
+                if (pack != null) {
+                    packs.add(pack);
+                    LoomAssistantMod.LOGGER.info("Loaded bundled banner pack {}", packId);
+                }
+            }
+        }
     }
 
     /**
@@ -105,19 +108,21 @@ public class JarBannerPackLoader {
     private Path extractResourceToCache(String resourcePath, String cacheFileName) throws IOException {
         Path cachePath = cacheRoot.resolve(cacheFileName);
 
-        // Skip if already cached
-        if (Files.exists(cachePath)) {
-            return cachePath;
-        }
-
         try (InputStream in = getResourceStream(resourcePath)) {
             if (in == null) {
                 throw new IOException("Resource not found: " + resourcePath);
             }
             Files.createDirectories(cachePath.getParent());
-            Files.copy(in, cachePath);
+            Files.copy(in, cachePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
+        return cachePath;
+    }
+
+    private Path extractResourceToCache(Path resourcePath, String cacheFileName) throws IOException {
+        Path cachePath = cacheRoot.resolve(cacheFileName);
+        Files.createDirectories(cachePath.getParent());
+        Files.copy(resourcePath, cachePath, StandardCopyOption.REPLACE_EXISTING);
         return cachePath;
     }
 

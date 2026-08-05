@@ -56,10 +56,13 @@ public class BannerPackRepository {
             try {
                 JarBannerPackLoader jarLoader = new JarBannerPackLoader();
                 for (BannerPack pack : jarLoader.loadBundledPacks()) {
-                    // Prefix bundled packs with "builtin-" to avoid conflicts
-                    String packId = "builtin-" + pack.getMetadata().id();
-                    packs.put(packId, pack);
-                    LoomAssistantMod.LOGGER.info("Loaded bundled banner pack: {}", packId);
+                    String packId = pack.getMetadata().id();
+                    if (packs.containsKey(packId)) {
+                        LoomAssistantMod.LOGGER.warn("Bundled banner pack '{}' conflicts with a user pack, skipping", packId);
+                    } else {
+                        packs.put(packId, pack);
+                        LoomAssistantMod.LOGGER.info("Loaded bundled banner pack: {}", packId);
+                    }
                 }
             } catch (Exception e) {
                 LoomAssistantMod.LOGGER.debug("No bundled banner packs found or error loading them", e);
