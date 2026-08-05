@@ -116,7 +116,7 @@ public class BannerRecipeImportExportScreen extends Screen {
                 .build());
         this.copyButton.active = hasExportTarget();
 
-        int packsBtnY = packsY() + SECTION_H - BTN_H - PAD;
+        int packsBtnY = packsY() + PAD;
         this.managePacksButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.manage_packs"),
                         b -> openBannerPackManager())
@@ -174,22 +174,6 @@ public class BannerRecipeImportExportScreen extends Screen {
                 TEXT_DIM,
                 false);
 
-        // Banner pack section labels
-        ctx.text(
-                this.font,
-                Component.translatable("loom-assistant.screen.import_export.banner_packs_label"),
-                px + PAD + 4,
-                packsY + 6,
-                TEXT_COLOR,
-                false);
-        ctx.text(
-                this.font,
-                Component.translatable("loom-assistant.screen.import_export.banner_packs_description"),
-                px + PAD,
-                packsY + 24,
-                TEXT_DIM,
-                false);
-
         // Render previews and status messages
         renderImportPreview(ctx, px + PAD, iy + 42, mouseX, mouseY);
         renderExportPreview(ctx, px + PAD, ey + 42, mouseX, mouseY);
@@ -219,14 +203,6 @@ public class BannerRecipeImportExportScreen extends Screen {
                     OK_COLOR,
                     false);
         }
-
-        ctx.text(
-                this.font,
-                Component.translatable("loom-assistant.screen.import_export.manage_packs_hint"),
-                px + PAD,
-                packsY + 74,
-                TEXT_DIM,
-                false);
 
         super.extractRenderState(ctx, mouseX, mouseY, delta);
     }
