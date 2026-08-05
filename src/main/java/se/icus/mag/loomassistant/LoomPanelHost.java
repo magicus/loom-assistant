@@ -4,8 +4,8 @@
  */
 package se.icus.mag.loomassistant;
 
-import se.icus.mag.loomassistant.ui.LoomPanel;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 
 public interface LoomPanelHost {
-    LoomPanel loomassistant$getPanel();
+    LoomRecipePanel loomassistant$getPanel();
 }

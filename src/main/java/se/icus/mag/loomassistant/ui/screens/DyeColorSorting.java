@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.ui.screens;
 
 import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;

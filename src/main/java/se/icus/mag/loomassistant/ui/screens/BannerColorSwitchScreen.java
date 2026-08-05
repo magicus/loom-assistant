@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.ui.screens;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -21,6 +21,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 
 public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
@@ -73,7 +74,7 @@ public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
 
     private final Screen previousScreen;
-    private final LoomPanel panel;
+    private final LoomRecipePanel panel;
     private final List<DyeColor> sourceColors;
     private final EnumMap<DyeColor, DyeColor> targets = new EnumMap<>(DyeColor.class);
 
@@ -85,7 +86,7 @@ public class BannerColorSwitchScreen extends Screen {
     // Construction
     // -------------------------------------------------------------------------
 
-    public BannerColorSwitchScreen(Screen previousScreen, LoomPanel panel) {
+    public BannerColorSwitchScreen(Screen previousScreen, LoomRecipePanel panel) {
         super(Component.translatable("loom-assistant.screen.color_switch.title"));
         this.previousScreen = previousScreen;
         this.panel = panel;

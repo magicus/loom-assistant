@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.ui.screens;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -12,6 +12,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.storage.BannerStorage;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
+import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
 
 /**
  * Combined import/export screen for /give commands.
@@ -41,7 +43,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     private static final int ERROR_COLOR = 0xFFB00020;
 
     private final Screen previousScreen;
-    private final LoomPanel loomPanel;
+    private final LoomRecipePanel loomPanel;
 
     private EditBox importBox;
     private EditBox exportBox;
@@ -54,7 +56,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
     private boolean copiedFeedback;
 
-    public BannerRecipeImportExportScreen(Screen previousScreen, LoomPanel loomPanel) {
+    public BannerRecipeImportExportScreen(Screen previousScreen, LoomRecipePanel loomPanel) {
         super(Component.translatable("loom-assistant.screen.import_export.title"));
         this.previousScreen = previousScreen;
         this.loomPanel = loomPanel;
@@ -214,7 +216,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerPreviewRenderer.createBannerWithPatterns(recipe);
+        ItemStack stack = PreviewExtension.createBannerWithPatterns(recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
@@ -229,7 +231,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerPreviewRenderer.createBannerWithPatterns(recipe);
+        ItemStack stack = PreviewExtension.createBannerWithPatterns(recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);

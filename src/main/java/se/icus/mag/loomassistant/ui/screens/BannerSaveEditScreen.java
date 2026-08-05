@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.ui.screens;
 
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -16,6 +16,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 
 /**
  * Simple modal for naming a banner and selecting category before save/edit.
@@ -26,7 +27,7 @@ public class BannerSaveEditScreen extends Screen {
     private static final int NOTICE_EXTRA_H = 20;
 
     private final Screen previousScreen;
-    private final LoomPanel panel;
+    private final LoomRecipePanel panel;
     private final boolean editMode;
     private final boolean readOnlySource;
     private final List<BannerRecipeCategory> categories;
@@ -34,7 +35,7 @@ public class BannerSaveEditScreen extends Screen {
     private EditBox nameBox;
     private String selectedCategoryId;
 
-    public BannerSaveEditScreen(Screen previousScreen, LoomPanel panel, boolean editMode) {
+    public BannerSaveEditScreen(Screen previousScreen, LoomRecipePanel panel, boolean editMode) {
         super(Component.translatable(
                 editMode
                         ? "loom-assistant.screen.save_edit.title_edit"

@@ -47,10 +47,11 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
-public class LoomPanel {
+public class LoomRecipePanel {
     public static final int PANEL_WIDTH = 147;
     public static final int PANEL_HEIGHT = 166;
     private static final int GRID_COLUMNS = 5;
@@ -133,7 +134,7 @@ public class LoomPanel {
     private ImageButton pageForwardButton;
     private ImageButton pageBackButton;
 
-    public LoomPanel(LoomScreen screen, LoomMenu handler, int x, int y) {
+    public LoomRecipePanel(LoomScreen screen, LoomMenu handler, int x, int y) {
         this.screen = screen;
         this.handler = handler;
         this.x = x;
@@ -333,7 +334,7 @@ public class LoomPanel {
 
             Identifier sprite = isCraftableNow(banner) ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE;
             ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx - 1, by - 1, 25, 25);
-            BannerPreviewRenderer.render(ctx, banner, handler, bx + 4, by + 4, 16);
+            PreviewExtension.render(ctx, banner, handler, bx + 4, by + 4, 16);
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
@@ -364,7 +365,7 @@ public class LoomPanel {
             return Optional.empty();
         }
 
-        ItemStack previewStack = BannerPreviewRenderer.createBannerWithPatterns(banner);
+        ItemStack previewStack = PreviewExtension.createBannerWithPatterns(banner);
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
@@ -833,7 +834,7 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return ItemStack.EMPTY;
         }
-        return BannerPreviewRenderer.createBannerWithPatterns(selectedBanner);
+        return PreviewExtension.createBannerWithPatterns(selectedBanner);
     }
 
     public BannerRecipe getActiveBannerRecipe() {
@@ -927,7 +928,7 @@ public class LoomPanel {
     }
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        BannerRecipe banner = BannerPreviewRenderer.extractBannerData(stack);
+        BannerRecipe banner = PreviewExtension.extractBannerData(stack);
         if (banner == null) {
             return false;
         }
@@ -1303,7 +1304,7 @@ public class LoomPanel {
         if (dyeStack.isEmpty() && patternStack.isEmpty()) {
             var bannerStack = handler.getSlot(0).getItem();
             if (bannerStack.isEmpty()) return false;
-            BannerRecipe banner = BannerPreviewRenderer.extractBannerData(bannerStack);
+            BannerRecipe banner = PreviewExtension.extractBannerData(bannerStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;
@@ -1311,7 +1312,7 @@ public class LoomPanel {
         } else {
             var outputStack = handler.getSlot(3).getItem();
             if (outputStack.isEmpty()) return false;
-            BannerRecipe banner = BannerPreviewRenderer.extractBannerData(outputStack);
+            BannerRecipe banner = PreviewExtension.extractBannerData(outputStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;

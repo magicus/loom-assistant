@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
 
 public final class LoomUiStateStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -75,7 +76,7 @@ public final class LoomUiStateStore {
         try {
             BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
             BannerRecipe banner = recipe;
-            return BannerPreviewRenderer.createBannerWithPatterns(banner);
+            return PreviewExtension.createBannerWithPatterns(banner);
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
             return ItemStack.EMPTY;

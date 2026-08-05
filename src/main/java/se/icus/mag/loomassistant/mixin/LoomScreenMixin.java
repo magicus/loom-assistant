@@ -50,12 +50,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.LoomPanelHost;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.BannerColorSwitchScreen;
-import se.icus.mag.loomassistant.ui.BannerPreviewRenderer;
-import se.icus.mag.loomassistant.ui.BannerRecipeImportExportScreen;
-import se.icus.mag.loomassistant.ui.BannerSaveEditScreen;
-import se.icus.mag.loomassistant.ui.LoomPanel;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 import se.icus.mag.loomassistant.ui.LoomUiStateStore;
+import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
+import se.icus.mag.loomassistant.ui.screens.BannerRecipeImportExportScreen;
+import se.icus.mag.loomassistant.ui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.weaving.AutoCraftStateMachine;
 
 @Mixin(LoomScreen.class)
@@ -158,7 +158,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     private boolean loomassistant$panelOpen = false;
 
     @Unique
-    private LoomPanel loomassistant$panel;
+    private LoomRecipePanel loomassistant$panel;
 
     @Unique
     private ImageButton loomassistant$recipeBookButton;
@@ -441,7 +441,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
 
     @Unique
     private int loomassistant$getOpenLeftPos() {
-        int leftExtensionWithoutTabs = LoomPanel.PANEL_WIDTH + 5 + LOOMASSISTANT_BG_LEFT_PADDING;
+        int leftExtensionWithoutTabs = LoomRecipePanel.PANEL_WIDTH + 5 + LOOMASSISTANT_BG_LEFT_PADDING;
 
         // Center panel + loom as a combined area (tabs excluded from centering).
         int centeredAreaWidth = this.imageWidth + leftExtensionWithoutTabs;
@@ -460,13 +460,13 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
 
     @Unique
     private int loomassistant$getPanelX() {
-        return this.leftPos - LoomPanel.PANEL_WIDTH - 5 - LOOMASSISTANT_BG_LEFT_PADDING;
+        return this.leftPos - LoomRecipePanel.PANEL_WIDTH - 5 - LOOMASSISTANT_BG_LEFT_PADDING;
     }
 
     @Unique
     private void loomassistant$refreshPanel() {
         this.loomassistant$panel = loomassistant$panelOpen
-                ? new LoomPanel((LoomScreen) (Object) this, this.menu, loomassistant$getPanelX(), this.topPos)
+                ? new LoomRecipePanel((LoomScreen) (Object) this, this.menu, loomassistant$getPanelX(), this.topPos)
                 : null;
         if (this.loomassistant$panel != null) {
             this.loomassistant$panel.restorePersistentDyeSwitchState(
@@ -567,8 +567,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                     canCraftActiveBanner = true;
                     craftDisabledMessage = null;
                 } else {
-                    BannerRecipe activeBanner =
-                            BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+                    BannerRecipe activeBanner = PreviewExtension.extractBannerData(loomassistant$activeBannerStack);
                     if (activeBanner != null) {
                         canCraftActiveBanner = loomassistant$craftabilityProbe.canCraft(activeBanner);
                         if (!canCraftActiveBanner) {
@@ -650,9 +649,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                 if (loomassistant$panel != null) {
                     loomassistant$panel.setActiveBannerTooltip(context, mouseX, mouseY);
                 } else {
-                    BannerRecipe activeBanner =
-                            BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
-                    LoomPanel.setBannerTooltip(context, activeBanner, mouseX, mouseY);
+                    BannerRecipe activeBanner = PreviewExtension.extractBannerData(loomassistant$activeBannerStack);
+                    LoomRecipePanel.setBannerTooltip(context, activeBanner, mouseX, mouseY);
                 }
             }
         }
@@ -768,7 +766,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     }
 
     @Override
-    public LoomPanel loomassistant$getPanel() {
+    public LoomRecipePanel loomassistant$getPanel() {
         return loomassistant$panel;
     }
 
@@ -913,7 +911,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     @Unique
     private void loomassistant$renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
         if (loomassistant$panel == null) return;
-        BannerRecipe recipe = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+        BannerRecipe recipe = PreviewExtension.extractBannerData(loomassistant$activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
         var layer = recipe.getLayers().get(nextLayerIndex);
@@ -972,7 +970,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     @Unique
     private boolean loomassistant$resultMatchesExpected(ItemStack result, int nextLayerIndex) {
         if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
-        BannerRecipe recipe = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+        BannerRecipe recipe = PreviewExtension.extractBannerData(loomassistant$activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;
         if (bannerItem.getColor() != recipe.getBannerColorEnum()) return false;
 
