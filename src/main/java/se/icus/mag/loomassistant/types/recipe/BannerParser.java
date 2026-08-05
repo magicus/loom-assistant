@@ -10,6 +10,9 @@ package se.icus.mag.loomassistant.types.recipe;
  * - SkinMC: https://skinmc.net/banner/editor?=paalpwpEac
  * - minecraft.tools: https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&...
  * - Planet Minecraft: https://www.planetminecraft.com/banner/?e=2c729cmcf28
+ * - NeedCoolerShoes: https://needcoolershoes.com/banners/8961/~ghost
+ * - NeedCoolerShoes short links: https://needcoolershoes.com/banner?=ealleNhEehppai
+ * - NCRS short links: https://ncrs.skin/b?=ealleNhEehppai
  */
 public class BannerParser {
 
@@ -96,10 +99,12 @@ public class BannerParser {
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Please use Remix banner link", e);
             }
+        } else if (url.contains("needcoolershoes.com") || url.contains("ncrs.skin")) {
+            return BannerParserNeedCoolerShoes.parseUrl(url);
         } else {
             throw new IllegalArgumentException(
                     "Unsupported banner URL format. "
-                            + "Supported sources: skinmc.net, minecraft.tools, planetminecraft.com. "
+                            + "Supported sources: skinmc.net, minecraft.tools, planetminecraft.com, needcoolershoes.com, ncrs.skin. "
                             + "URL: "
                             + url);
         }

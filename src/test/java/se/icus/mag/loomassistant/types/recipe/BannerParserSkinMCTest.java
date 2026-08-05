@@ -32,6 +32,15 @@ class BannerParserSkinMCTest {
     }
 
     @Test
+    void testDirectBannerLinkIsRejected() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                BannerParserSkinMC.extractBannerCode(
+                        "https://skinmc.net/banner/18d1d0c1-08fd-46a6-abfd-1766ebc47f26"));
+
+        assertEquals("Please Use Edit design link", ex.getMessage());
+    }
+
+    @Test
     void testParseBannerCode() {
         // Code: paalpwpEac
         // Should decode to:

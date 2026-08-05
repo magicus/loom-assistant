@@ -100,36 +100,45 @@ public class BannerParserSkinMC {
      * @throws IllegalArgumentException if the URL is invalid
      */
     public static String extractBannerCode(String url) {
+        final URI uri;
         try {
-            URI uri = new URI(url);
-            String query = uri.getQuery();
-            if (query == null || query.isEmpty()) {
-                return "";
-            }
-
-            // Handle URL-decoded query string
-            query = URLDecoder.decode(query, StandardCharsets.UTF_8);
-
-            // First, try to find the "=CODE" format (special case for SkinMC)
-            for (String param : query.split("&")) {
-                if (param.startsWith("=") && param.length() > 1) {
-                    return param.substring(1);
-                }
-            }
-
-            // Fallback: look for any parameter with a value
-            for (String param : query.split("&")) {
-                if (param.isEmpty()) continue;
-                String[] parts = param.split("=", 2);
-                if (parts.length == 2 && parts[1] != null && !parts[1].isEmpty()) {
-                    return parts[1];
-                }
-            }
-
-            return "";
+            uri = new URI(url);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid URL: " + url, e);
         }
+
+        if (isDirectBannerLink(uri.getPath())) {
+            throw new IllegalArgumentException("Please Use Edit design link");
+        }
+
+        String query = uri.getQuery();
+        if (query == null || query.isEmpty()) {
+            return "";
+        }
+
+        try {
+            query = URLDecoder.decode(query, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid URL: " + url, e);
+        }
+
+        // First, try to find the "=CODE" format (special case for SkinMC)
+        for (String param : query.split("&")) {
+            if (param.startsWith("=") && param.length() > 1) {
+                return param.substring(1);
+            }
+        }
+
+        // Fallback: look for any parameter with a value
+        for (String param : query.split("&")) {
+            if (param.isEmpty()) continue;
+            String[] parts = param.split("=", 2);
+            if (parts.length == 2 && parts[1] != null && !parts[1].isEmpty()) {
+                return parts[1];
+            }
+        }
+
+        return "";
     }
 
     /**
@@ -227,6 +236,15 @@ public class BannerParserSkinMC {
             throw new IllegalArgumentException("No banner code found in URL: " + url);
         }
         return parseBannerCode(bannerCode);
+    }
+
+    private static boolean isDirectBannerLink(String path) {
+        if (path == null) {
+            return false;
+        }
+
+        String normalizedPath = path.endsWith("/") && path.length() > 1 ? path.substring(0, path.length() - 1) : path;
+        return normalizedPath.matches("^/banner/[^/]+$") && !"/banner/editor".equals(normalizedPath);
     }
 
     /**

@@ -21,6 +21,14 @@ class BannerParserTest {
     }
 
     @Test
+    void testParseSkinMcDirectBannerUrlFailsWithEditDesignHint() {
+        String url = "https://skinmc.net/banner/18d1d0c1-08fd-46a6-abfd-1766ebc47f26";
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> BannerParser.parseUrl(url));
+        assertEquals("Please Use Edit design link", ex.getMessage());
+    }
+
+    @Test
     void testParseMinecraftToolsUrl() {
         String url =
                 "https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&color_id_1=15&shape_id_2=37&color_id_2=4";
@@ -60,6 +68,28 @@ class BannerParserTest {
     }
 
     @Test
+    void testParseNeedCoolerShoesUrl() {
+        BannerRecipe recipe = BannerParser.parseUrl("https://needcoolershoes.com/banners/8961/~ghost");
+
+        assertNotNull(recipe);
+        assertEquals("white", recipe.bannerColor());
+        assertEquals(6, recipe.layers().size());
+    }
+
+    @Test
+    void testParseNeedCoolerShoesDirectCodeUrls() {
+        BannerRecipe recipe1 = BannerParser.parseUrl("https://needcoolershoes.com/banner?=ealleNhEehppai");
+        BannerRecipe recipe2 = BannerParser.parseUrl("https://ncrs.skin/b?=ealleNhEehppai");
+
+        assertNotNull(recipe1);
+        assertNotNull(recipe2);
+        assertEquals("blue", recipe1.bannerColor());
+        assertEquals("blue", recipe2.bannerColor());
+        assertEquals(6, recipe1.layers().size());
+        assertEquals(6, recipe2.layers().size());
+    }
+
+    @Test
     void testParseUrlWithCustomDescription() {
         String url = "https://skinmc.net/banner/editor?=paalpwpEac";
         BannerRecipe recipe = BannerParser.parseUrl(url, "My Custom Banner", "flags");
@@ -96,7 +126,7 @@ class BannerParserTest {
     void testGenerateDescription() {
         String url = "https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&color_id_1=15&shape_id_2=37&color_id_2=4";
         BannerRecipe recipe = BannerParser.parseUrl(url);
-        
+
         String description = BannerParser.generateDescription(recipe);
         assertEquals("Blue banner: white bricks, blue half_horizontal_bottom", description);
     }
@@ -105,7 +135,7 @@ class BannerParserTest {
     void testParseUrlWithAutoDescription() {
         String url = "https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&color_id_1=15";
         BannerRecipe recipe = BannerParser.parseUrlWithAutoDescription(url);
-        
+
         assertNotNull(recipe.description());
         assertTrue(recipe.description().contains("Blue banner"));
         assertTrue(recipe.description().contains("white bricks"));
@@ -128,7 +158,7 @@ class BannerParserTest {
         // Both should have base color
         assertNotNull(recipe1.bannerColor());
         assertNotNull(recipe2.bannerColor());
-        
+
         // Both should generate descriptions
         String desc1 = BannerParser.generateDescription(recipe1);
         String desc2 = BannerParser.generateDescription(recipe2);
