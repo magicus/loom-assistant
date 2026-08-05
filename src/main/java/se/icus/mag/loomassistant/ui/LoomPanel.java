@@ -204,20 +204,6 @@ public class LoomPanel {
 
         if (weaver.isActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
-        } else {
-            int progress = detectCraftingProgress();
-            if (progress >= 0
-                    && activeBanner != null
-                    && progress < activeBanner.getLayers().size()) {
-                String nextStep = getPatternDisplayName(activeBanner.getLayers().get(progress));
-                ctx.text(
-                        font,
-                        Component.translatable("loom-assistant.panel.next_step", nextStep),
-                        x + 8,
-                        y + PANEL_HEIGHT + 2,
-                        0xFFAAAAAA,
-                        true);
-            }
         }
     }
 
