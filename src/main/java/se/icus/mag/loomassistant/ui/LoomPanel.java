@@ -378,12 +378,12 @@ public class LoomPanel {
             return Optional.empty();
         }
 
-        // Build ItemStack to extract the colour and pattern layers for the preview.
         ItemStack previewStack = BannerPreviewRenderer.createBannerWithPatterns(banner);
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
-        return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns, currentRowIndex));
+        boolean notWeavable = !banner.isWeavable();
+        return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns, currentRowIndex, notWeavable));
     }
 
     private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(BannerRecipe banner) {
@@ -896,12 +896,34 @@ public class LoomPanel {
         if (selectedBanner == null) {
             return Component.translatable("loom-assistant.active.select_banner").getString();
         }
+        boolean survivalTooManySteps = !selectedBanner.isWeavable() && isInSurvivalMode();
         List<String> missingMaterials = Weaver.getWeaver(handler).getMissingMaterialDescriptions(selectedBanner);
-        if (missingMaterials.isEmpty()) {
+        if (missingMaterials.isEmpty() && !survivalTooManySteps) {
             return null;
         }
-        return Component.translatable("loom-assistant.active.missing_header").getString() + "\n"
-                + String.join("\n", missingMaterials);
+        StringBuilder msg = new StringBuilder();
+        if (survivalTooManySteps) {
+            msg.append(Component.translatable("loom-assistant.active.too_many_steps")
+                    .getString());
+        }
+        if (!missingMaterials.isEmpty()) {
+            if (msg.length() > 0) msg.append("\n");
+            msg.append(Component.translatable("loom-assistant.active.missing_header")
+                            .getString())
+                    .append("\n")
+                    .append(String.join("\n", missingMaterials));
+        }
+        return msg.toString();
+    }
+
+    public boolean isActiveBannerWeavable() {
+        BannerRecipe banner = getSelectedBanner();
+        return banner == null || banner.isWeavable();
+    }
+
+    private static boolean isInSurvivalMode() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc != null && mc.player != null && !mc.player.hasInfiniteMaterials();
     }
 
     public void editSelectedBanner() {}

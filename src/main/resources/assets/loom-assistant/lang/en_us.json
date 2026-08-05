@@ -4,6 +4,7 @@
   "loom-assistant.action.weave_default": "Weave (default)",
   "loom-assistant.active.missing_header": "Missing:",
   "loom-assistant.active.select_banner": "Select an active banner",
+  "loom-assistant.active.too_many_steps": "Unweavable in survival",
   "loom-assistant.banner.modified_suffix": " (modified)",
   "loom-assistant.banner.unnamed": "Unnamed banner",
   "loom-assistant.common.back_symbol": "<",

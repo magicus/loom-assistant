@@ -25,6 +25,9 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
     /** Row index to highlight as the current crafting step (-1 = no highlighting). */
     private final int currentRowIndex;
 
+    /** True when the banner has more than 6 layers and the player is in survival mode. */
+    private final boolean notWeavableInSurvival;
+
     public BannerRecipeTooltipComponent(List<Row> rows) {
         this(rows, null, null, -1);
     }
@@ -39,14 +42,28 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
             @Nullable DyeColor previewBaseColor,
             @Nullable BannerPatternLayers previewPatterns,
             int currentRowIndex) {
+        this(rows, previewBaseColor, previewPatterns, currentRowIndex, false);
+    }
+
+    public BannerRecipeTooltipComponent(
+            List<Row> rows,
+            @Nullable DyeColor previewBaseColor,
+            @Nullable BannerPatternLayers previewPatterns,
+            int currentRowIndex,
+            boolean notWeavableInSurvival) {
         this.rows = rows.stream().map(Row::copy).toList();
         this.previewBaseColor = previewBaseColor;
         this.previewPatterns = previewPatterns;
         this.currentRowIndex = currentRowIndex;
+        this.notWeavableInSurvival = notWeavableInSurvival;
     }
 
     public int currentRowIndex() {
         return currentRowIndex;
+    }
+
+    public boolean notWeavableInSurvival() {
+        return notWeavableInSurvival;
     }
 
     public List<Row> rows() {

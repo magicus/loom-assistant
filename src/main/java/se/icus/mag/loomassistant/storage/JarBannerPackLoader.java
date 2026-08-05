@@ -11,10 +11,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.Identifier;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
-import se.icus.mag.loomassistant.types.bannerpack.ZipBannerPack;
 
 /**
  * Loader for banner packs bundled with the mod JAR.
@@ -87,7 +85,8 @@ public class JarBannerPackLoader {
      * Loads banner packs from a specific mod container.
      * This is framework-specific and may need adjustment.
      */
-    private void loadFromModContainer(net.fabricmc.loader.api.ModContainer modContainer, List<BannerPack> packs) throws IOException {
+    private void loadFromModContainer(net.fabricmc.loader.api.ModContainer modContainer, List<BannerPack> packs)
+            throws IOException {
         // This is a simplified placeholder.
         // In a real implementation, you would:
         // 1. Access the mod's JAR file
@@ -95,7 +94,9 @@ public class JarBannerPackLoader {
         // 3. Extract them to cache and load as ZipBannerPack
 
         // For now, this serves as documentation of the intended approach
-        LoomAssistantMod.LOGGER.debug("Attempting to load bundled packs from mod: {}", modContainer.getMetadata().getId());
+        LoomAssistantMod.LOGGER.debug(
+                "Attempting to load bundled packs from mod: {}",
+                modContainer.getMetadata().getId());
     }
 
     /**

@@ -11,10 +11,12 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.object.banner.BannerFlagModel;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
@@ -34,6 +36,13 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     // Pattern sprite render size – scaled up from the natural 5×10 to fill the icon row height
     private static final int PATTERN_RENDER_W = 7;
     private static final int PATTERN_RENDER_H = 14;
+    // Uncraftable icon (weave icon + red slash) shown below the preview when too many steps
+    private static final int UNCRAFTABLE_ICON_SIZE = 16;
+    private static final int UNCRAFTABLE_GAP = 10;
+    private static final Identifier WEAVE_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
+    // First row index beyond the 6 weavable steps (row 0 = banner, rows 1-6 = steps)
+    private static final int MAX_WEAVABLE_ROW = 7;
 
     @Nullable
     private static BannerFlagModel sharedFlag;
@@ -52,7 +61,10 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     @Override
     public int getHeight(Font font) {
         int stepsH = stepsHeight();
-        return component.hasPreview() ? Math.max(PREVIEW_H, stepsH) : stepsH;
+        int previewH = component.hasPreview()
+                ? PREVIEW_H + (component.notWeavableInSurvival() ? UNCRAFTABLE_GAP + UNCRAFTABLE_ICON_SIZE : 0)
+                : 0;
+        return Math.max(previewH, stepsH);
     }
 
     @Override
@@ -73,7 +85,9 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
         for (int i = 0; i < component.rows().size(); i++) {
             BannerRecipeTooltipComponent.Row row = component.rows().get(i);
             int color;
-            if (current < 0) {
+            if (component.notWeavableInSurvival() && i >= MAX_WEAVABLE_ROW) {
+                color = 0xFF888888; // beyond weavable limit
+            } else if (current < 0) {
                 color = 0xFFFFFFFF;
             } else if (i < current) {
                 color = 0xFF888888; // done
@@ -99,6 +113,26 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
                 // Align preview to the top of the tooltip image area
                 int previewY = y;
                 graphics.bannerPattern(sharedFlag, base, patterns, x, previewY, x + PREVIEW_W, previewY + PREVIEW_H);
+            }
+            // Uncraftable icon below preview when banner has too many steps in survival.
+            if (component.notWeavableInSurvival()) {
+                int ix = x + (PREVIEW_W - UNCRAFTABLE_ICON_SIZE) / 2;
+                int iy = y + PREVIEW_H + UNCRAFTABLE_GAP;
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        WEAVE_ICON,
+                        ix,
+                        iy,
+                        0f,
+                        0f,
+                        UNCRAFTABLE_ICON_SIZE,
+                        UNCRAFTABLE_ICON_SIZE,
+                        UNCRAFTABLE_ICON_SIZE,
+                        UNCRAFTABLE_ICON_SIZE);
+                for (int row = 0; row < UNCRAFTABLE_ICON_SIZE; row++) {
+                    int xOff = UNCRAFTABLE_ICON_SIZE - 1 - row;
+                    graphics.fill(ix + xOff - 1, iy + row, ix + xOff + 1, iy + row + 1, 0xFFFF2222);
+                }
             }
         }
 

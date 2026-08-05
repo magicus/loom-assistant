@@ -13,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import se.icus.mag.loomassistant.storage.ActivePacksConfig;
 import se.icus.mag.loomassistant.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
-import se.icus.mag.loomassistant.types.bannerpack.BannerPackMetadata;
 
 /**
  * Screen for managing which banner packs are active.
@@ -52,7 +51,8 @@ public class BannerPackManagerScreen extends Screen {
     private int availableScrollOffset = 0;
     private int activeScrollOffset = 0;
 
-    public BannerPackManagerScreen(Screen previousScreen, BannerPackRepository packRepository, ActivePacksConfig activePacksConfig) {
+    public BannerPackManagerScreen(
+            Screen previousScreen, BannerPackRepository packRepository, ActivePacksConfig activePacksConfig) {
         super(Component.literal("Banner Pack Manager"));
         this.previousScreen = previousScreen;
         this.packRepository = packRepository;
@@ -93,16 +93,21 @@ public class BannerPackManagerScreen extends Screen {
 
         // Header
         ctx.fill(px, py, px + PANEL_W, py + HEADER_H, COL_HEADER);
-        ctx.text(
-                this.font,
-                Component.literal("Available"),
-                px + 2,
-                py + 3,
-                COL_ACCENT,
-                true);
+        ctx.text(this.font, Component.literal("Available"), px + 2, py + 3, COL_ACCENT, true);
 
         List<String> available = getAvailablePacks();
-        renderPackList(ctx, px, py + HEADER_H, PANEL_W, PANEL_H - HEADER_H, available, selectedAvailableId, availableScrollOffset, true, mx, my);
+        renderPackList(
+                ctx,
+                px,
+                py + HEADER_H,
+                PANEL_W,
+                PANEL_H - HEADER_H,
+                available,
+                selectedAvailableId,
+                availableScrollOffset,
+                true,
+                mx,
+                my);
     }
 
     private void renderActivePacksPanel(GuiGraphicsExtractor ctx, int cx, int cy, int mx, int my) {
@@ -111,19 +116,35 @@ public class BannerPackManagerScreen extends Screen {
 
         // Header
         ctx.fill(px, py, px + PANEL_W, py + HEADER_H, COL_HEADER);
-        ctx.text(
-                this.font,
-                Component.literal("Active"),
-                px + 2,
-                py + 3,
-                COL_ACCENT,
-                true);
+        ctx.text(this.font, Component.literal("Active"), px + 2, py + 3, COL_ACCENT, true);
 
         List<String> active = activePacksConfig.getActivePacks();
-        renderPackList(ctx, px, py + HEADER_H, PANEL_W, PANEL_H - HEADER_H, active, selectedActiveId, activeScrollOffset, false, mx, my);
+        renderPackList(
+                ctx,
+                px,
+                py + HEADER_H,
+                PANEL_W,
+                PANEL_H - HEADER_H,
+                active,
+                selectedActiveId,
+                activeScrollOffset,
+                false,
+                mx,
+                my);
     }
 
-    private void renderPackList(GuiGraphicsExtractor ctx, int x, int y, int w, int h, List<String> packs, String selected, int scrollOffset, boolean isAvailable, int mx, int my) {
+    private void renderPackList(
+            GuiGraphicsExtractor ctx,
+            int x,
+            int y,
+            int w,
+            int h,
+            List<String> packs,
+            String selected,
+            int scrollOffset,
+            boolean isAvailable,
+            int mx,
+            int my) {
         int visibleRows = h / ENTRY_H;
         int totalRows = packs.size();
 
@@ -159,61 +180,38 @@ public class BannerPackManagerScreen extends Screen {
 
         // Scroll indicators
         if (scrollOffset > 0) {
-            ctx.text(
-                    this.font,
-                    Component.literal("▲"),
-                    x + w - 8,
-                    y + 2,
-                    COL_TEXT_DIM,
-                    true);
+            ctx.text(this.font, Component.literal("▲"), x + w - 8, y + 2, COL_TEXT_DIM, true);
         }
         if (scrollOffset + visibleRows < totalRows) {
-            ctx.text(
-                    this.font,
-                    Component.literal("▼"),
-                    x + w - 8,
-                    y + h - 8,
-                    COL_TEXT_DIM,
-                    true);
+            ctx.text(this.font, Component.literal("▼"), x + w - 8, y + h - 8, COL_TEXT_DIM, true);
         }
     }
 
     private void renderButtons(GuiGraphicsExtractor ctx, int x, int y, int mx, int my) {
         // Right arrow button (move to active)
         boolean rightHovered = isInRightButton(mx, my, x, y);
-        int rightColor = rightHovered && selectedAvailableId != null ? COL_BTN_HOVER : (selectedAvailableId != null ? COL_BTN : COL_DISABLED);
+        int rightColor = rightHovered && selectedAvailableId != null
+                ? COL_BTN_HOVER
+                : (selectedAvailableId != null ? COL_BTN : COL_DISABLED);
         ctx.fill(x, y + 30, x + BTN_W, y + 30 + BTN_H, rightColor);
-        ctx.text(
-                this.font,
-                Component.literal("→"),
-                x + 10,
-                y + 35,
-                0xFFFFFFFF,
-                true);
+        ctx.text(this.font, Component.literal("→"), x + 10, y + 35, 0xFFFFFFFF, true);
 
         // Left arrow button (move to available)
         boolean leftHovered = isInLeftButton(mx, my, x, y);
-        int leftColor = leftHovered && selectedActiveId != null && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId) ? COL_BTN_HOVER : (selectedActiveId != null && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId) ? COL_BTN : COL_DISABLED);
+        int leftColor =
+                leftHovered && selectedActiveId != null && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId)
+                        ? COL_BTN_HOVER
+                        : (selectedActiveId != null && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId)
+                                ? COL_BTN
+                                : COL_DISABLED);
         ctx.fill(x, y + 50, x + BTN_W, y + 50 + BTN_H, leftColor);
-        ctx.text(
-                this.font,
-                Component.literal("←"),
-                x + 10,
-                y + 55,
-                0xFFFFFFFF,
-                true);
+        ctx.text(this.font, Component.literal("←"), x + 10, y + 55, 0xFFFFFFFF, true);
     }
 
     private void renderCloseButton(GuiGraphicsExtractor ctx, int x, int y, int mx, int my) {
         boolean hovered = mx >= x && mx < x + 20 && my >= y && my < y + 14;
         ctx.fill(x, y, x + 20, y + 14, hovered ? COL_BTN_HOVER : COL_BTN);
-        ctx.text(
-                this.font,
-                Component.literal("Close"),
-                x + 2,
-                y + 3,
-                0xFFFFFFFF,
-                true);
+        ctx.text(this.font, Component.literal("Close"), x + 2, y + 3, 0xFFFFFFFF, true);
     }
 
     private List<String> getAvailablePacks() {
@@ -262,28 +260,33 @@ public class BannerPackManagerScreen extends Screen {
         int cy = contentY();
 
         // Check close button
-        if (isInCloseButton((int)mouseX, (int)mouseY, cx + PANEL_W * 2 + 50 + PADDING * 4 - 20, cy + 5)) {
+        if (isInCloseButton((int) mouseX, (int) mouseY, cx + PANEL_W * 2 + 50 + PADDING * 4 - 20, cy + 5)) {
             this.minecraft.gui.setScreen(previousScreen);
             return true;
         }
 
         // Check right button (move to active)
-        if (isInRightButton((int)mouseX, (int)mouseY, cx + PANEL_W + PADDING, cy) && selectedAvailableId != null) {
+        if (isInRightButton((int) mouseX, (int) mouseY, cx + PANEL_W + PADDING, cy) && selectedAvailableId != null) {
             activePacksConfig.enablePack(selectedAvailableId);
             selectedAvailableId = null;
             return true;
         }
 
         // Check left button (move to available)
-        if (isInLeftButton((int)mouseX, (int)mouseY, cx + PANEL_W + PADDING, cy) && selectedActiveId != null && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId)) {
+        if (isInLeftButton((int) mouseX, (int) mouseY, cx + PANEL_W + PADDING, cy)
+                && selectedActiveId != null
+                && !BannerPackRepository.LOCAL_PACK_ID.equals(selectedActiveId)) {
             activePacksConfig.disablePack(selectedActiveId);
             selectedActiveId = null;
             return true;
         }
 
         // Check left panel click
-        if (mouseX >= cx + PADDING && mouseX < cx + PADDING + PANEL_W && mouseY >= cy + PADDING + HEADER_H && mouseY < cy + PADDING + PANEL_H) {
-            int row = (int)((mouseY - cy - PADDING - HEADER_H) / ENTRY_H) + availableScrollOffset;
+        if (mouseX >= cx + PADDING
+                && mouseX < cx + PADDING + PANEL_W
+                && mouseY >= cy + PADDING + HEADER_H
+                && mouseY < cy + PADDING + PANEL_H) {
+            int row = (int) ((mouseY - cy - PADDING - HEADER_H) / ENTRY_H) + availableScrollOffset;
             List<String> available = getAvailablePacks();
             if (row >= 0 && row < available.size()) {
                 selectedAvailableId = available.get(row);
@@ -293,8 +296,11 @@ public class BannerPackManagerScreen extends Screen {
         }
 
         // Check right panel click
-        if (mouseX >= cx + PANEL_W + 50 && mouseX < cx + PANEL_W + 50 + PANEL_W && mouseY >= cy + PADDING + HEADER_H && mouseY < cy + PADDING + PANEL_H) {
-            int row = (int)((mouseY - cy - PADDING - HEADER_H) / ENTRY_H) + activeScrollOffset;
+        if (mouseX >= cx + PANEL_W + 50
+                && mouseX < cx + PANEL_W + 50 + PANEL_W
+                && mouseY >= cy + PADDING + HEADER_H
+                && mouseY < cy + PADDING + PANEL_H) {
+            int row = (int) ((mouseY - cy - PADDING - HEADER_H) / ENTRY_H) + activeScrollOffset;
             List<String> active = activePacksConfig.getActivePacks();
             if (row >= 0 && row < active.size()) {
                 selectedActiveId = active.get(row);

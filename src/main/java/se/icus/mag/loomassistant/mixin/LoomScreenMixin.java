@@ -626,14 +626,21 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
 
             // Draw n/m progress indicator in the gap above the active slot.
             if (loomassistant$panel != null) {
-                int progress = loomassistant$panel.detectCraftingProgress();
-                int total = loomassistant$panel.getActiveBannerLayerCount();
-                if (progress >= 0 && total > 0) {
-                    String badge = (progress + 1) + "/" + total;
-                    int badgeW = this.font.width(badge);
-                    int badgeX = this.loomassistant$getLeftStripButtonX() + (20 - badgeW) / 2;
-                    int badgeY = this.topPos + LOOMASSISTANT_LEFT_STRIP_RECIPE_Y + 22;
-                    context.text(this.font, badge, badgeX, badgeY, 0xFFFFFFFF, true);
+                boolean survivalNotWeavable = !loomassistant$panel.isActiveBannerWeavable()
+                        && this.minecraft.player != null
+                        && !this.minecraft.player.hasInfiniteMaterials();
+                if (survivalNotWeavable) {
+                    // Non-weavable in survival: show nothing in badge area.
+                } else {
+                    int progress = loomassistant$panel.detectCraftingProgress();
+                    int total = loomassistant$panel.getActiveBannerLayerCount();
+                    if (progress >= 0 && total > 0) {
+                        String badge = (progress + 1) + "/" + total;
+                        int badgeW = this.font.width(badge);
+                        int badgeX = this.loomassistant$getLeftStripButtonX() + (20 - badgeW) / 2;
+                        int badgeY = this.topPos + LOOMASSISTANT_LEFT_STRIP_RECIPE_Y + 22;
+                        context.text(this.font, badge, badgeX, badgeY, 0xFFFFFFFF, true);
+                    }
                 }
             }
 
@@ -648,15 +655,23 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
             }
         }
 
-        // Next-step guidance and output slot highlighting when progress is detected.
+        // Next-step guidance and output slot highlighting (skip if not weavable in survival).
         if (loomassistant$panel != null) {
-            int progress = loomassistant$panel.detectCraftingProgress();
-            if (progress >= 0) {
-                // Only render next-step hint when vanilla has no result computed yet.
-                if (this.menu.getResultSlot().getItem().isEmpty()) {
-                    loomassistant$renderNextStepHint(context, progress);
+            boolean survivalNotWeavable = !loomassistant$panel.isActiveBannerWeavable()
+                    && this.minecraft.player != null
+                    && !this.minecraft.player.hasInfiniteMaterials();
+            if (!survivalNotWeavable) {
+                int progress = loomassistant$panel.detectCraftingProgress();
+                if (progress >= 0) {
+                    if (this.menu.getResultSlot().getItem().isEmpty()) {
+                        loomassistant$renderNextStepHint(context, progress);
+                    }
+                    loomassistant$renderOutputSlotBorder(context, progress);
                 }
-                loomassistant$renderOutputSlotBorder(context, progress);
+            } else if (this.menu.getBannerSlot().getItem().isEmpty()
+                    && this.menu.getResultSlot().getItem().isEmpty()) {
+                // Show uncraftable icon in the loom's preview area.
+                loomassistant$renderUncraftablePreview(context);
             }
         }
     }
@@ -833,6 +848,37 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
         return Component.translatable("loom-assistant.active.missing_header").getString()
                 + "\n"
                 + String.join("\n", missingMaterials);
+    }
+
+    @Unique
+    private static final Identifier LOOMASSISTANT_WEAVE_ICON =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
+
+    @Unique
+    private void loomassistant$drawWeaveWithSlash(GuiGraphicsExtractor ctx, int ix, int iy, int size) {
+        ctx.blit(RenderPipelines.GUI_TEXTURED, LOOMASSISTANT_WEAVE_ICON, ix, iy, 0f, 0f, size, size, size, size);
+        for (int row = 0; row < size; row++) {
+            int xOff = size - 1 - row;
+            ctx.fill(ix + xOff - 1, iy + row, ix + xOff + 1, iy + row + 1, 0xFFFF2222);
+        }
+    }
+
+    // Renders a small weave+slash icon in the gap above the active slot (replaces progress badge).
+    @Unique
+    private void loomassistant$renderUncraftableBadge(GuiGraphicsExtractor ctx) {
+        int iconSize = 12;
+        int bx = this.loomassistant$getLeftStripButtonX() + (20 - iconSize) / 2;
+        int by = this.topPos + LOOMASSISTANT_LEFT_STRIP_RECIPE_Y + 23;
+        loomassistant$drawWeaveWithSlash(ctx, bx, by, iconSize);
+    }
+
+    // Renders a weave+slash icon in the loom's preview area when the active banner is not weavable.
+    @Unique
+    private void loomassistant$renderUncraftablePreview(GuiGraphicsExtractor ctx) {
+        int iconSize = 16;
+        int px = this.leftPos + 141 + (20 - iconSize) / 2;
+        int py = this.topPos + 8 + (40 - iconSize) / 2 + 6;
+        loomassistant$drawWeaveWithSlash(ctx, px, py, iconSize);
     }
 
     @Unique

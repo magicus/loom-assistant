@@ -4,6 +4,7 @@
   "loom-assistant.action.weave_default": "Väva (standard)",
   "loom-assistant.active.missing_header": "Saknas:",
   "loom-assistant.active.select_banner": "Välj en aktiv fana",
+  "loom-assistant.active.too_many_steps": "Kan inte vävas i överlevnad",
   "loom-assistant.banner.modified_suffix": " (ändrad)",
   "loom-assistant.banner.unnamed": "Namnlös fana",
   "loom-assistant.common.back_symbol": "<",

@@ -98,6 +98,11 @@ public record BannerRecipe(
         return new BannerRecipe(id, description, author, url, category, bannerColor, newLayers);
     }
 
+    /** Returns true if this recipe can be crafted in the loom (max 6 pattern layers). */
+    public boolean isWeavable() {
+        return layers.size() <= 6;
+    }
+
     // Bridge methods matching the old BannerRecipe API
     public String getName() {
         return description;
