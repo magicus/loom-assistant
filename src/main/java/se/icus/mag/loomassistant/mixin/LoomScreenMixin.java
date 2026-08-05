@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -678,6 +680,34 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void loomassistant$onMouseClicked(
             MouseButtonEvent mouseButtonEvent, boolean bl, CallbackInfoReturnable<Boolean> cir) {
+        // Shift+right-click on any banner in any slot → set as active banner without moving it.
+        if (mouseButtonEvent.button() == 1 && loomassistant$isShiftHeld()) {
+            int mx = (int) mouseButtonEvent.x();
+            int my = (int) mouseButtonEvent.y();
+            for (net.minecraft.world.inventory.Slot slot : this.menu.slots) {
+                if (mx >= this.leftPos + slot.x
+                        && mx < this.leftPos + slot.x + 16
+                        && my >= this.topPos + slot.y
+                        && my < this.topPos + slot.y + 16) {
+                    ItemStack stack = slot.getItem();
+                    if (!stack.isEmpty() && stack.getItem() instanceof BannerItem) {
+                        if (loomassistant$panel != null) {
+                            if (loomassistant$panel.setActiveBannerFromItemStack(stack)) {
+                                loomassistant$activeBannerStack = loomassistant$panel.getActiveBannerStack();
+                            }
+                        } else {
+                            loomassistant$pendingActiveBannerStack = stack.copyWithCount(1);
+                            loomassistant$activeBannerStack = loomassistant$pendingActiveBannerStack.copy();
+                        }
+                        loomassistant$playActiveSlotSetSound();
+                        cir.setReturnValue(true);
+                        return;
+                    }
+                    break;
+                }
+            }
+        }
+
         if (loomassistant$isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())) {
             ItemStack carried = this.menu.getCarried();
             if (!carried.isEmpty()) {
@@ -964,6 +994,13 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
             if (!curId.equals(expId)) return false;
         }
         return true;
+    }
+
+    @Unique
+    private boolean loomassistant$isShiftHeld() {
+        var win = this.minecraft.getWindow();
+        return InputConstants.isKeyDown(win, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputConstants.isKeyDown(win, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     @Unique
