@@ -14,7 +14,6 @@ import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -31,7 +30,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -98,7 +96,7 @@ public class LoomScreenExtension {
             Component.translatable("loom-assistant.tooltip.replace_colors");
 
     // ── screen reference ─────────────────────────────────────────────────────
-    private final AbstractContainerScreen<LoomMenu> screen;
+    private final LoomScreen screen;
 
     // ── state ─────────────────────────────────────────────────────────────────
     private boolean panelOpen = false;
@@ -118,7 +116,7 @@ public class LoomScreenExtension {
     private AutoCraftStateMachine craftabilityProbe;
     private BannerFlagModel previewFlag;
 
-    public LoomScreenExtension(AbstractContainerScreen<LoomMenu> screen) {
+    public LoomScreenExtension(LoomScreen screen) {
         this.screen = screen;
     }
 
@@ -222,7 +220,7 @@ public class LoomScreenExtension {
                         button -> {
                             if (panel != null && panel.hasActiveBanner()) {
                                 screen.minecraft.gui.setScreen(
-                                        new BannerSaveEditScreen((LoomScreen) screen, panel, showEditOnSaveButton()));
+                                        new BannerSaveEditScreen(screen, panel, showEditOnSaveButton()));
                             }
                         },
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
@@ -281,8 +279,7 @@ public class LoomScreenExtension {
                         20,
                         18,
                         Component.empty(),
-                        button -> screen.minecraft.gui.setScreen(
-                                new BannerRecipeImportExportScreen((LoomScreen) screen, panel)),
+                        button -> screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(screen, panel)),
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
                     @Override
                     public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
@@ -316,7 +313,7 @@ public class LoomScreenExtension {
                                 panel.disablePersistentDyeSwitchAndReload();
                                 return;
                             }
-                            screen.minecraft.gui.setScreen(new BannerColorSwitchScreen((LoomScreen) screen, panel));
+                            screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(screen, panel));
                         },
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
                     @Override
@@ -625,8 +622,7 @@ public class LoomScreenExtension {
     }
 
     private void refreshPanel() {
-        this.panel =
-                panelOpen ? new LoomRecipePanel((LoomScreen) screen, screen.menu, getPanelX(), screen.topPos) : null;
+        this.panel = panelOpen ? new LoomRecipePanel(screen, screen.menu, getPanelX(), screen.topPos) : null;
         if (this.panel != null) {
             this.panel.restorePersistentDyeSwitchState(persistentDyeSwitchEnabled, Map.copyOf(persistentDyeMap));
         }

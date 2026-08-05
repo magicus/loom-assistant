@@ -6,15 +6,10 @@ package se.icus.mag.loomassistant.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.LoomMenu;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -24,21 +19,14 @@ import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 
 @Mixin(LoomScreen.class)
-public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> {
-    @Unique
-    private LoomScreenExtension extension;
-
-    public LoomScreenMixin(LoomMenu handler, Inventory inventory, Component title) {
-        super(handler, inventory, title);
-    }
-
+public abstract class LoomScreenMixin {
     // ── mixin hooks ───────────────────────────────────────────────────────────
 
     @Inject(method = "init", at = @At("TAIL"))
-    private void loomassistant$onInit(CallbackInfo ci) {
-        this.extension = new LoomScreenExtension(this);
-        this.extension.onInit();
-        LoomAssistantMod.registerExtension(this, this.extension);
+    private void onInit(CallbackInfo ci) {
+        LoomScreenExtension ext = new LoomScreenExtension((LoomScreen) (Object) this);
+        ext.onInit();
+        LoomAssistantMod.registerExtension(this, ext);
     }
 
     @Redirect(
@@ -48,7 +36,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
                             value = "INVOKE",
                             target =
                                     "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
-    private void loomassistant$drawCustomLoomBackground(
+    private void drawCustomLoomBackground(
             GuiGraphicsExtractor graphics,
             RenderPipeline renderPipeline,
             Identifier originalTexture,
@@ -60,34 +48,39 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> 
             int height,
             int textureWidth,
             int textureHeight) {
-        this.extension.drawCustomBackground(
-                graphics, renderPipeline, originalTexture, x, y, u, v, width, height, textureWidth, textureHeight);
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(this);
+        if (ext != null)
+            ext.drawCustomBackground(
+                    graphics, renderPipeline, originalTexture, x, y, u, v, width, height, textureWidth, textureHeight);
     }
 
     @Inject(method = "extractBackground", at = @At("TAIL"))
-    private void loomassistant$onExtractBackground(
+    private void onExtractBackground(
             GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        this.extension.onExtractBackground(context, mouseX, mouseY, delta);
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(this);
+        if (ext != null) ext.onExtractBackground(context, mouseX, mouseY, delta);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onMouseClicked(
-            MouseButtonEvent mouseButtonEvent, boolean bl, CallbackInfoReturnable<Boolean> cir) {
-        this.extension.onMouseClicked(mouseButtonEvent, cir);
+    private void onMouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl, CallbackInfoReturnable<Boolean> cir) {
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(this);
+        if (ext != null) ext.onMouseClicked(mouseButtonEvent, cir);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
-        this.extension.onMouseReleased(mouseButtonEvent, cir);
+    private void onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(this);
+        if (ext != null) ext.onMouseReleased(mouseButtonEvent, cir);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onMouseScrolled(
+    private void onMouseScrolled(
             double mouseX,
             double mouseY,
             double horizontalAmount,
             double verticalAmount,
             CallbackInfoReturnable<Boolean> cir) {
-        this.extension.onMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, cir);
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(this);
+        if (ext != null) ext.onMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, cir);
     }
 }

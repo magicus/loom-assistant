@@ -17,7 +17,7 @@ import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenKeyPressedMixin {
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) {
             return;
         }

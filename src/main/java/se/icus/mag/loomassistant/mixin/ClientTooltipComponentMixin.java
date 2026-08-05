@@ -20,7 +20,7 @@ public interface ClientTooltipComponentMixin {
                     "create(Lnet/minecraft/world/inventory/tooltip/TooltipComponent;)Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;",
             at = @At("HEAD"),
             cancellable = true)
-    private static void loomassistant$createCustomTooltip(
+    private static void createCustomTooltip(
             TooltipComponent component, CallbackInfoReturnable<ClientTooltipComponent> cir) {
         if (component instanceof BannerRecipeTooltipComponent bannerRecipeTooltipComponent) {
             cir.setReturnValue(new ClientBannerRecipeTooltipComponent(bannerRecipeTooltipComponent));

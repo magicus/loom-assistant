@@ -18,7 +18,7 @@ import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 @Mixin(ContainerEventHandler.class)
 public interface AbstractContainerEventHandlerInputMixin {
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
+    private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) {
             return;
         }
@@ -29,8 +29,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-    private void loomassistant$onMouseDragged(
-            MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
+    private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) {
             return;
         }
