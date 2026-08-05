@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.ui.tooltip;
 
+import java.util.Objects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -20,7 +21,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
-import org.jspecify.annotations.Nullable;
 
 public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponent {
     private static final int SLOT_SIZE = 16;
@@ -44,7 +44,6 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     // First row index beyond the 6 weavable steps (row 0 = banner, rows 1-6 = steps)
     private static final int MAX_WEAVABLE_ROW = 7;
 
-    @Nullable
     private static BannerFlagModel sharedFlag;
 
     private final BannerRecipeTooltipComponent component;
@@ -108,8 +107,8 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             ensureFlag();
             if (sharedFlag != null) {
                 DyeColor base = component.previewBaseColor();
-                BannerPatternLayers patterns = component.previewPatterns();
-                if (patterns == null) patterns = new BannerPatternLayers.Builder().build();
+                BannerPatternLayers patterns = Objects.requireNonNullElseGet(
+                        component.previewPatterns(), () -> new BannerPatternLayers.Builder().build());
                 // Align preview to the top of the tooltip image area
                 int previewY = y;
                 graphics.bannerPattern(sharedFlag, base, patterns, x, previewY, x + PREVIEW_W, previewY + PREVIEW_H);
@@ -159,10 +158,6 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
         return rows == 0 ? 0 : rows * ROW_HEIGHT - ROW_GAP;
     }
 
-    /**
-     * Renders the loom-style pattern mini-banner (5×10) centred in the 16×16 icon slot.
-     * Mirrors extractBannerOnButton in LoomScreen.
-     */
     private static void renderPatternSprite(
             GuiGraphicsExtractor graphics, BannerRecipeTooltipComponent.Row row, int x, int y) {
         try {

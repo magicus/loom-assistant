@@ -11,15 +11,12 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
-import org.jspecify.annotations.Nullable;
 
 public final class BannerRecipeTooltipComponent implements TooltipComponent {
     private final List<Row> rows;
 
-    @Nullable
     private final DyeColor previewBaseColor;
 
-    @Nullable
     private final BannerPatternLayers previewPatterns;
 
     /** Row index to highlight as the current crafting step (-1 = no highlighting). */
@@ -27,20 +24,6 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
 
     /** True when the banner has more than 6 layers and the player is in survival mode. */
     private final boolean notWeavableInSurvival;
-
-    public BannerRecipeTooltipComponent(List<Row> rows) {
-        this(rows, null, null, -1);
-    }
-
-    public BannerRecipeTooltipComponent(
-            List<Row> rows, DyeColor previewBaseColor, BannerPatternLayers previewPatterns) {
-        this(rows, previewBaseColor, previewPatterns, -1);
-    }
-
-    public BannerRecipeTooltipComponent(
-            List<Row> rows, DyeColor previewBaseColor, BannerPatternLayers previewPatterns, int currentRowIndex) {
-        this(rows, previewBaseColor, previewPatterns, currentRowIndex, false);
-    }
 
     public BannerRecipeTooltipComponent(
             List<Row> rows,
@@ -81,10 +64,6 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
 
     public record Row(
             ItemStack primary, ItemStack secondary, Component text, Identifier patternSprite, boolean indented) {
-        public static Row single(ItemStack primary, Component text) {
-            return new Row(primary, ItemStack.EMPTY, text, null, false);
-        }
-
         public static Row singleIndented(ItemStack primary, Component text) {
             return new Row(primary, ItemStack.EMPTY, text, null, true);
         }
