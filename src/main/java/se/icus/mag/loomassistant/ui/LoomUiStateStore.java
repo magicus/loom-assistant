@@ -33,12 +33,14 @@ public final class LoomUiStateStore {
     private static final String PANEL_OPEN_BY_WORLD_KEY = "panelOpenByWorld";
     private static final String ACTIVE_BANNER_BY_WORLD_KEY = "activeBannerByWorld";
     private static final String PERSISTENT_DYE_BY_WORLD_KEY = "persistentDyeByWorld";
+    private static final String SELECTED_CATEGORY_BY_WORLD_KEY = "selectedCategoryByWorld";
     private static final String DYE_ENABLED_KEY = "enabled";
     private static final String DYE_REPLACEMENTS_KEY = "replacements";
 
     private static final Map<String, Boolean> panelOpenByWorld = new HashMap<>();
     private static final Map<String, String> activeBannerRecipeByWorld = new HashMap<>();
     private static final Map<String, PersistentDyeState> persistentDyeByWorld = new HashMap<>();
+    private static final Map<String, String> selectedCategoryByWorld = new HashMap<>();
     private static boolean loaded = false;
 
     public record PersistentDyeState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
@@ -131,6 +133,23 @@ public final class LoomUiStateStore {
         save();
     }
 
+    public static synchronized String getSelectedCategoryId(Minecraft minecraft) {
+        loadIfNeeded();
+        String worldKey = getWorldKey(minecraft);
+        return selectedCategoryByWorld.get(worldKey);
+    }
+
+    public static synchronized void setSelectedCategoryId(Minecraft minecraft, String categoryId) {
+        loadIfNeeded();
+        String worldKey = getWorldKey(minecraft);
+        if (categoryId == null || categoryId.isBlank()) {
+            selectedCategoryByWorld.remove(worldKey);
+        } else {
+            selectedCategoryByWorld.put(worldKey, categoryId);
+        }
+        save();
+    }
+
     private static void loadIfNeeded() {
         if (loaded) {
             return;
@@ -200,6 +219,17 @@ public final class LoomUiStateStore {
                     }
                 }
             }
+
+            if (root.has(SELECTED_CATEGORY_BY_WORLD_KEY)) {
+                JsonObject categoriesPerWorld = root.getAsJsonObject(SELECTED_CATEGORY_BY_WORLD_KEY);
+                if (categoriesPerWorld != null) {
+                    for (Map.Entry<String, JsonElement> entry : categoriesPerWorld.entrySet()) {
+                        if (entry.getValue().isJsonPrimitive()) {
+                            selectedCategoryByWorld.put(entry.getKey(), entry.getValue().getAsString());
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.warn("Failed to load loom UI state", e);
         }
@@ -238,6 +268,12 @@ public final class LoomUiStateStore {
                 persistentDyesPerWorld.add(entry.getKey(), stateObj);
             }
             root.add(PERSISTENT_DYE_BY_WORLD_KEY, persistentDyesPerWorld);
+
+            JsonObject selectedCategoriesPerWorld = new JsonObject();
+            for (Map.Entry<String, String> entry : selectedCategoryByWorld.entrySet()) {
+                selectedCategoriesPerWorld.addProperty(entry.getKey(), entry.getValue());
+            }
+            root.add(SELECTED_CATEGORY_BY_WORLD_KEY, selectedCategoriesPerWorld);
 
             try (Writer writer = Files.newBufferedWriter(FILE_PATH)) {
                 GSON.toJson(root, writer);

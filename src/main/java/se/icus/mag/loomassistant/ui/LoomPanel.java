@@ -153,7 +153,7 @@ public class LoomPanel {
                 Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
         this.tabs = List.of();
-        this.selectedCategoryId = null;
+        this.selectedCategoryId = LoomUiStateStore.getSelectedCategoryId(Minecraft.getInstance());
         refreshVisibleTabs();
 
         pageForwardButton = new ImageButton(
@@ -286,7 +286,7 @@ public class LoomPanel {
         RecipeBookComponent.TabInfo tabInfo = new RecipeBookComponent.TabInfo(icon.getItem(), new RecipeBookCategory());
 
         return new RecipeBookTabButton(tx, ty, tabInfo, button -> {
-            selectedCategoryId = tab.categoryId();
+            setSelectedCategoryId(tab.categoryId());
             page = 0;
             searchBox.setFocused(true);
         });
@@ -521,7 +521,7 @@ public class LoomPanel {
                     ty,
                     RecipeBookTabButton.WIDTH,
                     RecipeBookTabButton.HEIGHT)) {
-                selectedCategoryId = tab.categoryId();
+            setSelectedCategoryId(tab.categoryId());
                 page = 0;
                 searchBox.setFocused(true);
                 playUiClickSound();
@@ -581,7 +581,7 @@ public class LoomPanel {
     private void clampSelectedTabToVisibleWindow() {
         int selectedIndex = indexOfSelectedTab();
         if (selectedIndex < 0) {
-            selectedCategoryId = null;
+            setSelectedCategoryId(null);
             selectedIndex = 0;
         }
 
@@ -590,11 +590,11 @@ public class LoomPanel {
         int maxVisible = tabScrollOffset + visibleCount - 1;
 
         if (selectedIndex < minVisible) {
-            selectedCategoryId = tabs.get(minVisible).categoryId();
+            setSelectedCategoryId(tabs.get(minVisible).categoryId());
             return;
         }
         if (selectedIndex > maxVisible) {
-            selectedCategoryId = tabs.get(maxVisible).categoryId();
+            setSelectedCategoryId(tabs.get(maxVisible).categoryId());
         }
     }
 
@@ -644,7 +644,7 @@ public class LoomPanel {
                 }
             }
             if (!selectedStillVisible) {
-                selectedCategoryId = null;
+                setSelectedCategoryId(null);
                 page = 0;
             }
         }
@@ -656,6 +656,11 @@ public class LoomPanel {
     }
 
     private record TabDescriptor(String categoryId, Component tooltip, BannerRecipeCategory category) {}
+
+    private void setSelectedCategoryId(String categoryId) {
+        this.selectedCategoryId = categoryId;
+        LoomUiStateStore.setSelectedCategoryId(Minecraft.getInstance(), categoryId);
+    }
 
     private boolean clickBannerGrid(int mx, int my) {
         List<BannerRecipe> items = getFilteredBanners();
