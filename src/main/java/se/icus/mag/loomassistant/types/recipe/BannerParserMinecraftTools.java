@@ -26,50 +26,11 @@ import net.minecraft.world.item.DyeColor;
  * <p>Layer 0 is the base color (color_id_0), layers 1+ are patterns.
  */
 public class BannerParserMinecraftTools {
-
     // minecraft.tools banner pattern order (shape_id index -> banner short code)
     private static final String[] MINECRAFT_PATTERNS = {
-        null,
-        "mc",
-        "bl",
-        "br",
-        "tl",
-        "tr",
-        "hh",
-        "bs",
-        "ts",
-        "vh",
-        "ls",
-        "cs",
-        "rs",
-        "ms",
-        "sc",
-        "dls",
-        "drs",
-        "cr",
-        "ld",
-        "rud",
-        "tt",
-        "bt",
-        "mr",
-        "tts",
-        "bts",
-        "cbo",
-        "bo",
-        "ss",
-        "bri",
-        "gra",
-        "cre",
-        "sku",
-        "flo",
-        "moj",
-        "lud",
-        "rd",
-        "gru",
-        "hhb",
-        "vhr",
-        "glb",
-        "pig"
+        null, "mc", "bl", "br", "tl", "tr", "hh", "bs", "ts", "vh", "ls", "cs", "rs", "ms", "sc", "dls", "drs", "cr",
+        "ld", "rud", "tt", "bt", "mr", "tts", "bts", "cbo", "bo", "ss", "bri", "gra", "cre", "sku", "flo", "moj", "lud",
+        "rd", "gru", "hhb", "vhr", "glb", "pig"
     };
 
     private static final Map<String, String> PATTERN_IDS = buildPatternIds();
@@ -132,8 +93,7 @@ public class BannerParserMinecraftTools {
         }
 
         if (baseColorId < 0 || baseColorId > 15) {
-            throw new IllegalArgumentException(
-                    "Invalid base color index: " + baseColorId + " (must be 0-15)");
+            throw new IllegalArgumentException("Invalid base color index: " + baseColorId + " (must be 0-15)");
         }
 
         String bannerColor = getInvertedColorName(baseColorId);
@@ -155,23 +115,18 @@ public class BannerParserMinecraftTools {
             }
 
             if (shapeId < 0 || shapeId >= NUM_PATTERNS) {
-                throw new IllegalArgumentException(
-                        "Invalid pattern index at layer "
-                                + layerIndex
-                                + ": "
-                                + shapeId
-                                + " (must be 0-"
-                                + (NUM_PATTERNS - 1)
-                                + ")");
+                throw new IllegalArgumentException("Invalid pattern index at layer "
+                        + layerIndex
+                        + ": "
+                        + shapeId
+                        + " (must be 0-"
+                        + (NUM_PATTERNS - 1)
+                        + ")");
             }
 
             if (colorId < 0 || colorId > 15) {
                 throw new IllegalArgumentException(
-                        "Invalid color index at layer "
-                                + layerIndex
-                                + ": "
-                                + colorId
-                                + " (must be 0-15)");
+                        "Invalid color index at layer " + layerIndex + ": " + colorId + " (must be 0-15)");
             }
 
             String patternCode = MINECRAFT_PATTERNS[shapeId];
@@ -186,8 +141,7 @@ public class BannerParserMinecraftTools {
                 throw new IllegalArgumentException("Invalid pattern code: " + patternCode);
             }
 
-            net.minecraft.resources.Identifier identifier =
-                    net.minecraft.resources.Identifier.tryParse(patternId);
+            net.minecraft.resources.Identifier identifier = net.minecraft.resources.Identifier.tryParse(patternId);
             if (identifier == null) {
                 throw new IllegalArgumentException("Invalid pattern identifier: " + patternId);
             }
@@ -197,12 +151,7 @@ public class BannerParserMinecraftTools {
         }
 
         return new BannerRecipe(
-                "minecraft_tools_import",
-                "Imported from minecraft.tools",
-                null,
-                null,
-                bannerColor,
-                layers);
+                "minecraft_tools_import", "Imported from minecraft.tools", null, null, bannerColor, layers);
     }
 
     /**
@@ -216,9 +165,7 @@ public class BannerParserMinecraftTools {
         Map<String, Integer> params = extractParameters(url);
         if (params.isEmpty() || !params.containsKey("color_id_0")) {
             throw new IllegalArgumentException(
-                    "No valid banner parameters found in URL. "
-                            + "Expected color_id_0, shape_id_1, etc.: "
-                            + url);
+                    "No valid banner parameters found in URL. " + "Expected color_id_0, shape_id_1, etc.: " + url);
         }
         return parseParameters(params);
     }

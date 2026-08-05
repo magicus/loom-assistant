@@ -14,8 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class BannerParserNeedCoolerShoes {
-    private static final Pattern BANNER_PATTERN = Pattern.compile(
-            "(?is)<ncrs-banner-instructions\\b[^>]*\\bbanner\\s*=\\s*([\"'])([^\"']+)\\1");
+    private static final Pattern BANNER_PATTERN =
+            Pattern.compile("(?is)<ncrs-banner-instructions\\b[^>]*\\bbanner\\s*=\\s*([\"'])([^\"']+)\\1");
 
     private BannerParserNeedCoolerShoes() {}
 

@@ -1,3 +1,7 @@
+/*
+ * Copyright © Magnus Ihse Bursie 2026.
+ * This file is released under MIT. See LICENSE for full license details.
+ */
 package se.icus.mag.loomassistant.types.recipe;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -5,11 +9,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class BannerParserPlanetMinecraftTest {
-
     @Test
     void testParsePlanetMinecraftRemixUrlE() {
-        BannerRecipe recipe =
-                BannerParser.parseUrl("https://www.planetminecraft.com/banner/?e=2c729cmcf28");
+        BannerRecipe recipe = BannerParser.parseUrl("https://www.planetminecraft.com/banner/?e=2c729cmcf28");
 
         assertEquals("red", recipe.bannerColor());
         assertEquals(5, recipe.layers().size());
@@ -17,8 +19,7 @@ class BannerParserPlanetMinecraftTest {
 
     @Test
     void testParsePlanetMinecraftRemixUrlB() {
-        BannerRecipe recipe =
-                BannerParser.parseUrl("https://www.planetminecraft.com/banner/?b=2c729cmcf28");
+        BannerRecipe recipe = BannerParser.parseUrl("https://www.planetminecraft.com/banner/?b=2c729cmcf28");
 
         assertEquals("red", recipe.bannerColor());
         assertEquals(5, recipe.layers().size());

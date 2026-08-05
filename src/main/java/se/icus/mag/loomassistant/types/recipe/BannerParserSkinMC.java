@@ -25,8 +25,7 @@ import net.minecraft.world.item.DyeColor;
  * - Combined bits = pattern index
  */
 public class BannerParserSkinMC {
-    private static final String BASE64_DICT =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
+    private static final String BASE64_DICT = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
 
     // All available banner patterns (from window.BANNER_CONFIG.patterns)
     private static final String[] PATTERNS = {
@@ -41,8 +40,22 @@ public class BannerParserSkinMC {
 
     // Dye color index to name mapping
     private static final String[] DYE_COLORS = {
-        "black", "red", "green", "brown", "blue", "purple", "cyan", "gray", "dark_gray", "pink",
-        "lime", "yellow", "light_blue", "magenta", "orange", "white"
+        "black",
+        "red",
+        "green",
+        "brown",
+        "blue",
+        "purple",
+        "cyan",
+        "gray",
+        "dark_gray",
+        "pink",
+        "lime",
+        "yellow",
+        "light_blue",
+        "magenta",
+        "orange",
+        "white"
     };
 
     private static Map<String, String> buildPatternIds() {
@@ -157,16 +170,14 @@ public class BannerParserSkinMC {
         int a = BASE64_DICT.indexOf(pair.charAt(1));
 
         if (e < 0 || a < 0) {
-            throw new IllegalArgumentException(
-                    "Invalid character in pair: " + pair + " (not in base64 alphabet)");
+            throw new IllegalArgumentException("Invalid character in pair: " + pair + " (not in base64 alphabet)");
         }
 
         int colorIndex = e & 15; // Lower 4 bits = color index
         int patternIndex = (e >> 4) << 6 | a; // Upper bits + second char = pattern index
 
         if (patternIndex >= PATTERNS.length) {
-            throw new IllegalArgumentException(
-                    "Invalid pattern index: " + patternIndex + " for pair: " + pair);
+            throw new IllegalArgumentException("Invalid pattern index: " + patternIndex + " for pair: " + pair);
         }
 
         String pattern = PATTERNS[patternIndex];
@@ -212,15 +223,12 @@ public class BannerParserSkinMC {
         List<BannerRecipeLayer> layers = new ArrayList<>();
         for (int i = 1; i < decoded.size(); i++) {
             DecodedPair layer = decoded.get(i);
-            String patternId = PATTERN_IDS.getOrDefault(
-                    layer.pattern(), "minecraft:" + layer.pattern());
+            String patternId = PATTERN_IDS.getOrDefault(layer.pattern(), "minecraft:" + layer.pattern());
             DyeColor color = DyeColor.byName(layer.colorName(), DyeColor.WHITE);
-            layers.add(new BannerRecipeLayer(
-                    net.minecraft.resources.Identifier.tryParse(patternId), color));
+            layers.add(new BannerRecipeLayer(net.minecraft.resources.Identifier.tryParse(patternId), color));
         }
 
-        return new BannerRecipe(
-                "skinmc_import", "Imported from SkinMC", null, null, bannerColor, layers);
+        return new BannerRecipe("skinmc_import", "Imported from SkinMC", null, null, bannerColor, layers);
     }
 
     /**

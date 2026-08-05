@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 class BannerParserNeedCoolerShoesTest {
-
     @Test
     void testExtractBannerCodeFromHtml() throws IOException {
         String html = Files.readString(Path.of("ncs.html"));
@@ -35,8 +34,7 @@ class BannerParserNeedCoolerShoesTest {
 
     @Test
     void testParseUrlUsesSnapshotHtml() {
-        BannerRecipe recipe =
-                BannerParserNeedCoolerShoes.parseUrl("https://needcoolershoes.com/banners/8961/~ghost");
+        BannerRecipe recipe = BannerParserNeedCoolerShoes.parseUrl("https://needcoolershoes.com/banners/8961/~ghost");
 
         assertNotNull(recipe);
         assertEquals("white", recipe.bannerColor());

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class BannerParserSkinMCTest {
-
     @Test
     void testExtractBannerCode() {
         String url = "https://skinmc.net/banner/editor?=paalpwpEac";
@@ -33,8 +32,9 @@ class BannerParserSkinMCTest {
 
     @Test
     void testDirectBannerLinkIsRejected() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                BannerParserSkinMC.extractBannerCode(
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> BannerParserSkinMC.extractBannerCode(
                         "https://skinmc.net/banner/18d1d0c1-08fd-46a6-abfd-1766ebc47f26"));
 
         assertEquals("Please Use Edit design link", ex.getMessage());
@@ -81,15 +81,12 @@ class BannerParserSkinMCTest {
 
     @Test
     void testInvalidOddLengthCode() {
-        assertThrows(
-                IllegalArgumentException.class, () -> BannerParserSkinMC.parseBannerCode("paa"));
+        assertThrows(IllegalArgumentException.class, () -> BannerParserSkinMC.parseBannerCode("paa"));
     }
 
     @Test
     void testInvalidCharacterInCode() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> BannerParserSkinMC.parseBannerCode("pa!!"));
+        assertThrows(IllegalArgumentException.class, () -> BannerParserSkinMC.parseBannerCode("pa!!"));
     }
 
     @Test
@@ -102,13 +99,14 @@ class BannerParserSkinMCTest {
     void testMultipleBanners() {
         // Test parsing multiple different banner codes
         BannerRecipe recipe1 = BannerParserSkinMC.parseBannerCode("paalpwpEac");
-        BannerRecipe recipe2 = BannerParserSkinMC.parseBannerCode("paal");  // white base + black cs
+        BannerRecipe recipe2 = BannerParserSkinMC.parseBannerCode("paal"); // white base + black cs
 
         assertEquals("white", recipe1.bannerColor());
         assertEquals(4, recipe1.layers().size());
 
         assertEquals("white", recipe2.bannerColor());
         assertEquals(1, recipe2.layers().size());
-        assertEquals("minecraft:stripe_center", recipe2.layers().get(0).pattern().toString());
+        assertEquals(
+                "minecraft:stripe_center", recipe2.layers().get(0).pattern().toString());
     }
 }

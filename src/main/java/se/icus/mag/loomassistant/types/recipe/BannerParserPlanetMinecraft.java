@@ -1,3 +1,7 @@
+/*
+ * Copyright © Magnus Ihse Bursie 2026.
+ * This file is released under MIT. See LICENSE for full license details.
+ */
 package se.icus.mag.loomassistant.types.recipe;
 
 import java.net.URI;
@@ -8,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class BannerParserPlanetMinecraft {
-    private static final String ALPHABET =
-            "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0_-";
+    private static final String ALPHABET = "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0_-";
 
     private static final String[] COLORS = {
         "black", "red", "green", "brown", "blue", "purple", "cyan", "light_gray",
@@ -17,49 +20,48 @@ public final class BannerParserPlanetMinecraft {
     };
 
     private static final Map<Integer, String> PATTERNS = Map.ofEntries(
-        Map.entry(2, "border"),
-        Map.entry(3, "bricks"),
-        Map.entry(4, "circle"),
-        Map.entry(5, "creeper"),
-        Map.entry(6, "cross"),
-        Map.entry(7, "curly_border"),
-        Map.entry(8, "diagonal_left"),
-        Map.entry(9, "diagonal_right"),
-        Map.entry(10, "flower"),
-        Map.entry(11, "gradient"),
-        Map.entry(12, "half_horizontal"),
-        Map.entry(13, "half_vertical"),
-        Map.entry(14, "mojang"),
-        Map.entry(15, "rhombus"),
-        Map.entry(16, "skull"),
-        Map.entry(17, "small_stripes"),
-        Map.entry(18, "square_bottom_left"),
-        Map.entry(19, "square_bottom_right"),
-        Map.entry(20, "square_top_left"),
-        Map.entry(21, "square_top_right"),
-        Map.entry(22, "straight_cross"),
-        Map.entry(23, "stripe_bottom"),
-        Map.entry(24, "stripe_center"),
-        Map.entry(25, "stripe_downleft"),
-        Map.entry(26, "stripe_downright"),
-        Map.entry(27, "stripe_left"),
-        Map.entry(28, "stripe_middle"),
-        Map.entry(29, "stripe_right"),
-        Map.entry(30, "stripe_top"),
-        Map.entry(31, "triangles_bottom"),
-        Map.entry(32, "triangles_top"),
-        Map.entry(33, "triangle_bottom"),
-        Map.entry(34, "triangle_top"),
-        Map.entry(35, "diagonal_up_left"),
-        Map.entry(36, "diagonal_up_right"),
-        Map.entry(37, "gradient_up"),
-        Map.entry(38, "half_horizontal_bottom"),
-        Map.entry(39, "half_vertical_right"),
-        Map.entry(40, "globe"),
-        Map.entry(41, "piglin"),
-        Map.entry(42, "flow"),
-        Map.entry(43, "guster")
-    );
+            Map.entry(2, "border"),
+            Map.entry(3, "bricks"),
+            Map.entry(4, "circle"),
+            Map.entry(5, "creeper"),
+            Map.entry(6, "cross"),
+            Map.entry(7, "curly_border"),
+            Map.entry(8, "diagonal_left"),
+            Map.entry(9, "diagonal_right"),
+            Map.entry(10, "flower"),
+            Map.entry(11, "gradient"),
+            Map.entry(12, "half_horizontal"),
+            Map.entry(13, "half_vertical"),
+            Map.entry(14, "mojang"),
+            Map.entry(15, "rhombus"),
+            Map.entry(16, "skull"),
+            Map.entry(17, "small_stripes"),
+            Map.entry(18, "square_bottom_left"),
+            Map.entry(19, "square_bottom_right"),
+            Map.entry(20, "square_top_left"),
+            Map.entry(21, "square_top_right"),
+            Map.entry(22, "straight_cross"),
+            Map.entry(23, "stripe_bottom"),
+            Map.entry(24, "stripe_center"),
+            Map.entry(25, "stripe_downleft"),
+            Map.entry(26, "stripe_downright"),
+            Map.entry(27, "stripe_left"),
+            Map.entry(28, "stripe_middle"),
+            Map.entry(29, "stripe_right"),
+            Map.entry(30, "stripe_top"),
+            Map.entry(31, "triangles_bottom"),
+            Map.entry(32, "triangles_top"),
+            Map.entry(33, "triangle_bottom"),
+            Map.entry(34, "triangle_top"),
+            Map.entry(35, "diagonal_up_left"),
+            Map.entry(36, "diagonal_up_right"),
+            Map.entry(37, "gradient_up"),
+            Map.entry(38, "half_horizontal_bottom"),
+            Map.entry(39, "half_vertical_right"),
+            Map.entry(40, "globe"),
+            Map.entry(41, "piglin"),
+            Map.entry(42, "flow"),
+            Map.entry(43, "guster"));
 
     public static BannerRecipe parseUrl(String url) {
         String code = extractCode(url);
@@ -129,12 +131,7 @@ public final class BannerParserPlanetMinecraft {
         }
 
         return new BannerRecipe(
-                "planetminecraft_import",
-                "Imported from PlanetMinecraft",
-                null,
-                null,
-                bannerColor,
-                layers);
+                "planetminecraft_import", "Imported from PlanetMinecraft", null, null, bannerColor, layers);
     }
 
     private static int decodeChar(char c) {

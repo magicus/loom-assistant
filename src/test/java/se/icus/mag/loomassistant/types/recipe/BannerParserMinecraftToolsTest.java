@@ -10,7 +10,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class BannerParserMinecraftToolsTest {
-
     @Test
     void testExtractParameters() {
         String url =
@@ -80,8 +79,7 @@ class BannerParserMinecraftToolsTest {
         Map<String, Integer> params = new java.util.HashMap<>();
         params.put("color_id_0", 99); // invalid
 
-        assertThrows(
-                IllegalArgumentException.class, () -> BannerParserMinecraftTools.parseParameters(params));
+        assertThrows(IllegalArgumentException.class, () -> BannerParserMinecraftTools.parseParameters(params));
     }
 
     @Test
@@ -91,8 +89,7 @@ class BannerParserMinecraftToolsTest {
         params.put("shape_id_1", 99); // invalid
         params.put("color_id_1", 15);
 
-        assertThrows(
-                IllegalArgumentException.class, () -> BannerParserMinecraftTools.parseParameters(params));
+        assertThrows(IllegalArgumentException.class, () -> BannerParserMinecraftTools.parseParameters(params));
     }
 
     @Test
@@ -127,15 +124,19 @@ class BannerParserMinecraftToolsTest {
         assertEquals("white", recipe.layers().get(0).color().getName());
 
         // Layer 2: half horizontal bottom (37) - blue (4)
-        assertEquals("minecraft:half_horizontal_bottom", recipe.layers().get(1).pattern().toString());
+        assertEquals(
+                "minecraft:half_horizontal_bottom",
+                recipe.layers().get(1).pattern().toString());
         assertEquals("blue", recipe.layers().get(1).color().getName());
 
         // Layer 3: straight cross (14) - black (0)
-        assertEquals("minecraft:straight_cross", recipe.layers().get(2).pattern().toString());
+        assertEquals(
+                "minecraft:straight_cross", recipe.layers().get(2).pattern().toString());
         assertEquals("black", recipe.layers().get(2).color().getName());
 
         // Layer 4: straight cross (14) - blue (4)
-        assertEquals("minecraft:straight_cross", recipe.layers().get(3).pattern().toString());
+        assertEquals(
+                "minecraft:straight_cross", recipe.layers().get(3).pattern().toString());
         assertEquals("blue", recipe.layers().get(3).color().getName());
 
         // Layer 5: border (26) - black (0)

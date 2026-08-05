@@ -15,7 +15,6 @@ package se.icus.mag.loomassistant.types.recipe;
  * - NCRS short links: https://ncrs.skin/b?=ealleNhEehppai
  */
 public class BannerParser {
-
     /**
      * Generate a human-readable description for a banner recipe.
      *
@@ -102,11 +101,10 @@ public class BannerParser {
         } else if (url.contains("needcoolershoes.com") || url.contains("ncrs.skin")) {
             return BannerParserNeedCoolerShoes.parseUrl(url);
         } else {
-            throw new IllegalArgumentException(
-                    "Unsupported banner URL format. "
-                            + "Supported sources: skinmc.net, minecraft.tools, planetminecraft.com, needcoolershoes.com, ncrs.skin. "
-                            + "URL: "
-                            + url);
+            throw new IllegalArgumentException("Unsupported banner URL format. "
+                    + "Supported sources: skinmc.net, minecraft.tools, planetminecraft.com, needcoolershoes.com, ncrs.skin. "
+                    + "URL: "
+                    + url);
         }
     }
 

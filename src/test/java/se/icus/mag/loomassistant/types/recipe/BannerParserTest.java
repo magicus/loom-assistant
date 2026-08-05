@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class BannerParserTest {
-
     @Test
     void testParseSkinMcUrl() {
         String url = "https://skinmc.net/banner/editor?=paalpwpEac";
@@ -124,7 +123,8 @@ class BannerParserTest {
 
     @Test
     void testGenerateDescription() {
-        String url = "https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&color_id_1=15&shape_id_2=37&color_id_2=4";
+        String url =
+                "https://minecraft.tools/en/banner.php?color_id_0=4&shape_id_1=28&color_id_1=15&shape_id_2=37&color_id_2=4";
         BannerRecipe recipe = BannerParser.parseUrl(url);
 
         String description = BannerParser.generateDescription(recipe);
@@ -145,8 +145,7 @@ class BannerParserTest {
     void testBothFormats() {
         // Test that both formats work interchangeably through unified parser
         String skinmcUrl = "https://skinmc.net/banner/editor?=paal";
-        String toolsUrl =
-                "https://minecraft.tools/en/banner.php?color_id_0=15&shape_id_1=11&color_id_1=0";
+        String toolsUrl = "https://minecraft.tools/en/banner.php?color_id_0=15&shape_id_1=11&color_id_1=0";
 
         BannerRecipe recipe1 = BannerParser.parseUrl(skinmcUrl);
         BannerRecipe recipe2 = BannerParser.parseUrl(toolsUrl);
