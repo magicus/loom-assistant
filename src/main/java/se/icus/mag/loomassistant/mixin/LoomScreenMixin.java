@@ -22,14 +22,22 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.object.banner.BannerFlagModel;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.LoomMenu;
+import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -616,6 +624,19 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                     this.loomassistant$getLeftStripButtonX() + 2,
                     this.topPos + LOOMASSISTANT_LEFT_STRIP_ACTIVE_SLOT_Y + 1);
 
+            // Draw n/m progress indicator in the gap above the active slot.
+            if (loomassistant$panel != null) {
+                int progress = loomassistant$panel.detectCraftingProgress();
+                int total = loomassistant$panel.getActiveBannerLayerCount();
+                if (progress >= 0 && total > 0) {
+                    String badge = (progress + 1) + "/" + total;
+                    int badgeW = this.font.width(badge);
+                    int badgeX = this.loomassistant$getLeftStripButtonX() + (20 - badgeW) / 2;
+                    int badgeY = this.topPos + LOOMASSISTANT_LEFT_STRIP_RECIPE_Y + 22;
+                    context.text(this.font, badge, badgeX, badgeY, 0xFFFFFFFF, true);
+                }
+            }
+
             if (loomassistant$isInActiveSlot(mouseX, mouseY)) {
                 if (loomassistant$panel != null) {
                     loomassistant$panel.setActiveBannerTooltip(context, mouseX, mouseY);
@@ -624,6 +645,18 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                             BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
                     LoomPanel.setBannerTooltip(context, activeBanner, mouseX, mouseY);
                 }
+            }
+        }
+
+        // Next-step guidance and output slot highlighting when progress is detected.
+        if (loomassistant$panel != null) {
+            int progress = loomassistant$panel.detectCraftingProgress();
+            if (progress >= 0) {
+                // Only render next-step hint when vanilla has no result computed yet.
+                if (this.menu.getResultSlot().getItem().isEmpty()) {
+                    loomassistant$renderNextStepHint(context, progress);
+                }
+                loomassistant$renderOutputSlotBorder(context, progress);
             }
         }
     }
@@ -800,6 +833,92 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
         return Component.translatable("loom-assistant.active.missing_header").getString()
                 + "\n"
                 + String.join("\n", missingMaterials);
+    }
+
+    @Unique
+    private void loomassistant$renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
+        if (loomassistant$panel == null) return;
+        BannerRecipe recipe = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+        if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
+
+        var layer = recipe.getLayers().get(nextLayerIndex);
+        int px = this.leftPos + 141;
+        int py = this.topPos + 8;
+
+        // Dye item (16×16) centred horizontally in the 20px preview area
+        ItemStack dye = new ItemStack((net.minecraft.world.item.Item) BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
+        context.fakeItem(dye, px + 2, py + 2);
+
+        // Pattern sprite (14×14) below the dye, using the same rendering as the tooltip
+        try {
+            Identifier patId = Identifier.tryParse(layer.patternId());
+            if (patId != null && this.minecraft.level != null) {
+                var reg = this.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
+                if (reg.isPresent()) {
+                    var entry = reg.get().get(patId);
+                    if (entry.isPresent()) {
+                        @SuppressWarnings("unchecked")
+                        Holder<BannerPattern> holder = (Holder<BannerPattern>) (Object) entry.get();
+                        TextureAtlasSprite sprite = context.getSprite(Sheets.getBannerSprite(holder));
+                        float u0 = sprite.getU0();
+                        float u1 = u0 + (sprite.getU1() - u0) * 21.0F / 64.0F;
+                        float vSpan = sprite.getV1() - sprite.getV0();
+                        float v0 = sprite.getV0() + vSpan / 64.0F;
+                        float v1 = v0 + vSpan * 40.0F / 64.0F;
+                        context.pose().pushMatrix();
+                        context.pose().translate(px + 3, py + 22);
+                        context.fill(0, 0, 7, 14, DyeColor.GRAY.getTextureDiffuseColor());
+                        context.blit(sprite.atlasLocation(), 0, 0, 7, 14, u0, u1, v0, v1);
+                        context.pose().popMatrix();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Unique
+    private void loomassistant$renderOutputSlotBorder(GuiGraphicsExtractor context, int progress) {
+        // Result slot origin in screen coords (vanilla slot at container x=143, y=57)
+        int rx = this.leftPos + 143;
+        int ry = this.topPos + 57;
+        ItemStack result = this.menu.getResultSlot().getItem();
+        if (result.isEmpty()) return;
+
+        boolean correct = loomassistant$resultMatchesExpected(result, progress);
+        int color = correct ? 0xFF44FF44 : 0xFFFF4444;
+        // Draw 1px border just outside the 16×16 slot
+        context.fill(rx - 1, ry - 1, rx + 17, ry, color); // top
+        context.fill(rx - 1, ry + 16, rx + 17, ry + 17, color); // bottom
+        context.fill(rx - 1, ry, rx, ry + 16, color); // left
+        context.fill(rx + 16, ry, rx + 17, ry + 16, color); // right
+    }
+
+    @Unique
+    private boolean loomassistant$resultMatchesExpected(ItemStack result, int nextLayerIndex) {
+        if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
+        BannerRecipe recipe = BannerPreviewRenderer.extractBannerData(loomassistant$activeBannerStack);
+        if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;
+        if (bannerItem.getColor() != recipe.getBannerColorEnum()) return false;
+
+        BannerPatternLayers layers = result.get(DataComponents.BANNER_PATTERNS);
+        if (layers == null) return false;
+        int expected = nextLayerIndex + 1;
+        if (layers.layers().size() != expected) return false;
+
+        for (int i = 0; i < expected; i++) {
+            var cur = layers.layers().get(i);
+            var exp = recipe.getLayers().get(i);
+            if (cur.color() != exp.getDyeColorEnum()) return false;
+            String curId = cur.pattern()
+                    .unwrapKey()
+                    .map(k -> k.identifier().toString())
+                    .orElse(null);
+            if (curId == null) return false;
+            String expId = exp.patternId().contains(":") ? exp.patternId() : "minecraft:" + exp.patternId();
+            if (!curId.equals(expId)) return false;
+        }
+        return true;
     }
 
     @Unique

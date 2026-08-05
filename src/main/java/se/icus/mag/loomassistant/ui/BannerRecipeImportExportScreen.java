@@ -85,7 +85,7 @@ public class BannerRecipeImportExportScreen extends Screen {
         int px = panelX();
 
         this.importBox = this.addRenderableWidget(
-                new EditBox(this.font, px + PAD, importY() + 20, PANEL_W - PAD * 2, INPUT_H, Component.empty()));
+                new EditBox(this.font, px + PAD, importY() + 38, PANEL_W - PAD * 2, INPUT_H, Component.empty()));
         this.importBox.setMaxLength(2048);
         this.importBox.setResponder(this::onImportTextChanged);
         this.importBox.setFocused(true);
@@ -94,12 +94,12 @@ public class BannerRecipeImportExportScreen extends Screen {
         int importBtnY = importY() + SECTION_H - BTN_H - PAD;
         this.pasteButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.paste"), b -> pasteFromClipboard())
-                .bounds(px + PAD, importBtnY, BTN_W, BTN_H)
+                .bounds(px + PAD, buttonY, BTN_W, BTN_H)
                 .build());
 
         this.importButton = this.addRenderableWidget(
                 Button.builder(Component.translatable("loom-assistant.screen.import_export.import"), b -> doImport())
-                        .bounds(px + PANEL_W - PAD - BTN_W, importBtnY, BTN_W, BTN_H)
+                        .bounds(px + PANEL_W - PAD - BTN_W, buttonY, BTN_W, BTN_H)
                         .build());
         this.importButton.active = false;
 
@@ -112,7 +112,7 @@ public class BannerRecipeImportExportScreen extends Screen {
         int exportBtnY = exportY() + SECTION_H - BTN_H - PAD;
         this.copyButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.copy"), b -> copyToClipboard())
-                .bounds(px + PANEL_W - PAD - BTN_W, exportBtnY, BTN_W, BTN_H)
+                .bounds(px + PANEL_W - PAD - BTN_W, exportY() + SECTION_H - BTN_H - 6, BTN_W, BTN_H)
                 .build());
         this.copyButton.active = hasExportTarget();
 

@@ -794,6 +794,11 @@ public class LoomPanel {
      * Returns the index of the NEXT layer to craft (0 = blank banner is in, start first layer),
      * or -1 if the slot is empty, wrong color, or layers don't match the recipe so far.
      */
+    public int getActiveBannerLayerCount() {
+        BannerRecipe recipe = getSelectedBanner();
+        return recipe != null ? recipe.getLayers().size() : 0;
+    }
+
     public int detectCraftingProgress() {
         BannerRecipe recipe = getSelectedBanner();
         if (recipe == null) return -1;
