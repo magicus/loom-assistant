@@ -32,7 +32,7 @@ import se.icus.mag.loomassistant.ui.support.LoomPanelHost;
 public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
         implements LoomPanelHost, LoomActiveBannerHost {
     @Unique
-    private LoomScreenExtension loomassistant$extension;
+    private LoomScreenExtension extension;
 
     public LoomScreenMixin(LoomMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
@@ -42,8 +42,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
 
     @Inject(method = "init", at = @At("TAIL"))
     private void loomassistant$onInit(CallbackInfo ci) {
-        this.loomassistant$extension = new LoomScreenExtension(this);
-        this.loomassistant$extension.onInit();
+        this.extension = new LoomScreenExtension(this);
+        this.extension.onInit();
     }
 
     @Redirect(
@@ -65,25 +65,25 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
             int height,
             int textureWidth,
             int textureHeight) {
-        this.loomassistant$extension.drawCustomBackground(
+        this.extension.drawCustomBackground(
                 graphics, renderPipeline, originalTexture, x, y, u, v, width, height, textureWidth, textureHeight);
     }
 
     @Inject(method = "extractBackground", at = @At("TAIL"))
     private void loomassistant$onExtractBackground(
             GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        this.loomassistant$extension.onExtractBackground(context, mouseX, mouseY, delta);
+        this.extension.onExtractBackground(context, mouseX, mouseY, delta);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void loomassistant$onMouseClicked(
             MouseButtonEvent mouseButtonEvent, boolean bl, CallbackInfoReturnable<Boolean> cir) {
-        this.loomassistant$extension.onMouseClicked(mouseButtonEvent, cir);
+        this.extension.onMouseClicked(mouseButtonEvent, cir);
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     private void loomassistant$onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
-        this.loomassistant$extension.onMouseReleased(mouseButtonEvent, cir);
+        this.extension.onMouseReleased(mouseButtonEvent, cir);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
@@ -93,23 +93,23 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
             double horizontalAmount,
             double verticalAmount,
             CallbackInfoReturnable<Boolean> cir) {
-        this.loomassistant$extension.onMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, cir);
+        this.extension.onMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, cir);
     }
 
     // ── LoomPanelHost / LoomActiveBannerHost ──────────────────────────────────
 
     @Override
     public LoomRecipePanel loomassistant$getPanel() {
-        return this.loomassistant$extension.getPanel();
+        return this.extension.getPanel();
     }
 
     @Override
     public void loomassistant$setPendingActiveBannerStack(ItemStack stack) {
-        this.loomassistant$extension.setPendingActiveBannerStack(stack);
+        this.extension.setPendingActiveBannerStack(stack);
     }
 
     @Override
     public void loomassistant$setPersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
-        this.loomassistant$extension.setPersistentDyeSwitchState(enabled, replacements);
+        this.extension.setPersistentDyeSwitchState(enabled, replacements);
     }
 }
