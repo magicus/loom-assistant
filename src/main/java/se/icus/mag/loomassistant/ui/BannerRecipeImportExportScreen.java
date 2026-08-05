@@ -289,7 +289,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             storage.load();
         }
         this.minecraft.gui.setScreen(
-                new BannerPackManagerScreen(this, storage.getRepository(), storage.getActivePacksConfig()));
+                new BannerPackSelectionScreen(storage.getRepository(), storage.getActivePacksConfig()));
     }
 
     private String getImportStatusText() {
