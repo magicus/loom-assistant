@@ -28,7 +28,7 @@ public final class ParseBanner {
         }
 
         if (isUrl(input)) {
-            return UrlParser.checkParse(input);
+            return UrlParser.checkParseUrl(input);
         } else {
             return MinecraftParser.checkParse(input);
         }
@@ -47,7 +47,7 @@ public final class ParseBanner {
         }
 
         if (isUrl(input)) {
-            return UrlParser.parse(input);
+            return UrlParser.parseUrl(input);
         } else {
             return MinecraftParser.parse(input);
         }

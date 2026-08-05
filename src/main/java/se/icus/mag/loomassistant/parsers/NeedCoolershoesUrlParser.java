@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
-import se.icus.mag.loomassistant.parsers.old.BannerParserSkinMC;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
@@ -21,7 +20,7 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
  * <p>Page links (e.g., https://needcoolershoes.com/banners/8961/~ghost) are rejected
  * with a message directing users to use the "Open in Editor" link instead.
  */
-public final class NeedCoolershoesUrlParser extends AbstractUrlBannerParser {
+public final class NeedCoolershoesUrlParser extends UrlParser {
     private static final Pattern PAGE_LINK_PATTERN = Pattern.compile("/banners/\\d+/~\\w+$");
 
     private final String url;
@@ -58,7 +57,7 @@ public final class NeedCoolershoesUrlParser extends AbstractUrlBannerParser {
 
     @Override
     protected BannerRecipe getBannerFromCode(String code) {
-        return BannerParserSkinMC.parseBannerCode(code);
+        return SkinMcBannerCodeParser.parseBannerCode(code);
     }
 
     private String extractBannerCodeFromQuery(String query) {

@@ -7,7 +7,6 @@ package se.icus.mag.loomassistant.parsers;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import se.icus.mag.loomassistant.parsers.old.BannerParserSkinMC;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
@@ -16,7 +15,7 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
  * <p>Formats:
  * - Editor link: https://skinmc.net/banner/editor?=BANNERCODE
  */
-public final class SkinMcUrlParser extends AbstractUrlBannerParser {
+public final class SkinMcUrlParser extends UrlParser {
     private final String url;
     private final URI uri;
 
@@ -65,6 +64,6 @@ public final class SkinMcUrlParser extends AbstractUrlBannerParser {
 
     @Override
     protected BannerRecipe getBannerFromCode(String code) {
-        return BannerParserSkinMC.parseBannerCode(code);
+        return SkinMcBannerCodeParser.parseBannerCode(code);
     }
 }
