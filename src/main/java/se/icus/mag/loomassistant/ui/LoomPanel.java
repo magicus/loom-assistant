@@ -521,7 +521,7 @@ public class LoomPanel {
                     ty,
                     RecipeBookTabButton.WIDTH,
                     RecipeBookTabButton.HEIGHT)) {
-            setSelectedCategoryId(tab.categoryId());
+                setSelectedCategoryId(tab.categoryId());
                 page = 0;
                 searchBox.setFocused(true);
                 playUiClickSound();

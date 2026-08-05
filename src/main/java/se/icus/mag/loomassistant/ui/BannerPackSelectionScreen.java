@@ -53,8 +53,10 @@ public class BannerPackSelectionScreen extends Screen {
     private static final Component AVAILABLE_TITLE = Component.translatable("pack.available.title");
     private static final Component ACTIVE_TITLE = Component.translatable("pack.selected.title");
     private static final Component OPEN_PACK_DIR_TITLE = Component.translatable("pack.openFolder");
-    private static final Component SEARCH = Component.translatable("gui.packSelection.search").withStyle(EditBox.SEARCH_HINT_STYLE);
-    private static final Component DRAG_AND_DROP = Component.translatable("pack.dropInfo").withStyle(ChatFormatting.GRAY);
+    private static final Component SEARCH =
+            Component.translatable("gui.packSelection.search").withStyle(EditBox.SEARCH_HINT_STYLE);
+    private static final Component DRAG_AND_DROP =
+            Component.translatable("pack.dropInfo").withStyle(ChatFormatting.GRAY);
     private static final Component PACK_FOLDER_TOOLTIP = Component.translatable("pack.folderInfo");
     private static final int LIST_WIDTH = 200;
     private static final int HEADER_ELEMENT_SPACING = 4;
@@ -120,11 +122,12 @@ public class BannerPackSelectionScreen extends Screen {
                 new BannerPackListWidget(this.minecraft, this, LIST_WIDTH, this.height - 66, ACTIVE_TITLE, true));
 
         LinearLayout footer = this.layout.addToFooter(LinearLayout.horizontal().spacing(8));
-        footer.addChild(
-                Button.builder(OPEN_PACK_DIR_TITLE, button -> Util.getPlatform().openPath(this.repository.getPacksRoot()))
-                        .tooltip(net.minecraft.client.gui.components.Tooltip.create(PACK_FOLDER_TOOLTIP))
-                        .build());
-        this.doneButton = footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose()).build());
+        footer.addChild(Button.builder(
+                        OPEN_PACK_DIR_TITLE, button -> Util.getPlatform().openPath(this.repository.getPacksRoot()))
+                .tooltip(net.minecraft.client.gui.components.Tooltip.create(PACK_FOLDER_TOOLTIP))
+                .build());
+        this.doneButton = footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
+                .build());
 
         this.layout.visitWidgets(widget -> this.addRenderableWidget(widget));
         this.repositionElements();
@@ -168,12 +171,7 @@ public class BannerPackSelectionScreen extends Screen {
 
     private BannerPackModel.Entry toEntry(BannerPack pack, boolean active) {
         String packId = pack.getMetadata().id();
-        return new BannerPackModel.Entry(
-                packId,
-                displayName(pack),
-                description(pack),
-                getPackIcon(pack),
-                active);
+        return new BannerPackModel.Entry(packId, displayName(pack), description(pack), getPackIcon(pack), active);
     }
 
     private static Component description(BannerPack pack) {
@@ -204,7 +202,10 @@ public class BannerPackSelectionScreen extends Screen {
         this.layout.arrangeElements();
         if (this.availablePackList != null) {
             this.availablePackList.updateSizeAndPosition(
-                    LIST_WIDTH, this.layout.getContentHeight(), this.width / 2 - 15 - LIST_WIDTH, this.layout.getHeaderHeight());
+                    LIST_WIDTH,
+                    this.layout.getContentHeight(),
+                    this.width / 2 - 15 - LIST_WIDTH,
+                    this.layout.getHeaderHeight());
         }
         if (this.activePackList != null) {
             this.activePackList.updateSizeAndPosition(
@@ -275,7 +276,8 @@ public class BannerPackSelectionScreen extends Screen {
                 return loadIconTexture(pack, iconPath);
             }
         } catch (IOException e) {
-            LoomAssistantMod.LOGGER.warn("Failed to load icon for banner pack {}", pack.getMetadata().id(), e);
+            LoomAssistantMod.LOGGER.warn(
+                    "Failed to load icon for banner pack {}", pack.getMetadata().id(), e);
             return DEFAULT_ICON;
         }
     }
@@ -286,7 +288,10 @@ public class BannerPackSelectionScreen extends Screen {
             Path targetDir = targetRoot.resolve(source.getFileName().toString());
             copyDirectory(source, targetDir);
         } else if (source.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip")) {
-            Files.copy(source, targetRoot.resolve(source.getFileName().toString()), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(
+                    source,
+                    targetRoot.resolve(source.getFileName().toString()),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -317,12 +322,11 @@ public class BannerPackSelectionScreen extends Screen {
         }
 
         String id = pack.getMetadata().id();
-        Identifier location = Identifier.withDefaultNamespace(
-                "pack/"
-                        + Util.sanitizeName(id, Identifier::validPathChar)
-                        + "/"
-                        + Hashing.sha1().hashUnencodedChars(id)
-                        + "/icon");
+        Identifier location = Identifier.withDefaultNamespace("pack/"
+                + Util.sanitizeName(id, Identifier::validPathChar)
+                + "/"
+                + Hashing.sha1().hashUnencodedChars(id)
+                + "/icon");
         try (InputStream stream = Files.newInputStream(iconPath)) {
             NativeImage iconImage = NativeImage.read(stream);
             TextureManager textureManager = this.minecraft.getTextureManager();
@@ -369,10 +373,12 @@ public class BannerPackSelectionScreen extends Screen {
 
         public void updateList(Stream<BannerPackModel.Entry> entries) {
             this.clearEntries();
-            Component header = Component.empty().append(this.title).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.BOLD);
+            Component header =
+                    Component.empty().append(this.title).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.BOLD);
             this.addEntry(new HeaderEntry(this.minecraft.font, header), (int) (9.0F * 1.5F));
             this.setSelected(null);
-            entries.forEach(entry -> this.addEntry(new PackEntry(this.minecraft, this.screen, this, entry, this.active)));
+            entries.forEach(
+                    entry -> this.addEntry(new PackEntry(this.minecraft, this.screen, this, entry, this.active)));
             this.refreshScrollAmount();
         }
     }
@@ -395,7 +401,11 @@ public class BannerPackSelectionScreen extends Screen {
         @Override
         public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
             graphics.centeredText(
-                    this.font, this.text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 9 / 2, -1);
+                    this.font,
+                    this.text,
+                    this.getContentX() + this.getWidth() / 2,
+                    this.getContentYMiddle() - 9 / 2,
+                    -1);
         }
 
         @Override
@@ -430,7 +440,8 @@ public class BannerPackSelectionScreen extends Screen {
             this.pack = pack.withActive(active);
             this.nameWidget = new StringWidget(this.pack.getTitle(), minecraft.font);
             this.descriptionWidget = new MultiLineTextWidget(
-                    ComponentUtils.mergeStyles(this.pack.getDescription(), Style.EMPTY.withColor(-8355712)), minecraft.font);
+                    ComponentUtils.mergeStyles(this.pack.getDescription(), Style.EMPTY.withColor(-8355712)),
+                    minecraft.font);
             this.descriptionWidget.setMaxRows(2);
         }
 
@@ -446,14 +457,18 @@ public class BannerPackSelectionScreen extends Screen {
             graphics.blit(RenderPipelines.GUI_TEXTURED, iconTexture, this.getContentX(), iconY, 0f, 0f, 32, 32, 32, 32);
 
             if (this.showHoverOverlay() && hovered) {
-                Identifier actionSprite = this.pack.isActive() ? UNSELECT_HIGHLIGHTED_SPRITE : SELECT_HIGHLIGHTED_SPRITE;
+                Identifier actionSprite =
+                        this.pack.isActive() ? UNSELECT_HIGHLIGHTED_SPRITE : SELECT_HIGHLIGHTED_SPRITE;
                 graphics.blitSprite(RenderPipelines.GUI_TEXTURED, actionSprite, this.getContentX(), iconY, 32, 32);
             }
 
             if (!this.nameWidget.getMessage().equals(this.pack.getTitle())) {
                 this.nameWidget.setMessage(this.pack.getTitle());
             }
-            if (!this.descriptionWidget.getMessage().getContents().equals(this.pack.getDescription().getContents())) {
+            if (!this.descriptionWidget
+                    .getMessage()
+                    .getContents()
+                    .equals(this.pack.getDescription().getContents())) {
                 this.descriptionWidget.setMessage(
                         ComponentUtils.mergeStyles(this.pack.getDescription(), Style.EMPTY.withColor(-8355712)));
             }
@@ -511,7 +526,8 @@ public class BannerPackSelectionScreen extends Screen {
 
         @Override
         public boolean shouldTakeFocusAfterInteraction() {
-            return this.parent.children().stream().anyMatch(entry -> entry.getPackId().equals(this.getPackId()));
+            return this.parent.children().stream()
+                    .anyMatch(entry -> entry.getPackId().equals(this.getPackId()));
         }
     }
 

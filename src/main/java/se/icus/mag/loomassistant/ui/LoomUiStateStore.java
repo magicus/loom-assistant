@@ -225,7 +225,8 @@ public final class LoomUiStateStore {
                 if (categoriesPerWorld != null) {
                     for (Map.Entry<String, JsonElement> entry : categoriesPerWorld.entrySet()) {
                         if (entry.getValue().isJsonPrimitive()) {
-                            selectedCategoryByWorld.put(entry.getKey(), entry.getValue().getAsString());
+                            selectedCategoryByWorld.put(
+                                    entry.getKey(), entry.getValue().getAsString());
                         }
                     }
                 }
