@@ -370,7 +370,7 @@ public class BannerPackSelectionScreen extends Screen {
         public void updateList(Stream<BannerPackModel.Entry> entries) {
             this.clearEntries();
             Component header = Component.empty().append(this.title).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.BOLD);
-            this.addEntry(new HeaderEntry(this.minecraft.font, header));
+            this.addEntry(new HeaderEntry(this.minecraft.font, header), (int) (9.0F * 1.5F));
             this.setSelected(null);
             entries.forEach(entry -> this.addEntry(new PackEntry(this.minecraft, this.screen, this, entry, this.active)));
             this.refreshScrollAmount();
@@ -394,7 +394,8 @@ public class BannerPackSelectionScreen extends Screen {
 
         @Override
         public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            graphics.centeredText(this.font, this.text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 4, -1);
+            graphics.centeredText(
+                    this.font, this.text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 9 / 2, -1);
         }
 
         @Override
