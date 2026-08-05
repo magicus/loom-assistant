@@ -668,9 +668,8 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
                     }
                     loomassistant$renderOutputSlotBorder(context, progress);
                 }
-            } else if (this.menu.getBannerSlot().getItem().isEmpty()
-                    && this.menu.getResultSlot().getItem().isEmpty()) {
-                // Show uncraftable icon in the loom's preview area.
+            } else if (this.menu.getResultSlot().getItem().isEmpty()) {
+                // Show uncraftable warning whenever vanilla has no result computed (same rule as next-step hint).
                 loomassistant$renderUncraftablePreview(context);
             }
         }
