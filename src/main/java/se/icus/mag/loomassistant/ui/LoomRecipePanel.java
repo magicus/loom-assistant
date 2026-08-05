@@ -48,6 +48,7 @@ import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.ui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.weaving.Weaver;
 

@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.ui.support;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

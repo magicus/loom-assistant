@@ -58,7 +58,8 @@ public class BannerPackRepository {
                 for (BannerPack pack : jarLoader.loadBundledPacks()) {
                     String packId = pack.getMetadata().id();
                     if (packs.containsKey(packId)) {
-                        LoomAssistantMod.LOGGER.warn("Bundled banner pack '{}' conflicts with a user pack, skipping", packId);
+                        LoomAssistantMod.LOGGER.warn(
+                                "Bundled banner pack '{}' conflicts with a user pack, skipping", packId);
                     } else {
                         packs.put(packId, pack);
                         LoomAssistantMod.LOGGER.info("Loaded bundled banner pack: {}", packId);

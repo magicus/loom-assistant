@@ -89,7 +89,9 @@ public class JarBannerPackLoader {
         }
 
         try (var stream = Files.list(resourceDir.get())) {
-            for (Path zipResource : stream.filter(path -> path.getFileName().toString().endsWith(".zip")).toList()) {
+            for (Path zipResource : stream.filter(
+                            path -> path.getFileName().toString().endsWith(".zip"))
+                    .toList()) {
                 String zipName = zipResource.getFileName().toString();
                 String packId = zipName.substring(0, zipName.length() - ".zip".length());
                 Path cachedZip = extractResourceToCache(zipResource, zipName);
