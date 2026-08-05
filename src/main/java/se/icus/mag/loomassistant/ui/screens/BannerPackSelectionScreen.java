@@ -173,12 +173,21 @@ public class BannerPackSelectionScreen extends Screen {
 
     private BannerPackModel.Entry toEntry(BannerPack pack, boolean active) {
         String packId = pack.getMetadata().id();
-        return new BannerPackModel.Entry(packId, displayName(pack), description(pack), getPackIcon(pack), active);
+        return new BannerPackModel.Entry(
+                packId, displayName(pack), description(pack), secondLine(pack), getPackIcon(pack), active);
     }
 
     private static Component description(BannerPack pack) {
         String description = pack.getMetadata().description();
         return description == null || description.isBlank() ? Component.empty() : Component.literal(description);
+    }
+
+    private static Component secondLine(BannerPack pack) {
+        String author = pack.getMetadata().author();
+        if (author != null && !author.isBlank()) {
+            return Component.literal(author);
+        }
+        return description(pack);
     }
 
     private static String displayName(BannerPack pack) {
@@ -428,7 +437,7 @@ public class BannerPackSelectionScreen extends Screen {
         private final Minecraft minecraft;
         private final BannerPackModel.Entry pack;
         private final StringWidget nameWidget;
-        private final MultiLineTextWidget descriptionWidget;
+        private final MultiLineTextWidget secondLineWidget;
 
         public PackEntry(
                 Minecraft minecraft,
@@ -441,10 +450,10 @@ public class BannerPackSelectionScreen extends Screen {
             this.parent = parent;
             this.pack = pack.withActive(active);
             this.nameWidget = new StringWidget(this.pack.getTitle(), minecraft.font);
-            this.descriptionWidget = new MultiLineTextWidget(
-                    ComponentUtils.mergeStyles(this.pack.getDescription(), Style.EMPTY.withColor(-8355712)),
+            this.secondLineWidget = new MultiLineTextWidget(
+                    ComponentUtils.mergeStyles(this.pack.getSecondLine(), Style.EMPTY.withColor(-8355712)),
                     minecraft.font);
-            this.descriptionWidget.setMaxRows(2);
+            this.secondLineWidget.setMaxRows(2);
         }
 
         @Override
@@ -467,12 +476,12 @@ public class BannerPackSelectionScreen extends Screen {
             if (!this.nameWidget.getMessage().equals(this.pack.getTitle())) {
                 this.nameWidget.setMessage(this.pack.getTitle());
             }
-            if (!this.descriptionWidget
+            if (!this.secondLineWidget
                     .getMessage()
                     .getContents()
-                    .equals(this.pack.getDescription().getContents())) {
-                this.descriptionWidget.setMessage(
-                        ComponentUtils.mergeStyles(this.pack.getDescription(), Style.EMPTY.withColor(-8355712)));
+                    .equals(this.pack.getSecondLine().getContents())) {
+                this.secondLineWidget.setMessage(
+                        ComponentUtils.mergeStyles(this.pack.getSecondLine(), Style.EMPTY.withColor(-8355712)));
             }
 
             int textX = this.getContentX() + ICON_SIZE + 2;
@@ -480,9 +489,9 @@ public class BannerPackSelectionScreen extends Screen {
             this.nameWidget.setPosition(textX, this.getContentY() + 1);
             this.nameWidget.extractRenderState(graphics, mouseX, mouseY, a);
 
-            this.descriptionWidget.setMaxWidth(157);
-            this.descriptionWidget.setPosition(textX, this.getContentY() + 12);
-            this.descriptionWidget.extractRenderState(graphics, mouseX, mouseY, a);
+            this.secondLineWidget.setMaxWidth(157);
+            this.secondLineWidget.setPosition(textX, this.getContentY() + 12);
+            this.secondLineWidget.extractRenderState(graphics, mouseX, mouseY, a);
         }
 
         @Override
@@ -538,19 +547,27 @@ public class BannerPackSelectionScreen extends Screen {
             private final String packId;
             private final String title;
             private final Component description;
+            private final Component secondLine;
             private final Identifier iconTexture;
             private final boolean active;
 
-            private Entry(String packId, String title, Component description, Identifier iconTexture, boolean active) {
+            private Entry(
+                    String packId,
+                    String title,
+                    Component description,
+                    Component secondLine,
+                    Identifier iconTexture,
+                    boolean active) {
                 this.packId = packId;
                 this.title = title;
                 this.description = description;
+                this.secondLine = secondLine;
                 this.iconTexture = iconTexture;
                 this.active = active;
             }
 
             private Entry withActive(boolean active) {
-                return new Entry(this.packId, this.title, this.description, this.iconTexture, active);
+                return new Entry(this.packId, this.title, this.description, this.secondLine, this.iconTexture, active);
             }
 
             private String getPackId() {
@@ -563,6 +580,10 @@ public class BannerPackSelectionScreen extends Screen {
 
             private Component getDescription() {
                 return this.description;
+            }
+
+            private Component getSecondLine() {
+                return this.secondLine;
             }
 
             private Identifier getIconTexture() {
