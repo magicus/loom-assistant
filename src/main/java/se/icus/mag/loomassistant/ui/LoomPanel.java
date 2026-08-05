@@ -390,10 +390,10 @@ public class LoomPanel {
         List<BannerRecipeTooltipComponent.Row> rows = new ArrayList<>();
         String baseKey = "block.minecraft." + banner.getBaseColorEnum().getSerializedName() + "_banner";
         String baseName = Language.getInstance().getOrDefault(baseKey);
-        rows.add(BannerRecipeTooltipComponent.Row.single(
-                new ItemStack(banner.getBaseBannerItem()), Component.literal("1. " + baseName)));
+        rows.add(BannerRecipeTooltipComponent.Row.singleIndented(
+                new ItemStack(banner.getBaseBannerItem()), Component.literal(baseName)));
 
-        int idx = 2;
+        int idx = 1;
         for (BannerRecipeLayer layer : banner.getLayers()) {
             ItemStack dyeStack = new ItemStack(BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
             Component stepText = Component.literal(idx + ". " + getPatternDisplayName(layer));

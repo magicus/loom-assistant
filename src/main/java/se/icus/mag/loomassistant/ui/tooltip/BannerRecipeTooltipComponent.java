@@ -65,22 +65,32 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
         return previewPatterns;
     }
 
-    public record Row(ItemStack primary, ItemStack secondary, Component text, @Nullable Identifier patternSprite) {
+    public record Row(
+            ItemStack primary,
+            ItemStack secondary,
+            Component text,
+            @Nullable Identifier patternSprite,
+            boolean indented) {
         public static Row single(ItemStack primary, Component text) {
-            return new Row(primary, ItemStack.EMPTY, text, null);
+            return new Row(primary, ItemStack.EMPTY, text, null, false);
+        }
+
+        public static Row singleIndented(ItemStack primary, Component text) {
+            return new Row(primary, ItemStack.EMPTY, text, null, true);
         }
 
         public static Row pair(ItemStack primary, ItemStack secondary, Component text) {
-            return new Row(primary, secondary, text, null);
+            return new Row(primary, secondary, text, null, false);
         }
 
         /** Row that renders a loom pattern sprite on the right with dye item on the left. */
         public static Row withPattern(ItemStack dye, Identifier patternId, Component text) {
-            return new Row(dye, ItemStack.EMPTY, text, patternId);
+            return new Row(dye, ItemStack.EMPTY, text, patternId, false);
         }
 
         public Row copy() {
-            return new Row(this.primary.copy(), this.secondary.copy(), this.text.copy(), this.patternSprite);
+            return new Row(
+                    this.primary.copy(), this.secondary.copy(), this.text.copy(), this.patternSprite, this.indented);
         }
 
         public boolean hasSecondary() {

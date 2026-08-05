@@ -67,9 +67,11 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     @Override
     public void extractText(GuiGraphicsExtractor graphics, Font font, int x, int y) {
         int textX = x + stepsOffsetX() + ICON_AREA_W + TEXT_GAP;
+        int indent = font.width("0. ");
         int drawY = y + 5;
         int current = component.currentRowIndex();
         for (int i = 0; i < component.rows().size(); i++) {
+            BannerRecipeTooltipComponent.Row row = component.rows().get(i);
             int color;
             if (current < 0) {
                 color = 0xFFFFFFFF;
@@ -80,7 +82,8 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             } else {
                 color = 0xFFFFFFFF; // future
             }
-            graphics.text(font, component.rows().get(i).text(), textX, drawY, color, false);
+            int tx = textX + (row.indented() ? indent : 0);
+            graphics.text(font, row.text(), tx, drawY, color, false);
             drawY += ROW_HEIGHT;
         }
     }
