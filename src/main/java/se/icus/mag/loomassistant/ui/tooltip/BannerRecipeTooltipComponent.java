@@ -33,22 +33,19 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
     }
 
     public BannerRecipeTooltipComponent(
-            List<Row> rows, @Nullable DyeColor previewBaseColor, @Nullable BannerPatternLayers previewPatterns) {
+            List<Row> rows, DyeColor previewBaseColor, BannerPatternLayers previewPatterns) {
         this(rows, previewBaseColor, previewPatterns, -1);
     }
 
     public BannerRecipeTooltipComponent(
-            List<Row> rows,
-            @Nullable DyeColor previewBaseColor,
-            @Nullable BannerPatternLayers previewPatterns,
-            int currentRowIndex) {
+            List<Row> rows, DyeColor previewBaseColor, BannerPatternLayers previewPatterns, int currentRowIndex) {
         this(rows, previewBaseColor, previewPatterns, currentRowIndex, false);
     }
 
     public BannerRecipeTooltipComponent(
             List<Row> rows,
-            @Nullable DyeColor previewBaseColor,
-            @Nullable BannerPatternLayers previewPatterns,
+            DyeColor previewBaseColor,
+            BannerPatternLayers previewPatterns,
             int currentRowIndex,
             boolean notWeavableInSurvival) {
         this.rows = rows.stream().map(Row::copy).toList();
@@ -74,20 +71,16 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
         return previewBaseColor != null;
     }
 
-    public @Nullable DyeColor previewBaseColor() {
+    public DyeColor previewBaseColor() {
         return previewBaseColor;
     }
 
-    public @Nullable BannerPatternLayers previewPatterns() {
+    public BannerPatternLayers previewPatterns() {
         return previewPatterns;
     }
 
     public record Row(
-            ItemStack primary,
-            ItemStack secondary,
-            Component text,
-            @Nullable Identifier patternSprite,
-            boolean indented) {
+            ItemStack primary, ItemStack secondary, Component text, Identifier patternSprite, boolean indented) {
         public static Row single(ItemStack primary, Component text) {
             return new Row(primary, ItemStack.EMPTY, text, null, false);
         }

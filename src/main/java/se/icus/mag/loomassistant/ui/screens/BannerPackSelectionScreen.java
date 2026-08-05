@@ -42,7 +42,6 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
-import org.jspecify.annotations.Nullable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.storage.ActivePacksConfig;
 import se.icus.mag.loomassistant.storage.BannerPackRepository;
@@ -77,10 +76,10 @@ public class BannerPackSelectionScreen extends Screen {
     private final ActivePacksConfig activeConfig;
     private final Map<String, Identifier> packIcons = new HashMap<>();
 
-    private @Nullable BannerPackListWidget availablePackList;
-    private @Nullable BannerPackListWidget activePackList;
-    private @Nullable EditBox search;
-    private @Nullable Button doneButton;
+    private BannerPackListWidget availablePackList;
+    private BannerPackListWidget activePackList;
+    private EditBox search;
+    private Button doneButton;
 
     public BannerPackSelectionScreen(BannerPackRepository repository, ActivePacksConfig activeConfig) {
         super(Component.literal("Select Banner Packs"));
