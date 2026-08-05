@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant;
 
+import java.util.WeakHashMap;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
@@ -11,14 +12,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
 import se.icus.mag.loomassistant.storage.BannerStorage;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
+import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 
 public class LoomAssistantMod implements ModInitializer {
     public static final String MOD_ID = "loom-assistant";
 
-    // This logger is used to write text to the console and the log file.
-    // It is considered best practice to use your mod id as the logger's name.
-    // That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+    private static final WeakHashMap<Object, LoomScreenExtension> SCREEN_EXTENSIONS = new WeakHashMap<>();
+
+    public static void registerExtension(Object screen, LoomScreenExtension extension) {
+        SCREEN_EXTENSIONS.put(screen, extension);
+    }
+
+    public static LoomRecipePanel getPanel(Object screen) {
+        LoomScreenExtension ext = SCREEN_EXTENSIONS.get(screen);
+        return ext != null ? ext.getPanel() : null;
+    }
+
+    public static LoomScreenExtension getExtension(Object screen) {
+        return SCREEN_EXTENSIONS.get(screen);
+    }
 
     public static LoomAssistantConfig getConfig() {
         return AutoConfig.getConfigHolder(LoomAssistantConfig.class).getConfig();

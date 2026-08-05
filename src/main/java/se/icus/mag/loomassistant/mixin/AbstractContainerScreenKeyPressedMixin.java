@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import se.icus.mag.loomassistant.ui.support.LoomPanelHost;
+import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenKeyPressedMixin {
@@ -20,10 +21,8 @@ public abstract class AbstractContainerScreenKeyPressedMixin {
         if (!((Object) this instanceof LoomScreen)) {
             return;
         }
-
-        if ((Object) this instanceof LoomPanelHost host
-                && host.loomassistant$getPanel() != null
-                && host.loomassistant$getPanel().keyPressed(event)) {
+        LoomRecipePanel panel = LoomAssistantMod.getPanel(this);
+        if (panel != null && panel.keyPressed(event)) {
             cir.setReturnValue(true);
         }
     }

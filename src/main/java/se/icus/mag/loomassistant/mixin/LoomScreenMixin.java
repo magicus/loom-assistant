@@ -5,7 +5,6 @@
 package se.icus.mag.loomassistant.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import java.util.Map;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
@@ -14,8 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.LoomMenu;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,14 +20,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.ui.support.LoomActiveBannerHost;
-import se.icus.mag.loomassistant.ui.support.LoomPanelHost;
 
 @Mixin(LoomScreen.class)
-public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
-        implements LoomPanelHost, LoomActiveBannerHost {
+public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu> {
     @Unique
     private LoomScreenExtension extension;
 
@@ -44,6 +38,7 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
     private void loomassistant$onInit(CallbackInfo ci) {
         this.extension = new LoomScreenExtension(this);
         this.extension.onInit();
+        LoomAssistantMod.registerExtension(this, this.extension);
     }
 
     @Redirect(
@@ -94,22 +89,5 @@ public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
             double verticalAmount,
             CallbackInfoReturnable<Boolean> cir) {
         this.extension.onMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount, cir);
-    }
-
-    // ── LoomPanelHost / LoomActiveBannerHost ──────────────────────────────────
-
-    @Override
-    public LoomRecipePanel loomassistant$getPanel() {
-        return this.extension.getPanel();
-    }
-
-    @Override
-    public void loomassistant$setPendingActiveBannerStack(ItemStack stack) {
-        this.extension.setPendingActiveBannerStack(stack);
-    }
-
-    @Override
-    public void loomassistant$setPersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
-        this.extension.setPersistentDyeSwitchState(enabled, replacements);
     }
 }

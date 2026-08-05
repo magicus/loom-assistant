@@ -21,7 +21,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.support.LoomActiveBannerHost;
+import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 
 public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
@@ -376,11 +376,10 @@ public class BannerColorSwitchScreen extends Screen {
 
     private void applyAndClose() {
         boolean changed = panel.applyDyeSwitch(targets, true);
-        if (changed && previousScreen instanceof LoomActiveBannerHost host) {
-            host.loomassistant$setPendingActiveBannerStack(panel.getActiveBannerStack());
-        }
-        if (previousScreen instanceof LoomActiveBannerHost host) {
-            host.loomassistant$setPersistentDyeSwitchState(
+        LoomScreenExtension ext = LoomAssistantMod.getExtension(previousScreen);
+        if (ext != null) {
+            if (changed) ext.setPendingActiveBannerStack(panel.getActiveBannerStack());
+            ext.setPersistentDyeSwitchState(
                     panel.isPersistentDyeSwitchEnabled(), panel.getPersistentDyeReplacementMapCopy());
         }
         this.minecraft.gui.setScreen(previousScreen);
