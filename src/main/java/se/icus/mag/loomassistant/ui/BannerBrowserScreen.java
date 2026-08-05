@@ -95,7 +95,30 @@ public class BannerBrowserScreen extends Screen {
         renderExplorerPanel(ctx, cx, cy, mouseX, mouseY);
         renderDescPanel(ctx, cx, cy, mouseX, mouseY);
 
+        // Render "Manage Packs" button
+        renderManagePacksButton(ctx, cx, cy, mouseX, mouseY);
+
         super.extractRenderState(ctx, mouseX, mouseY, delta);
+    }
+
+    private void renderManagePacksButton(GuiGraphicsExtractor ctx, int cx, int cy, int mx, int my) {
+        int btnX = cx + TOTAL_W - 90;
+        int btnY = cy + 5;
+        int btnW = 85;
+        int btnH = 12;
+
+        boolean hovered = mx >= btnX && mx < btnX + btnW && my >= btnY && my < btnY + btnH;
+        int bgColor = hovered ? 0xFF5C7CFA : 0xFF1E40AF;
+        ctx.fill(btnX, btnY, btnX + btnW, btnY + btnH, bgColor);
+        ctx.outline(btnX, btnY, btnW, btnH, COL_ACCENT);
+
+        ctx.text(
+                this.font,
+                Component.literal("Manage Packs"),
+                btnX + 3,
+                btnY + 2,
+                COL_TEXT,
+                true);
     }
 
     private void renderExplorerPanel(GuiGraphicsExtractor ctx, int cx, int cy, int mx, int my) {
@@ -174,6 +197,14 @@ public class BannerBrowserScreen extends Screen {
 
     private boolean isInBackButton(int mx, int my, int cx, int cy) {
         return currentPackId != null && mx >= cx && mx < cx + 20 && my >= cy && my < cy + HEADER_H;
+    }
+
+    private boolean isInManagePacksButton(int mx, int my, int cx, int cy) {
+        int btnX = cx + TOTAL_W - 90;
+        int btnY = cy + 5;
+        int btnW = 85;
+        int btnH = 12;
+        return mx >= btnX && mx < btnX + btnW && my >= btnY && my < btnY + btnH;
     }
 
     private List<BannerRecipe> getGridItems() {
@@ -376,6 +407,15 @@ public class BannerBrowserScreen extends Screen {
         double my = event.y();
         int cx = contentX();
         int cy = contentY();
+
+        // "Manage Packs" button
+        if (isInManagePacksButton((int)mx, (int)my, cx, cy)) {
+            this.minecraft.gui.setScreen(new BannerPackManagerScreen(
+                    this,
+                    BannerStorage.getInstance().getRepository(),
+                    BannerStorage.getInstance().getActivePacksConfig()));
+            return true;
+        }
 
         // Back button (only when inside a pack)
         if (currentPackId != null && isInBackButton((int) mx, (int) my, cx, cy)) {
