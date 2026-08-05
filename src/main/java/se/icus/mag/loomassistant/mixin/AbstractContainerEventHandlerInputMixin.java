@@ -19,22 +19,24 @@ import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 public interface AbstractContainerEventHandlerInputMixin {
     @Inject(method = "charTyped", at = @At("HEAD"), cancellable = true)
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (!((Object) this instanceof LoomScreen)) {
-            return;
-        }
+        if (!(this instanceof LoomScreen)) return;
+
         LoomRecipePanel panel = LoomAssistantMod.getPanel(this);
-        if (panel != null && panel.charTyped(event)) {
+        if (panel == null) return;
+
+        if (panel.charTyped(event)) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
     private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
-        if (!((Object) this instanceof LoomScreen)) {
-            return;
-        }
+        if (!(this instanceof LoomScreen)) return;
+
         LoomRecipePanel panel = LoomAssistantMod.getPanel(this);
-        if (panel != null && panel.mouseDragged(event, dx, dy)) {
+        if (panel == null) return;
+
+        if (panel.mouseDragged(event, dx, dy)) {
             cir.setReturnValue(true);
         }
     }

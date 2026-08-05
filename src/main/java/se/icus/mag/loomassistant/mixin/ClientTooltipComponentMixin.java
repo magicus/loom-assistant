@@ -22,8 +22,8 @@ public interface ClientTooltipComponentMixin {
             cancellable = true)
     private static void createCustomTooltip(
             TooltipComponent component, CallbackInfoReturnable<ClientTooltipComponent> cir) {
-        if (component instanceof BannerRecipeTooltipComponent bannerRecipeTooltipComponent) {
-            cir.setReturnValue(new ClientBannerRecipeTooltipComponent(bannerRecipeTooltipComponent));
-        }
+        if (!(component instanceof BannerRecipeTooltipComponent bannerRecipeTooltipComponent)) return;
+
+        cir.setReturnValue(new ClientBannerRecipeTooltipComponent(bannerRecipeTooltipComponent));
     }
 }

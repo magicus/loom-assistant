@@ -18,11 +18,12 @@ import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 public abstract class AbstractContainerScreenKeyPressedMixin {
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (!((Object) this instanceof LoomScreen)) {
-            return;
-        }
+        if (!((Object) this instanceof LoomScreen)) return;
+
         LoomRecipePanel panel = LoomAssistantMod.getPanel(this);
-        if (panel != null && panel.keyPressed(event)) {
+        if (panel == null) return;
+
+        if (panel.keyPressed(event)) {
             cir.setReturnValue(true);
         }
     }
