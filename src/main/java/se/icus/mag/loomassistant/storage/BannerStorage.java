@@ -35,6 +35,7 @@ public class BannerStorage {
     // Config dir used for the global categories.json
     private final Path configDir;
     private BannerPackRepository repository;
+    private ActivePacksConfig activePacksConfig;
     private final List<BannerRecipe> banners = new ArrayList<>();
 
     public BannerStorage() {
@@ -52,11 +53,13 @@ public class BannerStorage {
     public void load() {
         repository = new BannerPackRepository(packRootPath);
         repository.load();
+        activePacksConfig = new ActivePacksConfig(packRootPath);
         refreshBannerCache();
         rebuildCategoryRegistry();
         LoomAssistantMod.LOGGER.info(
-                "Loaded {} banners from {} packs",
+                "Loaded {} banners from {} active packs out of {} total",
                 banners.size(),
+                activePacksConfig.getActivePacks().size(),
                 repository.getPacks().size());
     }
 
@@ -141,6 +144,16 @@ public class BannerStorage {
         if (packId == null) return false;
         var pack = repository.getPack(packId);
         return pack != null && pack.isReadOnly();
+    }
+
+    public BannerPackRepository getRepository() {
+        ensureRepositoryLoaded();
+        return repository;
+    }
+
+    public ActivePacksConfig getActivePacksConfig() {
+        ensureRepositoryLoaded();
+        return activePacksConfig;
     }
 
     public void renameBanner(String id, String newName) {
@@ -267,13 +280,17 @@ public class BannerStorage {
 
     private void refreshBannerCache() {
         banners.clear();
-        if (repository == null) {
+        if (repository == null || activePacksConfig == null) {
             return;
         }
 
-        for (Map.Entry<String, BannerPack> entry : repository.getPacks().entrySet()) {
-            for (BannerRecipe recipe : entry.getValue().getDesigns()) {
-                banners.add(recipe);
+        List<String> activePacks = activePacksConfig.getActivePacks();
+        for (String packId : activePacks) {
+            BannerPack pack = repository.getPack(packId);
+            if (pack != null) {
+                for (BannerRecipe recipe : pack.getDesigns()) {
+                    banners.add(recipe);
+                }
             }
         }
     }
