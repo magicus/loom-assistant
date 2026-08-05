@@ -10,15 +10,16 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import se.icus.mag.loomassistant.storage.BannerStorage;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
  * Combined import/export screen for /give commands.
- * Import is on top; export is underneath and disabled when no active banner exists.
+ * Import is on top, export is underneath, and banner-pack management sits below that.
  */
 public class BannerRecipeImportExportScreen extends Screen {
     private static final int PANEL_W = 320;
-    private static final int PANEL_H = 290;
+    private static final int PANEL_H = 374;
     private static final int PAD = 10;
     private static final int HEADER_H = 18;
     private static final int SECTION_H = 116;
@@ -47,6 +48,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     private Button pasteButton;
     private Button importButton;
     private Button copyButton;
+    private Button managePacksButton;
 
     private BannerRecipe.CommandParseResult importParseResult =
             new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
@@ -72,6 +74,10 @@ public class BannerRecipeImportExportScreen extends Screen {
 
     private int exportY() {
         return importY() + SECTION_H + SECTION_GAP;
+    }
+
+    private int packsY() {
+        return exportY() + SECTION_H + SECTION_GAP;
     }
 
     @Override
@@ -109,6 +115,13 @@ public class BannerRecipeImportExportScreen extends Screen {
                 .bounds(px + PANEL_W - PAD - BTN_W, exportBtnY, BTN_W, BTN_H)
                 .build());
         this.copyButton.active = hasExportTarget();
+
+        int packsBtnY = packsY() + SECTION_H - BTN_H - PAD;
+        this.managePacksButton = this.addRenderableWidget(Button.builder(
+                        Component.translatable("loom-assistant.screen.import_export.manage_packs"),
+                        b -> openBannerPackManager())
+                .bounds(px + PAD, packsBtnY, PANEL_W - PAD * 2, BTN_H)
+                .build());
     }
 
     @Override
@@ -119,10 +132,12 @@ public class BannerRecipeImportExportScreen extends Screen {
         int py = panelY();
         int iy = importY();
         int ey = exportY();
+        int packsY = packsY();
 
         // Draw two separate panels for import and export
         drawPanel(ctx, px + PAD, iy, PANEL_W - PAD * 2, SECTION_H);
         drawPanel(ctx, px + PAD, ey, PANEL_W - PAD * 2, SECTION_H);
+        drawPanel(ctx, px + PAD, packsY, PANEL_W - PAD * 2, SECTION_H);
 
         // Title
         ctx.text(this.font, this.title, px + PAD, py + 7, TEXT_COLOR, false);
@@ -159,6 +174,22 @@ public class BannerRecipeImportExportScreen extends Screen {
                 TEXT_DIM,
                 false);
 
+        // Banner pack section labels
+        ctx.text(
+                this.font,
+                Component.translatable("loom-assistant.screen.import_export.banner_packs_label"),
+                px + PAD + 4,
+                packsY + 6,
+                TEXT_COLOR,
+                false);
+        ctx.text(
+                this.font,
+                Component.translatable("loom-assistant.screen.import_export.banner_packs_description"),
+                px + PAD,
+                packsY + 24,
+                TEXT_DIM,
+                false);
+
         // Render previews and status messages
         renderImportPreview(ctx, px + PAD, iy + 42, mouseX, mouseY);
         renderExportPreview(ctx, px + PAD, ey + 42, mouseX, mouseY);
@@ -188,6 +219,14 @@ public class BannerRecipeImportExportScreen extends Screen {
                     OK_COLOR,
                     false);
         }
+
+        ctx.text(
+                this.font,
+                Component.translatable("loom-assistant.screen.import_export.manage_packs_hint"),
+                px + PAD,
+                packsY + 74,
+                TEXT_DIM,
+                false);
 
         super.extractRenderState(ctx, mouseX, mouseY, delta);
     }
@@ -242,6 +281,14 @@ public class BannerRecipeImportExportScreen extends Screen {
         copiedFeedback = false;
         importParseResult = BannerRecipe.parseCommandDetailed(text);
         importButton.active = importParseResult.recipe() != null;
+    }
+
+    private void openBannerPackManager() {
+        BannerStorage storage = BannerStorage.getInstance();
+        if (storage.getRepository() == null) {
+            storage.load();
+        }
+        this.minecraft.gui.setScreen(new BannerPackManagerScreen(this, storage.getRepository(), storage.getActivePacksConfig()));
     }
 
     private String getImportStatusText() {
