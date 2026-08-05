@@ -46,6 +46,7 @@ import org.jspecify.annotations.Nullable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.storage.ActivePacksConfig;
 import se.icus.mag.loomassistant.storage.BannerPackRepository;
+import se.icus.mag.loomassistant.storage.BannerStorage;
 import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
 
 @Environment(EnvType.CLIENT)
@@ -101,6 +102,7 @@ public class BannerPackSelectionScreen extends Screen {
                 }
             }
             this.activeConfig.setActivePacks(activePacks);
+            BannerStorage.getInstance().load();
         }
         this.minecraft.gui.setScreen(null);
     }
