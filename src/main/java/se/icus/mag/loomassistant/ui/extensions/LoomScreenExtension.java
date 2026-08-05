@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
+import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
@@ -44,10 +47,7 @@ import se.icus.mag.loomassistant.ui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.ui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.weaving.AutoCraftStateMachine;
 
-/**
- * Contains all extension logic for LoomScreen. Receives live access to the screen via
- * LoomScreenAdapter. LoomScreenMixin holds only minimal mixin hooks that delegate here.
- */
+/** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
 public class LoomScreenExtension {
     public static final int CONTENT_X_SHIFT = 3;
     public static final int BG_LEFT_PADDING = 19;
@@ -97,8 +97,8 @@ public class LoomScreenExtension {
     private static final Component CHANGE_COLORS_TOOLTIP =
             Component.translatable("loom-assistant.tooltip.replace_colors");
 
-    // ── adapter ───────────────────────────────────────────────────────────────
-    private final LoomScreenAdapter adapter;
+    // ── screen reference ─────────────────────────────────────────────────────
+    private final AbstractContainerScreen<LoomMenu> screen;
 
     // ── state ─────────────────────────────────────────────────────────────────
     private boolean panelOpen = false;
@@ -118,8 +118,8 @@ public class LoomScreenExtension {
     private AutoCraftStateMachine craftabilityProbe;
     private BannerFlagModel previewFlag;
 
-    public LoomScreenExtension(LoomScreenAdapter adapter) {
-        this.adapter = adapter;
+    public LoomScreenExtension(AbstractContainerScreen<LoomMenu> screen) {
+        this.screen = screen;
     }
 
     // ── public accessors used by LoomPanelHost / LoomActiveBannerHost impls ──
@@ -132,13 +132,13 @@ public class LoomScreenExtension {
         if (stack == null || stack.isEmpty()) {
             this.pendingActiveBannerStack = ItemStack.EMPTY;
             this.activeBannerStack = ItemStack.EMPTY;
-            LoomUiStateStore.setPersistedActiveBannerStack(adapter.loomassistant$getMinecraft(), ItemStack.EMPTY);
+            LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, ItemStack.EMPTY);
             this.lastPersistedActiveBannerJson = null;
             return;
         }
         this.pendingActiveBannerStack = stack.copyWithCount(1);
         this.activeBannerStack = this.pendingActiveBannerStack.copy();
-        LoomUiStateStore.setPersistedActiveBannerStack(adapter.loomassistant$getMinecraft(), this.activeBannerStack);
+        LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, this.activeBannerStack);
         BannerRecipe recipe = BannerRecipe.fromItem(this.activeBannerStack);
         this.lastPersistedActiveBannerJson = recipe == null ? null : recipe.toJson();
     }
@@ -157,7 +157,7 @@ public class LoomScreenExtension {
         }
 
         LoomUiStateStore.setPersistentDyeState(
-                adapter.loomassistant$getMinecraft(), this.persistentDyeSwitchEnabled, this.persistentDyeMap);
+                screen.minecraft, this.persistentDyeSwitchEnabled, this.persistentDyeMap);
 
         this.lastPersistedDyeEnabled = this.persistentDyeSwitchEnabled;
         this.lastPersistedDyeMap.clear();
@@ -172,16 +172,16 @@ public class LoomScreenExtension {
     // ── mixin hook handlers ───────────────────────────────────────────────────
 
     public void onInit() {
-        this.panelOpen = LoomUiStateStore.isLoomPanelOpen(adapter.loomassistant$getMinecraft());
-        adapter.loomassistant$setLeftPos(panelOpen ? getOpenLeftPos() : getClosedLeftPos());
-        this.craftabilityProbe = new AutoCraftStateMachine(adapter.loomassistant$getMenu());
+        this.panelOpen = LoomUiStateStore.isLoomPanelOpen(screen.minecraft);
+        screen.leftPos = panelOpen ? getOpenLeftPos() : getClosedLeftPos();
+        this.craftabilityProbe = new AutoCraftStateMachine(screen.menu);
 
         ModelPart flagPart =
-                adapter.loomassistant$getMinecraft().getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
+                screen.minecraft.getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
         this.previewFlag = new BannerFlagModel(flagPart);
 
         LoomUiStateStore.PersistentDyeState persistentDyeState =
-                LoomUiStateStore.getPersistentDyeState(adapter.loomassistant$getMinecraft());
+                LoomUiStateStore.getPersistentDyeState(screen.minecraft);
         this.persistentDyeSwitchEnabled = persistentDyeState.enabled();
         this.persistentDyeMap.clear();
         this.persistentDyeMap.putAll(persistentDyeState.replacements());
@@ -190,7 +190,7 @@ public class LoomScreenExtension {
         this.lastPersistedDyeMap.putAll(this.persistentDyeMap);
 
         this.pendingActiveBannerStack =
-                LoomUiStateStore.getPersistedActiveBannerStack(adapter.loomassistant$getMinecraft());
+                LoomUiStateStore.getPersistedActiveBannerStack(screen.minecraft);
         if (!this.pendingActiveBannerStack.isEmpty()) {
             this.activeBannerStack = this.pendingActiveBannerStack.copy();
             BannerRecipe persistedRecipe = BannerRecipe.fromItem(this.activeBannerStack);
@@ -200,33 +200,33 @@ public class LoomScreenExtension {
             this.lastPersistedActiveBannerJson = null;
         }
 
-        this.recipeBookButton = adapter.loomassistant$addWidget(new ImageButton(
+        this.recipeBookButton = screen.addRenderableWidget(new ImageButton(
                 getLeftStripButtonX(),
-                adapter.loomassistant$getTopPos() + LEFT_STRIP_RECIPE_Y,
+                screen.topPos + LEFT_STRIP_RECIPE_Y,
                 20,
                 18,
                 RecipeBookComponent.RECIPE_BUTTON_SPRITES,
                 button -> {
                     panelOpen = !panelOpen;
-                    LoomUiStateStore.setLoomPanelOpen(adapter.loomassistant$getMinecraft(), panelOpen);
-                    adapter.loomassistant$setLeftPos(panelOpen ? getOpenLeftPos() : getClosedLeftPos());
+                    LoomUiStateStore.setLoomPanelOpen(screen.minecraft, panelOpen);
+                    screen.leftPos = panelOpen ? getOpenLeftPos() : getClosedLeftPos();
                     refreshControls();
                     refreshPanel();
                 }));
 
-        this.saveButton = adapter.loomassistant$addWidget(
+        this.saveButton = screen.addRenderableWidget(
                 new Button.Plain(
                         getLeftStripButtonX(),
-                        adapter.loomassistant$getTopPos() + LEFT_STRIP_SAVE_EDIT_Y,
+                        screen.topPos + LEFT_STRIP_SAVE_EDIT_Y,
                         20,
                         18,
                         Component.empty(),
                         button -> {
                             if (panel != null && panel.hasActiveBanner()) {
-                                adapter.loomassistant$getMinecraft()
+                                screen.minecraft
                                         .gui
                                         .setScreen(new BannerSaveEditScreen(
-                                                adapter.loomassistant$asLoomScreen(), panel, showEditOnSaveButton()));
+                                                (LoomScreen) screen, panel, showEditOnSaveButton()));
                             }
                         },
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
@@ -248,10 +248,10 @@ public class LoomScreenExtension {
                     }
                 });
 
-        this.craftButton = adapter.loomassistant$addWidget(
+        this.craftButton = screen.addRenderableWidget(
                 new Button.Plain(
                         getLeftStripButtonX(),
-                        adapter.loomassistant$getTopPos() + LEFT_STRIP_CRAFT_Y,
+                        screen.topPos + LEFT_STRIP_CRAFT_Y,
                         20,
                         18,
                         Component.empty(),
@@ -278,17 +278,17 @@ public class LoomScreenExtension {
                     }
                 });
 
-        this.importExportButton = adapter.loomassistant$addWidget(
+        this.importExportButton = screen.addRenderableWidget(
                 new Button.Plain(
                         getLeftStripButtonX(),
                         getImportExportButtonY(),
                         20,
                         18,
                         Component.empty(),
-                        button -> adapter.loomassistant$getMinecraft()
+                        button -> screen.minecraft
                                 .gui
                                 .setScreen(new BannerRecipeImportExportScreen(
-                                        adapter.loomassistant$asLoomScreen(), panel)),
+                                        (LoomScreen) screen, panel)),
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
                     @Override
                     public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
@@ -307,10 +307,10 @@ public class LoomScreenExtension {
                     }
                 });
 
-        this.colorButton = adapter.loomassistant$addWidget(
+        this.colorButton = screen.addRenderableWidget(
                 new Button.Plain(
                         getLeftStripButtonX(),
-                        adapter.loomassistant$getTopPos() + LEFT_STRIP_COLOR_Y,
+                        screen.topPos + LEFT_STRIP_COLOR_Y,
                         20,
                         18,
                         Component.empty(),
@@ -322,10 +322,10 @@ public class LoomScreenExtension {
                                 panel.disablePersistentDyeSwitchAndReload();
                                 return;
                             }
-                            adapter.loomassistant$getMinecraft()
+                            screen.minecraft
                                     .gui
                                     .setScreen(
-                                            new BannerColorSwitchScreen(adapter.loomassistant$asLoomScreen(), panel));
+                                            new BannerColorSwitchScreen((LoomScreen) screen, panel));
                         },
                         defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
                     @Override
@@ -402,7 +402,7 @@ public class LoomScreenExtension {
             this.saveButton.visible = true;
             hasActiveBanner = !activeBannerStack.isEmpty();
             if (hasActiveBanner && craftabilityProbe != null) {
-                var mc = adapter.loomassistant$getMinecraft();
+                var mc = screen.minecraft;
                 if (mc != null && mc.player != null && mc.player.hasInfiniteMaterials()) {
                     canCraftActiveBanner = true;
                     craftDisabledMessage = null;
@@ -442,7 +442,7 @@ public class LoomScreenExtension {
                 }
             }
             context.setTooltipForNextFrame(
-                    adapter.loomassistant$getFont(), tooltipLines, Optional.empty(), mouseX, mouseY);
+                    screen.font, tooltipLines, Optional.empty(), mouseX, mouseY);
         }
         if (this.importExportButton != null && isMouseOverWidget(this.importExportButton, mouseX, mouseY)) {
             setSingleLineTooltip(context, IMPORT_EXPORT_TOOLTIP, mouseX, mouseY);
@@ -455,21 +455,21 @@ public class LoomScreenExtension {
             context.fakeItem(
                     activeBannerStack,
                     getLeftStripButtonX() + 2,
-                    adapter.loomassistant$getTopPos() + LEFT_STRIP_ACTIVE_SLOT_Y + 1);
+                    screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y + 1);
 
             if (panel != null) {
                 boolean survivalNotWeavable = !panel.isActiveBannerWeavable()
-                        && adapter.loomassistant$getMinecraft().player != null
-                        && !adapter.loomassistant$getMinecraft().player.hasInfiniteMaterials();
+                        && screen.minecraft.player != null
+                        && !screen.minecraft.player.hasInfiniteMaterials();
                 if (!survivalNotWeavable) {
                     int progress = panel.detectCraftingProgress();
                     int total = panel.getActiveBannerLayerCount();
                     if (progress >= 0 && total > 0) {
                         String badge = (progress + 1) + "/" + total;
-                        int badgeW = adapter.loomassistant$getFont().width(badge);
+                        int badgeW = screen.font.width(badge);
                         int badgeX = getLeftStripButtonX() + (20 - badgeW) / 2;
-                        int badgeY = adapter.loomassistant$getTopPos() + LEFT_STRIP_RECIPE_Y + 22;
-                        context.text(adapter.loomassistant$getFont(), badge, badgeX, badgeY, 0xFFFFFFFF, true);
+                        int badgeY = screen.topPos + LEFT_STRIP_RECIPE_Y + 22;
+                        context.text(screen.font, badge, badgeX, badgeY, 0xFFFFFFFF, true);
                     }
                 }
             }
@@ -485,13 +485,13 @@ public class LoomScreenExtension {
         }
 
         if (panel != null) {
-            var mc = adapter.loomassistant$getMinecraft();
+            var mc = screen.minecraft;
             boolean survivalNotWeavable =
                     !panel.isActiveBannerWeavable() && mc.player != null && !mc.player.hasInfiniteMaterials();
             if (!survivalNotWeavable) {
                 int progress = panel.detectCraftingProgress();
                 if (progress >= 0) {
-                    if (adapter.loomassistant$getMenu()
+                    if (screen.menu
                             .getResultSlot()
                             .getItem()
                             .isEmpty()) {
@@ -499,7 +499,7 @@ public class LoomScreenExtension {
                     }
                     renderOutputSlotBorder(context, progress);
                 }
-            } else if (adapter.loomassistant$getMenu().getResultSlot().getItem().isEmpty()) {
+            } else if (screen.menu.getResultSlot().getItem().isEmpty()) {
                 renderUncraftablePreview(context);
             }
         }
@@ -509,9 +509,9 @@ public class LoomScreenExtension {
         if (mouseButtonEvent.button() == 1 && isShiftHeld()) {
             int mx = (int) mouseButtonEvent.x();
             int my = (int) mouseButtonEvent.y();
-            int leftPos = adapter.loomassistant$getLeftPos();
-            int topPos = adapter.loomassistant$getTopPos();
-            for (net.minecraft.world.inventory.Slot slot : adapter.loomassistant$getMenu().slots) {
+            int leftPos = screen.leftPos;
+            int topPos = screen.topPos;
+            for (net.minecraft.world.inventory.Slot slot : screen.menu.slots) {
                 if (mx >= leftPos + slot.x
                         && mx < leftPos + slot.x + 16
                         && my >= topPos + slot.y
@@ -536,7 +536,7 @@ public class LoomScreenExtension {
         }
 
         if (isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())) {
-            ItemStack carried = adapter.loomassistant$getMenu().getCarried();
+            ItemStack carried = screen.menu.getCarried();
             if (!carried.isEmpty()) {
                 if (panel != null) {
                     if (panel.setActiveBannerFromItemStack(carried)) {
@@ -574,7 +574,7 @@ public class LoomScreenExtension {
             return;
         }
         if (isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())
-                && !adapter.loomassistant$getMenu().getCarried().isEmpty()) {
+                && !screen.menu.getCarried().isEmpty()) {
             cir.setReturnValue(true);
         }
     }
@@ -595,17 +595,17 @@ public class LoomScreenExtension {
     private void refreshControls() {
         if (this.recipeBookButton != null) {
             this.recipeBookButton.setPosition(
-                    getLeftStripButtonX(), adapter.loomassistant$getTopPos() + LEFT_STRIP_RECIPE_Y);
+                    getLeftStripButtonX(), screen.topPos + LEFT_STRIP_RECIPE_Y);
         }
         if (this.saveButton != null) {
             this.saveButton.setPosition(
-                    getLeftStripButtonX(), adapter.loomassistant$getTopPos() + LEFT_STRIP_SAVE_EDIT_Y);
+                    getLeftStripButtonX(), screen.topPos + LEFT_STRIP_SAVE_EDIT_Y);
         }
         if (this.craftButton != null) {
-            this.craftButton.setPosition(getLeftStripButtonX(), adapter.loomassistant$getTopPos() + LEFT_STRIP_CRAFT_Y);
+            this.craftButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_CRAFT_Y);
         }
         if (this.colorButton != null) {
-            this.colorButton.setPosition(getLeftStripButtonX(), adapter.loomassistant$getTopPos() + LEFT_STRIP_COLOR_Y);
+            this.colorButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_COLOR_Y);
         }
         if (this.importExportButton != null) {
             this.importExportButton.setPosition(getLeftStripButtonX(), getImportExportButtonY());
@@ -613,23 +613,23 @@ public class LoomScreenExtension {
     }
 
     private int getImportExportButtonY() {
-        return adapter.loomassistant$getTopPos()
-                + adapter.loomassistant$getImageHeight()
+        return screen.topPos
+                + screen.imageHeight
                 - 18
                 - LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN;
     }
 
     private int getClosedLeftPos() {
         int guiExtraLeft = BG_LEFT_PADDING + CONTENT_X_SHIFT;
-        int visualGuiWidth = adapter.loomassistant$getImageWidth() + guiExtraLeft;
-        int visualLeft = (adapter.loomassistant$getScreenWidth() - visualGuiWidth) / 2;
+        int visualGuiWidth = screen.imageWidth + guiExtraLeft;
+        int visualLeft = (screen.width - visualGuiWidth) / 2;
         return visualLeft + guiExtraLeft;
     }
 
     private int getOpenLeftPos() {
         int leftExtensionWithoutTabs = LoomRecipePanel.PANEL_WIDTH + 5 + BG_LEFT_PADDING;
-        int centeredAreaWidth = adapter.loomassistant$getImageWidth() + leftExtensionWithoutTabs;
-        int centeredAreaLeft = (adapter.loomassistant$getScreenWidth() - centeredAreaWidth) / 2;
+        int centeredAreaWidth = screen.imageWidth + leftExtensionWithoutTabs;
+        int centeredAreaLeft = (screen.width - centeredAreaWidth) / 2;
         int leftPos = centeredAreaLeft + leftExtensionWithoutTabs;
 
         int panelLeft = leftPos - leftExtensionWithoutTabs;
@@ -641,16 +641,16 @@ public class LoomScreenExtension {
     }
 
     private int getPanelX() {
-        return adapter.loomassistant$getLeftPos() - LoomRecipePanel.PANEL_WIDTH - 5 - BG_LEFT_PADDING;
+        return screen.leftPos - LoomRecipePanel.PANEL_WIDTH - 5 - BG_LEFT_PADDING;
     }
 
     private void refreshPanel() {
         this.panel = panelOpen
                 ? new LoomRecipePanel(
-                        adapter.loomassistant$asLoomScreen(),
-                        adapter.loomassistant$getMenu(),
+                        (LoomScreen) screen,
+                        screen.menu,
                         getPanelX(),
-                        adapter.loomassistant$getTopPos())
+                        screen.topPos)
                 : null;
         if (this.panel != null) {
             this.panel.restorePersistentDyeSwitchState(persistentDyeSwitchEnabled, Map.copyOf(persistentDyeMap));
@@ -658,12 +658,12 @@ public class LoomScreenExtension {
     }
 
     private int getLeftStripButtonX() {
-        return adapter.loomassistant$getLeftPos() - BG_LEFT_PADDING + LEFT_STRIP_BUTTON_X;
+        return screen.leftPos - BG_LEFT_PADDING + LEFT_STRIP_BUTTON_X;
     }
 
     private boolean isInActiveSlot(int mouseX, int mouseY) {
         int slotX = getLeftStripButtonX();
-        int slotY = adapter.loomassistant$getTopPos() + LEFT_STRIP_ACTIVE_SLOT_Y;
+        int slotY = screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y;
         return mouseX >= slotX && mouseX < slotX + ACTIVE_SLOT_W && mouseY >= slotY && mouseY < slotY + ACTIVE_SLOT_H;
     }
 
@@ -679,7 +679,7 @@ public class LoomScreenExtension {
 
     private void setSingleLineTooltip(GuiGraphicsExtractor context, Component text, int mouseX, int mouseY) {
         context.setTooltipForNextFrame(
-                adapter.loomassistant$getFont(), List.of(text), Optional.empty(), mouseX, mouseY);
+                screen.font, List.of(text), Optional.empty(), mouseX, mouseY);
     }
 
     private boolean showEditOnSaveButton() {
@@ -704,14 +704,14 @@ public class LoomScreenExtension {
     private void renderUncraftableBadge(GuiGraphicsExtractor ctx) {
         int iconSize = 12;
         int bx = getLeftStripButtonX() + (20 - iconSize) / 2;
-        int by = adapter.loomassistant$getTopPos() + LEFT_STRIP_RECIPE_Y + 23;
+        int by = screen.topPos + LEFT_STRIP_RECIPE_Y + 23;
         drawWeaveWithSlash(ctx, bx, by, iconSize);
     }
 
     private void renderUncraftablePreview(GuiGraphicsExtractor ctx) {
         int iconSize = 16;
-        int px = adapter.loomassistant$getLeftPos() + 141 + (20 - iconSize) / 2;
-        int py = adapter.loomassistant$getTopPos() + 8 + (40 - iconSize) / 2 + 6;
+        int px = screen.leftPos + 141 + (20 - iconSize) / 2;
+        int py = screen.topPos + 8 + (40 - iconSize) / 2 + 6;
         drawWeaveWithSlash(ctx, px, py, iconSize);
     }
 
@@ -721,16 +721,16 @@ public class LoomScreenExtension {
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
         var layer = recipe.getLayers().get(nextLayerIndex);
-        int px = adapter.loomassistant$getLeftPos() + 141;
-        int py = adapter.loomassistant$getTopPos() + 8;
+        int px = screen.leftPos + 141;
+        int py = screen.topPos + 8;
 
         ItemStack dye = new ItemStack((net.minecraft.world.item.Item) BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
         context.fakeItem(dye, px + 2, py + 2);
 
         try {
             Identifier patId = Identifier.tryParse(layer.patternId());
-            if (patId != null && adapter.loomassistant$getMinecraft().level != null) {
-                var reg = adapter.loomassistant$getMinecraft()
+            if (patId != null && screen.minecraft.level != null) {
+                var reg = screen.minecraft
                         .level
                         .registryAccess()
                         .lookup(Registries.BANNER_PATTERN);
@@ -758,9 +758,9 @@ public class LoomScreenExtension {
     }
 
     private void renderOutputSlotBorder(GuiGraphicsExtractor context, int progress) {
-        int rx = adapter.loomassistant$getLeftPos() + 143;
-        int ry = adapter.loomassistant$getTopPos() + 57;
-        ItemStack result = adapter.loomassistant$getMenu().getResultSlot().getItem();
+        int rx = screen.leftPos + 143;
+        int ry = screen.topPos + 57;
+        ItemStack result = screen.menu.getResultSlot().getItem();
         if (result.isEmpty()) return;
 
         boolean correct = resultMatchesExpected(result, progress);
@@ -807,7 +807,7 @@ public class LoomScreenExtension {
                 : !currentActiveJson.equals(this.lastPersistedActiveBannerJson);
         if (activeChanged) {
             LoomUiStateStore.setPersistedActiveBannerStack(
-                    adapter.loomassistant$getMinecraft(), this.activeBannerStack);
+                    screen.minecraft, this.activeBannerStack);
             this.lastPersistedActiveBannerJson = currentActiveJson;
         }
 
@@ -815,7 +815,7 @@ public class LoomScreenExtension {
                 || !this.lastPersistedDyeMap.equals(this.persistentDyeMap);
         if (dyeChanged) {
             LoomUiStateStore.setPersistentDyeState(
-                    adapter.loomassistant$getMinecraft(), this.persistentDyeSwitchEnabled, this.persistentDyeMap);
+                    screen.minecraft, this.persistentDyeSwitchEnabled, this.persistentDyeMap);
             this.lastPersistedDyeEnabled = this.persistentDyeSwitchEnabled;
             this.lastPersistedDyeMap.clear();
             this.lastPersistedDyeMap.putAll(this.persistentDyeMap);
@@ -833,13 +833,13 @@ public class LoomScreenExtension {
     }
 
     private boolean isShiftHeld() {
-        var win = adapter.loomassistant$getMinecraft().getWindow();
+        var win = screen.minecraft.getWindow();
         return InputConstants.isKeyDown(win, GLFW.GLFW_KEY_LEFT_SHIFT)
                 || InputConstants.isKeyDown(win, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     private void playActiveSlotSetSound() {
-        var mc = adapter.loomassistant$getMinecraft();
+        var mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
@@ -856,7 +856,7 @@ public class LoomScreenExtension {
     }
 
     private void playActiveSlotClearSound() {
-        var mc = adapter.loomassistant$getMinecraft();
+        var mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()

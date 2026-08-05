@@ -6,10 +6,7 @@ package se.icus.mag.loomassistant.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import java.util.Map;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -27,76 +24,18 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.extensions.LoomScreenAdapter;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.ui.support.LoomActiveBannerHost;
 import se.icus.mag.loomassistant.ui.support.LoomPanelHost;
 
 @Mixin(LoomScreen.class)
 public abstract class LoomScreenMixin extends AbstractContainerScreen<LoomMenu>
-        implements LoomPanelHost, LoomActiveBannerHost, LoomScreenAdapter {
+        implements LoomPanelHost, LoomActiveBannerHost {
     @Unique
     private LoomScreenExtension loomassistant$extension;
 
     public LoomScreenMixin(LoomMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
-    }
-
-    // ── LoomScreenAdapter implementation ──────────────────────────────────────
-
-    @Override
-    public int loomassistant$getLeftPos() {
-        return this.leftPos;
-    }
-
-    @Override
-    public void loomassistant$setLeftPos(int x) {
-        this.leftPos = x;
-    }
-
-    @Override
-    public int loomassistant$getTopPos() {
-        return this.topPos;
-    }
-
-    @Override
-    public int loomassistant$getImageWidth() {
-        return this.imageWidth;
-    }
-
-    @Override
-    public int loomassistant$getImageHeight() {
-        return this.imageHeight;
-    }
-
-    @Override
-    public int loomassistant$getScreenWidth() {
-        return this.width;
-    }
-
-    @Override
-    public Font loomassistant$getFont() {
-        return this.font;
-    }
-
-    @Override
-    public Minecraft loomassistant$getMinecraft() {
-        return this.minecraft;
-    }
-
-    @Override
-    public LoomMenu loomassistant$getMenu() {
-        return this.menu;
-    }
-
-    @Override
-    public LoomScreen loomassistant$asLoomScreen() {
-        return (LoomScreen) (Object) this;
-    }
-
-    @Override
-    public <T extends AbstractWidget> T loomassistant$addWidget(T widget) {
-        return this.addRenderableWidget(widget);
     }
 
     // ── mixin hooks ───────────────────────────────────────────────────────────

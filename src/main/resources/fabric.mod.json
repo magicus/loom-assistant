@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "icon": "assets/loom-assistant/icon.png",
+  "accessWidener": "loom-assistant.accesswidener",
   "environment": "*",
   "entrypoints": {
     "main": [
