@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.recipe;
+package se.icus.mag.loomassistant.parsers.old;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 public final class BannerParserNeedCoolerShoes {
     private static final Pattern BANNER_PATTERN =

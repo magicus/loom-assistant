@@ -7,6 +7,7 @@ package se.icus.mag.loomassistant.types.recipe;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import se.icus.mag.loomassistant.parsers.old.BannerParserSkinMC;
 
 class BannerParserSkinMCTest {
     @Test

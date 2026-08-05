@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.recipe.parsers;
+package se.icus.mag.loomassistant.parsers;
 
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
@@ -54,7 +54,7 @@ public final class MinecraftParser {
         String trimmed = input.trim();
 
         if (trimmed.startsWith("/give")) {
-            return parsGiveCommand(trimmed);
+            return parseGiveCommand(trimmed);
         } else if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             return parseNbtData(trimmed);
         }
@@ -62,7 +62,7 @@ public final class MinecraftParser {
         return null;
     }
 
-    private static BannerRecipe parsGiveCommand(String command) {
+    private static BannerRecipe parseGiveCommand(String command) {
         int braceIndex = command.indexOf('{');
         if (braceIndex < 0) {
             throw new IllegalArgumentException("No NBT data in /give command");

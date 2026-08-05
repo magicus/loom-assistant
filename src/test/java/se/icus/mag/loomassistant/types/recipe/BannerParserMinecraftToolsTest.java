@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import se.icus.mag.loomassistant.parsers.old.BannerParserMinecraftTools;
 
 class BannerParserMinecraftToolsTest {
     @Test

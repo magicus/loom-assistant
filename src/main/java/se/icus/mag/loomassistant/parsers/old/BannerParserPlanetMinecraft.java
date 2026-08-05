@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.recipe;
+package se.icus.mag.loomassistant.parsers.old;
 
 import java.net.URI;
 import java.net.URLDecoder;
@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
 
 public final class BannerParserPlanetMinecraft {
     private static final String ALPHABET = "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0_-";

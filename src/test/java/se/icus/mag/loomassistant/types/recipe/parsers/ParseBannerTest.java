@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import se.icus.mag.loomassistant.parsers.ParseBanner;
 
 class ParseBannerTest {
     @Test

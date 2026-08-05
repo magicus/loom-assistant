@@ -2,14 +2,14 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.recipe.parsers;
+package se.icus.mag.loomassistant.parsers;
 
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import se.icus.mag.loomassistant.types.recipe.BannerParserMinecraftTools;
+import se.icus.mag.loomassistant.parsers.old.BannerParserMinecraftTools;
 import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
 
 /**
