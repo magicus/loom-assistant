@@ -9,34 +9,22 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
-import se.icus.mag.loomassistant.LoomAssistantMod;
 
 public record BannerRecipe(
         String id,
@@ -48,8 +36,8 @@ public record BannerRecipe(
         List<BannerRecipeLayer> layers) {
     public static final String DEFAULT_DESCRIPTION = "Unnamed banner";
     public static final String DEFAULT_CATEGORY = "misc";
-    private static final Codec<BannerRecipe> CODEC;
-    private static final Gson GSON = new GsonBuilder().create();
+    public static final Codec<BannerRecipe> CODEC;
+    public static final Gson GSON = new GsonBuilder().create();
 
     public BannerRecipe {
         description = blankToNull(description);
@@ -186,76 +174,6 @@ public record BannerRecipe(
             case RED -> Items.DYE.red();
             case BLACK -> Items.DYE.black();
         };
-    }
-
-    private static BannerRecipe fromBannerPatterns(
-            String description, DyeColor baseColor, BannerPatternLayers patterns) {
-        List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
-        if (patterns != null) {
-            for (BannerPatternLayers.Layer layer : patterns.layers()) {
-                parsedLayers.add(BannerRecipeLayer.of(
-                        layer.pattern().getRegisteredName(), layer.color().getName()));
-            }
-        }
-        return new BannerRecipe(null, description, null, null, DEFAULT_CATEGORY, baseColor.getName(), parsedLayers);
-    }
-
-    public static BannerRecipe fromJson(String json) {
-        JsonElement element = JsonParser.parseString(json);
-        return CODEC.parse(JsonOps.INSTANCE, element)
-                .getOrThrow(msg -> new IllegalStateException("Failed to parse BannerRecipe: " + msg));
-    }
-
-    public String toJson() {
-        JsonElement element = CODEC.encodeStart(JsonOps.INSTANCE, this)
-                .getOrThrow(msg -> new IllegalStateException("Failed to encode BannerRecipe: " + msg));
-        return GSON.toJson(element);
-    }
-
-    public static BannerRecipe fromItem(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return null;
-        if (!(stack.getItem() instanceof BannerItem bannerItem)) return null;
-
-        Component customName = stack.getCustomName();
-        String description = customName != null ? customName.getString() : DEFAULT_DESCRIPTION;
-        return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
-    }
-
-    public static ItemStack toItem(Minecraft client, BannerRecipe recipe) {
-        return toItem(
-                LoomAssistantMod.getBannerPatternRegistry(client), recipe.getBaseBannerItem(), recipe.getLayers());
-    }
-
-    public static ItemStack toItem(
-            Registry<BannerPattern> registry, Item baseBannerItem, List<BannerRecipeLayer> layers) {
-        ItemStack stack = new ItemStack(baseBannerItem);
-
-        if (registry == null || layers.isEmpty()) return stack;
-
-        try {
-            BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
-            for (BannerRecipeLayer layer : layers) {
-                try {
-                    Identifier patternId = Identifier.tryParse(layer.patternId());
-                    if (patternId == null) continue;
-
-                    Optional<Holder.Reference<BannerPattern>> entry = registry.get(patternId);
-                    if (entry.isEmpty()) {
-                        LoomAssistantMod.LOGGER.debug("Pattern not found in registry: {}", patternId);
-                        continue;
-                    }
-
-                    builder.add(entry.get(), layer.getDyeColorEnum());
-                } catch (RuntimeException e) {
-                    LoomAssistantMod.LOGGER.debug("Error processing banner pattern: {}", layer.patternId(), e);
-                }
-            }
-            stack.set(DataComponents.BANNER_PATTERNS, builder.build());
-        } catch (RuntimeException e) {
-            LoomAssistantMod.LOGGER.debug("Error creating banner patterns component", e);
-        }
-
-        return stack;
     }
 
     public record CommandParseResult(BannerRecipe recipe, String errorMessage, Integer errorPosition) {}

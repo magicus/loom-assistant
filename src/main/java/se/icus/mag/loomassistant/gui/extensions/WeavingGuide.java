@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class WeavingGuide extends ScreenExtensionWidget {
@@ -59,13 +60,15 @@ public class WeavingGuide extends ScreenExtensionWidget {
     }
 
     public static void renderBannerPreview(GuiGraphicsExtractor context, BannerRecipe banner, int x, int y) {
-        ItemStack bannerStack = BannerRecipe.toItem(Minecraft.getInstance(), banner);
+        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
+        ItemStack bannerStack = converter.fromRecipe(banner);
+        ;
         context.item(bannerStack, x, y);
     }
 
     public static boolean resultMatchesExpected(ItemStack activeBannerStack, ItemStack result, int nextLayerIndex) {
         if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
-        BannerRecipe recipe = BannerRecipe.fromItem(activeBannerStack);
+        BannerRecipe recipe = BannerRecipeItemConverter.fromItem(activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;
         if (bannerItem.getColor() != recipe.getBannerColorEnum()) return false;
 

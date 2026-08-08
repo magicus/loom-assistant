@@ -52,6 +52,7 @@ import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
@@ -357,7 +358,7 @@ public class LoomRecipePanel extends ScreenExtensionWidget {
         List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
         if (rows.isEmpty()) return Optional.empty();
 
-        ItemStack previewStack = BannerRecipe.toItem(Minecraft.getInstance(), banner);
+        ItemStack previewStack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), banner);
         BannerPatternLayers patterns = previewStack.get(DataComponents.BANNER_PATTERNS);
         DyeColor baseColor = banner.getBannerColorEnum();
         boolean notWeavable = !banner.isWeavable();
@@ -381,7 +382,7 @@ public class LoomRecipePanel extends ScreenExtensionWidget {
             } else {
                 ItemStack patternIcon = getPatternItem(layer.patternId());
                 if (patternIcon.isEmpty()) {
-                    patternIcon = BannerRecipe.toItem(
+                    patternIcon = BannerRecipeItemConverter.toItem(
                             LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()),
                             Items.BANNER.white(),
                             List.of(layer));
@@ -924,7 +925,7 @@ public class LoomRecipePanel extends ScreenExtensionWidget {
         if (dyeStack.isEmpty() && patternStack.isEmpty()) {
             ItemStack bannerStack = handler.getSlot(0).getItem();
             if (bannerStack.isEmpty()) return false;
-            BannerRecipe banner = BannerRecipe.fromItem(bannerStack);
+            BannerRecipe banner = BannerRecipeItemConverter.fromItem(bannerStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;
@@ -932,7 +933,7 @@ public class LoomRecipePanel extends ScreenExtensionWidget {
         } else {
             ItemStack outputStack = handler.getSlot(3).getItem();
             if (outputStack.isEmpty()) return false;
-            BannerRecipe banner = BannerRecipe.fromItem(outputStack);
+            BannerRecipe banner = BannerRecipeItemConverter.fromItem(outputStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
@@ -60,7 +61,7 @@ class BannerPackRepositoryTest {
 
         BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
         String json = converter.fromRecipe(recipe);
-        BannerRecipe parsed = BannerRecipe.fromJson(json);
+        BannerRecipe parsed = converter.toRecipe(json);
 
         assertTrue(json.contains("\"color\":\"blue\""));
         assertTrue(json.contains("\"banner_color\":\"light_blue\""));
@@ -77,17 +78,18 @@ class BannerPackRepositoryTest {
         BannerRecipe whiteDesign = new BannerRecipe("Test", DyeColor.WHITE, List.of());
         String whiteJson = converter.fromRecipe(whiteDesign);
         assertTrue(whiteJson.contains("\"banner_color\":\"white\""));
-        BannerRecipe whiteParsed = BannerRecipe.fromJson(whiteJson);
+        BannerRecipe whiteParsed = converter.toRecipe(whiteJson);
         assertEquals("white", whiteParsed.bannerColor());
     }
 
     @Test
     void missingRequiredFieldsFailParsing() {
-        assertThrows(IllegalStateException.class, () -> BannerRecipe.fromJson("{\"layers\":[]}"));
-        assertThrows(IllegalStateException.class, () -> BannerRecipe.fromJson("{\"description\":\"x\",\"layers\":[]}"));
+        BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+        assertThrows(IllegalStateException.class, () -> converter.toRecipe("{\"layers\":[]}"));
+        assertThrows(IllegalStateException.class, () -> converter.toRecipe("{\"description\":\"x\",\"layers\":[]}"));
         assertThrows(
                 IllegalStateException.class,
-                () -> BannerRecipe.fromJson("{\"description\":\"x\",\"banner_color\":\"white\"}"));
+                () -> converter.toRecipe("{\"description\":\"x\",\"banner_color\":\"white\"}"));
     }
 
     @Test
@@ -172,7 +174,7 @@ class BannerPackRepositoryTest {
             Items.BANNER.lightBlue().builtInRegistryHolder().bindComponents(DataComponentMap.EMPTY);
         }
 
-        BannerRecipe recipe = BannerRecipe.fromItem(new ItemStack(Items.BANNER.lightBlue()));
+        BannerRecipe recipe = BannerRecipeItemConverter.fromItem(new ItemStack(Items.BANNER.lightBlue()));
 
         assertNotNull(recipe);
         assertEquals(BannerRecipe.DEFAULT_DESCRIPTION, recipe.description());

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";
@@ -281,7 +282,9 @@ public abstract class BannerPack {
                             .sorted()
                             .forEach(path -> {
                                 try (Reader reader = Files.newBufferedReader(path)) {
-                                    BannerRecipe recipe = BannerRecipe.fromJson(readAll(reader));
+                                    BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+                                    BannerRecipe recipe = converter.toRecipe(readAll(reader));
+                                    ;
                                     if (recipe != null) {
                                         String fileName = path.getFileName().toString();
                                         String baseName = fileName.substring(0, fileName.length() - ".json".length());

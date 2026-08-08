@@ -15,6 +15,7 @@ import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 
 /**
  * Combined import/export screen for /give commands.
@@ -213,7 +214,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerRecipe.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
@@ -228,7 +229,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerRecipe.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);

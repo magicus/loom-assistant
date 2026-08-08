@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 
 /**
  * Weaver for creative mode: instantly adds the result to the player's inventory.
@@ -21,7 +22,7 @@ public class CreativeWeaver extends Weaver {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.player == null || mc.gameMode == null) return;
 
-        ItemStack result = BannerRecipe.toItem(Minecraft.getInstance(), banner);
+        ItemStack result = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), banner);
 
         // Apply recipe name as custom name if it's not the unnamed placeholder.
         if (banner.description() != null

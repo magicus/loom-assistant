@@ -229,7 +229,8 @@ public final class BannerStorage {
         }
 
         try {
-            BannerRecipe fromTypesJson = BannerRecipe.fromJson(trimmed);
+            BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+            BannerRecipe fromTypesJson = converter.toRecipe(trimmed);
             if (fromTypesJson != null) {
                 BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
                 try {
