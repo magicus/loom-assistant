@@ -70,7 +70,7 @@ public class LoomScreenLeftBar {
             Component.translatable("loom-assistant.tooltip.replace_colors");
 
     private final LoomScreen screen;
-    private final LoomScreenState state;
+    private final LoomScreenStateManager manager;
     private final Runnable panelVisibilityChangedCallback;
 
     private ImageButton recipeBookButton;
@@ -79,9 +79,10 @@ public class LoomScreenLeftBar {
     private Button colorButton;
     private Button importExportButton;
 
-    public LoomScreenLeftBar(LoomScreen screen, LoomScreenState state, Runnable panelVisibilityChangedCallback) {
+    public LoomScreenLeftBar(
+            LoomScreen screen, LoomScreenStateManager manager, Runnable panelVisibilityChangedCallback) {
         this.screen = screen;
-        this.state = state;
+        this.manager = manager;
         this.panelVisibilityChangedCallback = panelVisibilityChangedCallback;
     }
 
@@ -93,7 +94,7 @@ public class LoomScreenLeftBar {
                 18,
                 RecipeBookComponent.RECIPE_BUTTON_SPRITES,
                 button -> {
-                    state.togglePanelOpen();
+                    manager.togglePanelOpen();
                     panelVisibilityChangedCallback.run();
                 }));
 
@@ -102,7 +103,7 @@ public class LoomScreenLeftBar {
         this.importExportButton = screen.addRenderableWidget(new ImportExportButton());
         this.colorButton = screen.addRenderableWidget(new ReplaceColorButton());
         this.colorButton.setOverrideRenderHighlightedSprite(
-                () -> state.isPersistentDyeSwitchEnabled() || this.colorButton.isHoveredOrFocused());
+                () -> manager.isPersistentDyeSwitchEnabled() || this.colorButton.isHoveredOrFocused());
 
         refreshLayout();
         updateButtonState();
@@ -127,15 +128,15 @@ public class LoomScreenLeftBar {
     }
 
     public void render(GuiGraphicsExtractor context, int mouseX, int mouseY) {
-        boolean hasActiveBanner = state.hasActiveBanner();
-        boolean canCraftActiveBanner = hasActiveBanner && state.isActiveBannerCraftable();
+        boolean hasActiveBanner = manager.hasActiveBanner();
+        boolean canCraftActiveBanner = hasActiveBanner && manager.isActiveBannerCraftable();
         String craftDisabledMessage =
-                hasActiveBanner && !canCraftActiveBanner ? state.getActiveBannerMissingMaterialMessage() : null;
+                hasActiveBanner && !canCraftActiveBanner ? manager.getActiveBannerMissingMaterialMessage() : null;
 
         updateButtonState();
 
         if (saveButton != null && isMouseOverWidget(saveButton, mouseX, mouseY)) {
-            Component tooltip = state.isActiveBannerAlreadySaved() ? EDIT_TOOLTIP : SAVE_TOOLTIP;
+            Component tooltip = manager.isActiveBannerAlreadySaved() ? EDIT_TOOLTIP : SAVE_TOOLTIP;
             setSingleLineTooltip(context, tooltip, mouseX, mouseY);
         }
         if (craftButton != null && isMouseOverWidget(craftButton, mouseX, mouseY)) {
@@ -158,14 +159,14 @@ public class LoomScreenLeftBar {
             setSingleLineTooltip(context, CHANGE_COLORS_TOOLTIP, mouseX, mouseY);
         }
 
-        ItemStack activeBannerStack = state.getActiveBannerStack();
+        ItemStack activeBannerStack = manager.getActiveBannerStack();
         if (activeBannerStack.isEmpty()) return;
 
         context.fakeItem(activeBannerStack, getLeftStripButtonX() + 2, screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y + 1);
 
         if (!isSurvivalNotWeavable()) {
-            int progress = state.detectCraftingProgress();
-            int total = state.getActiveBannerLayerCount();
+            int progress = manager.detectCraftingProgress();
+            int total = manager.getActiveBannerLayerCount();
             if (progress >= 0 && total > 0) {
                 String badge = (progress + 1) + "/" + total;
                 int badgeWidth = screen.font.width(badge);
@@ -175,13 +176,13 @@ public class LoomScreenLeftBar {
             }
         }
 
-        if (isInActiveSlot(mouseX, mouseY) && state.getActiveBannerRecipe() != null) {
-            int progress = state.detectCraftingProgress();
+        if (isInActiveSlot(mouseX, mouseY) && manager.getActiveBannerRecipe() != null) {
+            int progress = manager.detectCraftingProgress();
             int currentRowIndex = progress >= 0 ? progress + 1 : -1;
             LoomRecipePanel.setBannerTooltip(
                     context,
-                    state.getActiveBannerDisplayName(),
-                    state.getActiveBannerRecipe(),
+                    manager.getActiveBannerDisplayName(),
+                    manager.getActiveBannerRecipe(),
                     currentRowIndex,
                     mouseX,
                     mouseY);
@@ -203,7 +204,7 @@ public class LoomScreenLeftBar {
                     ItemStack stack = slot.getItem();
                     if (!stack.isEmpty()
                             && stack.getItem() instanceof BannerItem
-                            && state.setActiveBannerFromItemStack(stack)) {
+                            && manager.setActiveBannerFromItemStack(stack)) {
                         playActiveSlotSetSound();
                         return true;
                     }
@@ -217,13 +218,13 @@ public class LoomScreenLeftBar {
         }
 
         ItemStack carried = screen.menu.getCarried();
-        if (!carried.isEmpty() && state.setActiveBannerFromItemStack(carried)) {
+        if (!carried.isEmpty() && manager.setActiveBannerFromItemStack(carried)) {
             playActiveSlotSetSound();
             return true;
         }
 
-        if (state.hasActiveBanner()) {
-            state.clearActiveBanner();
+        if (manager.hasActiveBanner()) {
+            manager.clearActiveBanner();
             playActiveSlotClearSound();
             return true;
         }
@@ -238,13 +239,13 @@ public class LoomScreenLeftBar {
     }
 
     private void updateButtonState() {
-        boolean hasActiveBanner = state.hasActiveBanner();
+        boolean hasActiveBanner = manager.hasActiveBanner();
         if (saveButton != null) {
             saveButton.active = hasActiveBanner;
             saveButton.visible = true;
         }
         if (craftButton != null) {
-            craftButton.active = hasActiveBanner && state.isActiveBannerCraftable();
+            craftButton.active = hasActiveBanner && manager.isActiveBannerCraftable();
         }
         if (colorButton != null) {
             colorButton.active = hasActiveBanner;
@@ -254,7 +255,7 @@ public class LoomScreenLeftBar {
 
     private boolean isSurvivalNotWeavable() {
         LocalPlayer player = screen.minecraft.player;
-        return !state.isActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
+        return !manager.isActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
     }
 
     private int getLeftStripButtonX() {
@@ -331,12 +332,12 @@ public class LoomScreenLeftBar {
                     18,
                     Component.empty(),
                     button -> {
-                        if (!state.hasActiveBanner()) return;
+                        if (!manager.hasActiveBanner()) return;
 
-                        if (state.isPersistentDyeSwitchEnabled()) {
-                            state.disablePersistentDyeSwitchAndReload();
+                        if (manager.isPersistentDyeSwitchEnabled()) {
+                            manager.disablePersistentDyeSwitchAndReload();
                         } else {
-                            screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(screen, state));
+                            screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(screen, manager));
                         }
                     },
                     Supplier::get);
@@ -345,7 +346,7 @@ public class LoomScreenLeftBar {
         @Override
         public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
             this.extractDefaultSprite(graphics);
-            boolean persistent = state.isPersistentDyeSwitchEnabled();
+            boolean persistent = manager.isPersistentDyeSwitchEnabled();
             int iconOffset = persistent ? 1 : 0;
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,
@@ -378,9 +379,9 @@ public class LoomScreenLeftBar {
                     18,
                     Component.empty(),
                     button -> {
-                        if (state.hasActiveBanner()) {
+                        if (manager.hasActiveBanner()) {
                             screen.minecraft.gui.setScreen(
-                                    new BannerSaveEditScreen(screen, state, state.isActiveBannerAlreadySaved()));
+                                    new BannerSaveEditScreen(screen, manager, manager.isActiveBannerAlreadySaved()));
                         }
                     },
                     Supplier::get);
@@ -389,7 +390,7 @@ public class LoomScreenLeftBar {
         @Override
         public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
             this.extractDefaultSprite(graphics);
-            Identifier icon = state.isActiveBannerAlreadySaved() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
+            Identifier icon = manager.isActiveBannerAlreadySaved() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED, icon, this.getX() + 2, this.getY() + 1, 0.0F, 0.0F, 16, 16, 16, 16);
         }
@@ -403,7 +404,7 @@ public class LoomScreenLeftBar {
                     20,
                     18,
                     Component.empty(),
-                    button -> state.craftActiveBanner(),
+                    button -> manager.craftActiveBanner(),
                     Supplier::get);
         }
 
@@ -432,7 +433,7 @@ public class LoomScreenLeftBar {
                     20,
                     18,
                     Component.empty(),
-                    button -> screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(screen, state)),
+                    button -> screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(screen, manager)),
                     Supplier::get);
         }
 

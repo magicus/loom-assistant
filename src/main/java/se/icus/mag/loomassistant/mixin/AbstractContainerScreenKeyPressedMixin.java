@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 @Mixin(AbstractContainerScreen.class)
@@ -20,7 +21,8 @@ public abstract class AbstractContainerScreenKeyPressedMixin {
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) return;
 
-        LoomRecipePanel panel = LoomAssistantMod.getPanel(this);
+        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
         if (panel == null) return;
 
         if (panel.keyPressed(event)) {

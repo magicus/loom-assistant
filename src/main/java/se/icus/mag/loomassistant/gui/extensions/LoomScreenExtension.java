@@ -10,11 +10,9 @@ import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
-/**
- * Coordinates the LoomScreen-specific extension pieces while keeping the mixin hooks minimal.
- */
 public class LoomScreenExtension {
     private static final int CONTENT_X_SHIFT = 3;
     private static final int BG_LEFT_PADDING = 19;
@@ -26,35 +24,36 @@ public class LoomScreenExtension {
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/loom-gui.png");
 
     private final LoomScreen screen;
+    private final LoomScreenStateManager manager;
 
-    private LoomScreenState state;
     private LoomScreenLeftBar leftBar;
     private LoomRecipePanel panel;
     private WeavingGuide weavingGuide;
 
     public LoomScreenExtension(LoomScreen screen) {
         this.screen = screen;
+        this.manager = LoomAssistantMod.getLoomManager();
     }
 
     public LoomRecipePanel getPanel() {
         return panel;
     }
 
-    public LoomScreenState getState() {
-        return state;
-    }
-
     public void onInit() {
-        this.state = new LoomScreenState(screen.minecraft, screen.menu);
-        this.screen.leftPos = state.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
-        this.weavingGuide = new WeavingGuide(screen, state);
-        this.leftBar = new LoomScreenLeftBar(screen, state, this::onPanelVisibilityChanged);
+        manager.onLoomScreenOpened(screen.menu);
+        this.screen.leftPos = manager.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
+        this.weavingGuide = new WeavingGuide(screen, manager);
+        this.leftBar = new LoomScreenLeftBar(screen, manager, this::onPanelVisibilityChanged);
         this.leftBar.onInit();
         refreshPanel();
     }
 
+    public void onRemoved() {
+        manager.onLoomScreenClosed();
+    }
+
     public void onExtractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        state.tick();
+        manager.tick();
         if (panel != null) {
             panel.render(context, mouseX, mouseY, delta);
         }
@@ -116,7 +115,7 @@ public class LoomScreenExtension {
     }
 
     private void onPanelVisibilityChanged() {
-        screen.leftPos = state.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
+        screen.leftPos = manager.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
         if (leftBar != null) {
             leftBar.refreshLayout();
         }
@@ -149,8 +148,8 @@ public class LoomScreenExtension {
     }
 
     private void refreshPanel() {
-        this.panel = state.isPanelOpen()
-                ? new LoomRecipePanel(state, screen, screen.menu, getPanelX(), screen.topPos)
+        this.panel = manager.isPanelOpen()
+                ? new LoomRecipePanel(manager, screen, screen.menu, getPanelX(), screen.topPos)
                 : null;
     }
 }

@@ -4,7 +4,6 @@
  */
 package se.icus.mag.loomassistant;
 
-import java.util.WeakHashMap;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
@@ -17,26 +16,32 @@ import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 
 public class LoomAssistantMod implements ModInitializer {
     public static final String MOD_ID = "loom-assistant";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private static final WeakHashMap<Object, LoomScreenExtension> SCREEN_EXTENSIONS = new WeakHashMap<>();
+    private static final LoomScreenState LOOM_STATE = new LoomScreenState();
+    private static final LoomScreenStateManager LOOM_MANAGER = new LoomScreenStateManager(LOOM_STATE);
+    private static LoomScreenExtension loomExtension;
 
-    public static void registerExtension(Object screen, LoomScreenExtension extension) {
-        SCREEN_EXTENSIONS.put(screen, extension);
+    public static LoomScreenState getLoomState() {
+        return LOOM_STATE;
     }
 
-    public static LoomRecipePanel getPanel(Object screen) {
-        LoomScreenExtension ext = SCREEN_EXTENSIONS.get(screen);
-        return ext != null ? ext.getPanel() : null;
+    public static LoomScreenStateManager getLoomManager() {
+        return LOOM_MANAGER;
     }
 
-    public static LoomScreenExtension getExtension(Object screen) {
-        return SCREEN_EXTENSIONS.get(screen);
+    public static LoomScreenExtension getLoomExtension() {
+        return loomExtension;
+    }
+
+    public static void setLoomExtension(LoomScreenExtension extension) {
+        loomExtension = extension;
     }
 
     public static LoomAssistantConfig getConfig() {

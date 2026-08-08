@@ -1,0 +1,630 @@
+/*
+ * Copyright © Magnus Ihse Bursie 2026.
+ * This file is released under MIT. See LICENSE for full license details.
+ */
+package se.icus.mag.loomassistant.gui.extensions;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.LoomMenu;
+import net.minecraft.world.item.BannerItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import net.minecraft.world.level.storage.LevelResource;
+import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.support.LoomStatePersistence;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.weaving.Weaver;
+
+public class LoomScreenStateManager {
+    private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
+    private static final String PANEL_OPEN_BY_WORLD_KEY = "panelOpenByWorld";
+    private static final String ACTIVE_BANNER_BY_WORLD_KEY = "activeBannerByWorld";
+    private static final String PERSISTENT_DYE_BY_WORLD_KEY = "persistentDyeByWorld";
+    private static final String SELECTED_CATEGORY_BY_WORLD_KEY = "selectedCategoryByWorld";
+    private static final String DYE_ENABLED_KEY = "enabled";
+    private static final String DYE_REPLACEMENTS_KEY = "replacements";
+
+    private final LoomScreenState state;
+    private final BannerRecipeJsonConverter recipeConverter = new BannerRecipeJsonConverter();
+
+    private LoomMenu currentMenu;
+    private Weaver currentWeaver;
+    private String loadedWorldKey;
+
+    public LoomScreenStateManager(LoomScreenState state) {
+        this.state = state;
+    }
+
+    public LoomScreenState getState() {
+        return state;
+    }
+
+    // ── Screen lifecycle ──────────────────────────────────────────────────────
+
+    public void onLoomScreenOpened(LoomMenu menu) {
+        this.currentMenu = menu;
+        this.currentWeaver = Weaver.getWeaver(menu);
+        String worldKey = currentWorldKey();
+        if (!worldKey.equals(loadedWorldKey)) {
+            loadedWorldKey = worldKey;
+            loadPersistedState(worldKey);
+        }
+    }
+
+    public void onLoomScreenClosed() {
+        this.currentMenu = null;
+        this.currentWeaver = null;
+    }
+
+    // ── Tick / weaving status ─────────────────────────────────────────────────
+
+    public void tick() {
+        if (currentWeaver != null) {
+            currentWeaver.tick();
+        }
+    }
+
+    public boolean isWeavingActive() {
+        return currentWeaver != null && currentWeaver.isActive();
+    }
+
+    // ── Panel open ────────────────────────────────────────────────────────────
+
+    public boolean isPanelOpen() {
+        return state.isPanelOpen();
+    }
+
+    public boolean togglePanelOpen() {
+        state.setPanelOpen(!state.isPanelOpen());
+        persistCurrentWorldState();
+        return state.isPanelOpen();
+    }
+
+    // ── Active banner reads ───────────────────────────────────────────────────
+
+    public boolean hasActiveBanner() {
+        return state.getActiveBanner() != null;
+    }
+
+    public BannerRecipe getActiveBannerRecipe() {
+        return state.getActiveBanner();
+    }
+
+    public ItemStack getActiveBannerStack() {
+        BannerRecipe banner = state.getActiveBanner();
+        return banner == null ? ItemStack.EMPTY : BannerRecipe.toItem(Minecraft.getInstance(), banner);
+    }
+
+    public String getActiveBannerDisplayName() {
+        return effectiveActiveName();
+    }
+
+    public int getActiveBannerLayerCount() {
+        BannerRecipe banner = state.getActiveBanner();
+        return banner != null ? banner.getLayers().size() : 0;
+    }
+
+    public List<DyeColor> getActiveBannerUsedColors() {
+        BannerRecipe banner = state.getActiveBanner();
+        if (banner == null) return List.of();
+
+        Set<DyeColor> colors = new LinkedHashSet<>();
+        colors.add(banner.getBaseColorEnum());
+        for (BannerRecipeLayer layer : banner.getLayers()) {
+            colors.add(layer.getDyeColorEnum());
+        }
+        return List.copyOf(colors);
+    }
+
+    // ── Active banner mutations ───────────────────────────────────────────────
+
+    public boolean setActiveBannerFromItemStack(ItemStack stack) {
+        BannerRecipe banner = BannerRecipe.fromItem(stack);
+        if (banner == null) return false;
+        setActiveBannerFromSource(banner, null, true);
+        return true;
+    }
+
+    public void setActiveBannerFromRecipe(BannerRecipe banner, String sourceId) {
+        setActiveBannerFromSource(banner, sourceId, true);
+    }
+
+    public void loadImportedBanner(BannerRecipe imported) {
+        setActiveBannerFromSource(imported, null, true);
+    }
+
+    public void clearActiveBanner() {
+        state.setActiveBanner(null);
+        state.setSelectedBannerId(null);
+        state.setActiveBannerSource(null);
+        state.setActiveBannerSourceId(null);
+        persistCurrentWorldState();
+    }
+
+    // ── Crafting ──────────────────────────────────────────────────────────────
+
+    public int detectCraftingProgress() {
+        if (currentMenu == null) return -1;
+        BannerRecipe recipe = state.getActiveBanner();
+        if (recipe == null) return -1;
+
+        ItemStack bannerInSlot = currentMenu.getBannerSlot().getItem();
+        if (bannerInSlot.isEmpty()) return -1;
+        if (!(bannerInSlot.getItem() instanceof BannerItem bannerItem)) return -1;
+        if (bannerItem.getColor() != recipe.getBannerColorEnum()) return -1;
+
+        BannerPatternLayers patterns = bannerInSlot.get(DataComponents.BANNER_PATTERNS);
+        List<BannerPatternLayers.Layer> currentLayers = patterns != null ? patterns.layers() : List.of();
+        List<BannerRecipeLayer> recipeLayers = recipe.getLayers();
+
+        int craftedLayerCount = currentLayers.size();
+        if (craftedLayerCount >= recipeLayers.size()) return -1;
+
+        for (int i = 0; i < craftedLayerCount; i++) {
+            BannerPatternLayers.Layer current = currentLayers.get(i);
+            BannerRecipeLayer expected = recipeLayers.get(i);
+            if (current.color() != expected.getDyeColorEnum()) return -1;
+
+            String currentPatternId = current.pattern()
+                    .unwrapKey()
+                    .map(key -> key.identifier().toString())
+                    .orElse(null);
+            if (currentPatternId == null) return -1;
+
+            String expectedPatternId =
+                    expected.patternId().contains(":") ? expected.patternId() : "minecraft:" + expected.patternId();
+            if (!currentPatternId.equals(expectedPatternId)) return -1;
+        }
+        return craftedLayerCount;
+    }
+
+    public void craftActiveBanner() {
+        if (currentWeaver == null || state.getActiveBanner() == null) return;
+        BannerRecipe toWeave = state.getActiveBanner().withDescription(effectiveActiveName());
+        currentWeaver.weave(toWeave);
+    }
+
+    public boolean isActiveBannerCraftable() {
+        return currentWeaver != null
+                && state.getActiveBanner() != null
+                && currentWeaver.canWeave(state.getActiveBanner());
+    }
+
+    public boolean isActiveBannerWeavable() {
+        BannerRecipe banner = state.getActiveBanner();
+        return banner == null || banner.isWeavable();
+    }
+
+    public String getActiveBannerMissingMaterialMessage() {
+        BannerRecipe banner = state.getActiveBanner();
+        if (banner == null) {
+            return Component.translatable("loom-assistant.active.select_banner").getString();
+        }
+
+        boolean survivalTooManySteps = !banner.isWeavable() && isInSurvivalMode();
+        List<String> missingMaterials =
+                currentWeaver != null ? currentWeaver.getMissingMaterialDescriptions(banner) : List.of();
+        if (missingMaterials.isEmpty() && !survivalTooManySteps) return null;
+
+        StringBuilder message = new StringBuilder();
+        if (survivalTooManySteps) {
+            message.append(Component.translatable("loom-assistant.active.too_many_steps")
+                    .getString());
+        }
+        if (!missingMaterials.isEmpty()) {
+            if (!message.isEmpty()) {
+                message.append("\n");
+            }
+            message.append(Component.translatable("loom-assistant.active.missing_header")
+                            .getString())
+                    .append("\n")
+                    .append(String.join("\n", missingMaterials));
+        }
+        return message.toString();
+    }
+
+    // ── Dye switch ────────────────────────────────────────────────────────────
+
+    public boolean isPersistentDyeSwitchEnabled() {
+        return state.isPersistentDyeSwitchEnabled();
+    }
+
+    public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
+        return Map.copyOf(state.getPersistentDyeReplacementMap());
+    }
+
+    public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
+        Map<DyeColor, DyeColor> targets = new LinkedHashMap<>();
+        for (DyeColor source : sourceColors) {
+            targets.put(source, state.getPersistentDyeReplacementMap().getOrDefault(source, source));
+        }
+        return targets;
+    }
+
+    public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
+        BannerRecipe activeBanner = state.getActiveBanner();
+        if (activeBanner == null) return false;
+
+        BannerRecipe sourceForTransform;
+        if (persistent) {
+            BannerRecipe source = state.getActiveBannerSource() != null ? state.getActiveBannerSource() : activeBanner;
+            sourceForTransform = cloneBanner(source);
+            state.setActiveBannerSource(cloneBanner(sourceForTransform));
+            state.setActiveBannerSourceId(state.getSelectedBannerId());
+        } else {
+            sourceForTransform = cloneBanner(activeBanner);
+            state.setPersistentDyeSwitchEnabled(false);
+            state.getPersistentDyeReplacementMap().clear();
+        }
+
+        Map<DyeColor, DyeColor> normalized = normalizeReplacementMap(replacements);
+        if (persistent) {
+            state.getPersistentDyeReplacementMap().clear();
+            state.getPersistentDyeReplacementMap().putAll(normalized);
+            state.setPersistentDyeSwitchEnabled(
+                    !state.getPersistentDyeReplacementMap().isEmpty());
+        }
+
+        if (normalized.isEmpty()) return false;
+
+        BannerRecipe transformed = applyDyeReplacementMap(sourceForTransform, normalized);
+        if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) return false;
+
+        state.setActiveBanner(transformed);
+        state.setSelectedBannerId(null);
+        persistCurrentWorldState();
+        return true;
+    }
+
+    public void disablePersistentDyeSwitchAndReload() {
+        if (!state.isPersistentDyeSwitchEnabled()) return;
+
+        state.setPersistentDyeSwitchEnabled(false);
+        state.getPersistentDyeReplacementMap().clear();
+
+        if (state.getActiveBannerSource() != null) {
+            state.setActiveBanner(cloneBanner(state.getActiveBannerSource()));
+            state.setSelectedBannerId(state.getActiveBannerSourceId());
+        }
+
+        persistCurrentWorldState();
+    }
+
+    // ── Banner storage / metadata ─────────────────────────────────────────────
+
+    public boolean isActiveBannerSavable() {
+        return !isActiveBannerFromWritableSource();
+    }
+
+    public boolean isActiveBannerAlreadySaved() {
+        return isActiveBannerFromWritableSource();
+    }
+
+    public boolean isActiveBannerFromReadOnlySource() {
+        String sourceId = state.getActiveBannerSourceId();
+        return sourceId != null && BannerStorage.getInstance().isRecipeReadOnly(sourceId);
+    }
+
+    public String getActiveBannerDialogName(boolean editMode) {
+        BannerRecipe banner = state.getActiveBanner();
+        if (banner == null) return BannerRecipe.getUnnamedBanner();
+
+        if (editMode && isActiveBannerFromWritableSource()) {
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(state.getActiveBannerSourceId());
+            if (source != null) {
+                String existingName = source.getName();
+                if (existingName == null || existingName.isBlank()) return BannerRecipe.getUnnamedBanner();
+                return existingName;
+            }
+        }
+
+        return effectiveActiveName();
+    }
+
+    public String getActiveBannerDialogCategory(boolean editMode) {
+        if (state.getActiveBanner() == null) return defaultSaveCategory();
+
+        if (editMode && isActiveBannerFromWritableSource()) {
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(state.getActiveBannerSourceId());
+            if (source != null) {
+                return source.getCategory();
+            }
+        }
+
+        return defaultSaveCategory();
+    }
+
+    public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
+        if (state.getActiveBanner() == null) return;
+
+        String name = nameInput == null || nameInput.isBlank() ? BannerRecipe.getUnnamedBanner() : nameInput.trim();
+        String category =
+                (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
+
+        if (isActiveBannerFromWritableSource()) {
+            BannerStorage.getInstance().updateBannerMetadata(state.getActiveBannerSourceId(), name, category);
+            BannerRecipe updated = BannerStorage.getInstance().getBannerById(state.getActiveBannerSourceId());
+            if (updated != null) {
+                setActiveBannerFromSource(updated, updated.getId(), true);
+            }
+            return;
+        }
+
+        BannerRecipe toSave =
+                cloneBanner(state.getActiveBanner()).withDescription(name).withCategory(category);
+        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
+        if (created != null) {
+            setActiveBannerFromSource(created, created.getId(), true);
+        }
+    }
+
+    // ── Selected category ─────────────────────────────────────────────────────
+
+    public String getSelectedCategoryId() {
+        return state.getSelectedCategoryId();
+    }
+
+    public void setSelectedCategoryId(String categoryId) {
+        if ((state.getSelectedCategoryId() == null && categoryId == null)
+                || (state.getSelectedCategoryId() != null
+                        && state.getSelectedCategoryId().equals(categoryId))) {
+            return;
+        }
+        state.setSelectedCategoryId(categoryId);
+        persistCurrentWorldState();
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void setActiveBannerFromSource(BannerRecipe sourceBanner, String sourceId, boolean persist) {
+        if (sourceBanner == null) {
+            state.setActiveBanner(null);
+            state.setSelectedBannerId(null);
+            state.setActiveBannerSource(null);
+            state.setActiveBannerSourceId(null);
+            if (persist) persistCurrentWorldState();
+            return;
+        }
+
+        state.setActiveBannerSource(cloneBanner(sourceBanner));
+        state.setActiveBannerSourceId(sourceId);
+        state.setSelectedBannerId(sourceId);
+
+        if (state.isPersistentDyeSwitchEnabled()
+                && !state.getPersistentDyeReplacementMap().isEmpty()) {
+            BannerRecipe transformed =
+                    applyDyeReplacementMap(state.getActiveBannerSource(), state.getPersistentDyeReplacementMap());
+            if (transformed != null && !bannersEquivalent(state.getActiveBannerSource(), transformed)) {
+                state.setActiveBanner(transformed);
+                state.setSelectedBannerId(null);
+                if (persist) persistCurrentWorldState();
+                return;
+            }
+        }
+
+        state.setActiveBanner(cloneBanner(sourceBanner));
+        if (persist) persistCurrentWorldState();
+    }
+
+    private boolean isActiveBannerFromWritableSource() {
+        String sourceId = state.getActiveBannerSourceId();
+        return sourceId != null && !BannerStorage.getInstance().isRecipeReadOnly(sourceId);
+    }
+
+    private String effectiveActiveName() {
+        BannerRecipe banner = state.getActiveBanner();
+        if (banner == null) return BannerRecipe.getUnnamedBanner();
+
+        String base = banner.getName();
+        if (base == null || base.isBlank() || base.equals(BannerRecipe.DEFAULT_DESCRIPTION)) {
+            return BannerRecipe.getUnnamedBanner();
+        }
+
+        if (state.isPersistentDyeSwitchEnabled()) {
+            return base + Component.translatable(MODIFIED_SUFFIX_KEY).getString();
+        }
+        return base;
+    }
+
+    private String defaultSaveCategory() {
+        String cat = state.getSelectedCategoryId();
+        return cat != null ? cat : BannerRecipeCategories.MISC.id();
+    }
+
+    // ── Persistence ───────────────────────────────────────────────────────────
+
+    private void loadPersistedState(String worldKey) {
+        JsonObject root = LoomStatePersistence.load();
+        JsonObject panelOpenByWorld = asObject(root.get(PANEL_OPEN_BY_WORLD_KEY));
+        JsonObject activeBannerByWorld = asObject(root.get(ACTIVE_BANNER_BY_WORLD_KEY));
+        JsonObject persistentDyeByWorld = asObject(root.get(PERSISTENT_DYE_BY_WORLD_KEY));
+        JsonObject selectedCategoryByWorld = asObject(root.get(SELECTED_CATEGORY_BY_WORLD_KEY));
+
+        state.setPanelOpen(getBoolean(panelOpenByWorld.get(worldKey), false));
+        state.setSelectedCategoryId(getString(selectedCategoryByWorld.get(worldKey)));
+
+        state.setPersistentDyeSwitchEnabled(false);
+        state.getPersistentDyeReplacementMap().clear();
+        JsonObject persistentDyeState = asObject(persistentDyeByWorld.get(worldKey));
+        if (getBoolean(persistentDyeState.get(DYE_ENABLED_KEY), false)) {
+            JsonObject replacements = asObject(persistentDyeState.get(DYE_REPLACEMENTS_KEY));
+            for (Map.Entry<String, JsonElement> entry : replacements.entrySet()) {
+                DyeColor src = DyeColor.byName(entry.getKey(), null);
+                DyeColor dst = entry.getValue().isJsonPrimitive()
+                        ? DyeColor.byName(entry.getValue().getAsString(), null)
+                        : null;
+                if (src != null && dst != null && src != dst) {
+                    state.getPersistentDyeReplacementMap().put(src, dst);
+                }
+            }
+            state.setPersistentDyeSwitchEnabled(
+                    !state.getPersistentDyeReplacementMap().isEmpty());
+        }
+
+        String recipeJson = getString(activeBannerByWorld.get(worldKey));
+        if (recipeJson != null && !recipeJson.isBlank()) {
+            try {
+                BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
+                if (recipe != null) {
+                    setActiveBannerFromSource(recipe, null, false);
+                }
+            } catch (RuntimeException e) {
+                LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
+            }
+        }
+    }
+
+    private void persistCurrentWorldState() {
+        String worldKey = currentWorldKey();
+        JsonObject root = LoomStatePersistence.load();
+
+        JsonObject panelOpenByWorld = getOrCreateObject(root, PANEL_OPEN_BY_WORLD_KEY);
+        panelOpenByWorld.addProperty(worldKey, state.isPanelOpen());
+
+        JsonObject activeBannerByWorld = getOrCreateObject(root, ACTIVE_BANNER_BY_WORLD_KEY);
+        String recipeJson = serializePersistedActiveBanner();
+        if (recipeJson == null || recipeJson.isBlank()) {
+            activeBannerByWorld.remove(worldKey);
+        } else {
+            activeBannerByWorld.addProperty(worldKey, recipeJson);
+        }
+
+        JsonObject persistentDyeByWorld = getOrCreateObject(root, PERSISTENT_DYE_BY_WORLD_KEY);
+        if (!state.isPersistentDyeSwitchEnabled()
+                || state.getPersistentDyeReplacementMap().isEmpty()) {
+            persistentDyeByWorld.remove(worldKey);
+        } else {
+            JsonObject dyeState = new JsonObject();
+            dyeState.addProperty(DYE_ENABLED_KEY, true);
+            JsonObject replacements = new JsonObject();
+            for (Map.Entry<DyeColor, DyeColor> entry :
+                    state.getPersistentDyeReplacementMap().entrySet()) {
+                replacements.addProperty(
+                        entry.getKey().getName(), entry.getValue().getName());
+            }
+            dyeState.add(DYE_REPLACEMENTS_KEY, replacements);
+            persistentDyeByWorld.add(worldKey, dyeState);
+        }
+
+        JsonObject selectedCategoryByWorld = getOrCreateObject(root, SELECTED_CATEGORY_BY_WORLD_KEY);
+        String cat = state.getSelectedCategoryId();
+        if (cat == null || cat.isBlank()) {
+            selectedCategoryByWorld.remove(worldKey);
+        } else {
+            selectedCategoryByWorld.addProperty(worldKey, cat);
+        }
+
+        LoomStatePersistence.save(root);
+    }
+
+    private String serializePersistedActiveBanner() {
+        BannerRecipe banner = state.getActiveBanner();
+        if (banner == null) return null;
+        BannerRecipe toPersist = state.isPersistentDyeSwitchEnabled() && state.getActiveBannerSource() != null
+                ? state.getActiveBannerSource()
+                : banner;
+        return recipeConverter.fromRecipe(toPersist);
+    }
+
+    // ── Static helpers ────────────────────────────────────────────────────────
+
+    private static boolean isInSurvivalMode() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc != null && mc.player != null && !mc.player.hasInfiniteMaterials();
+    }
+
+    private static BannerRecipe cloneBanner(BannerRecipe source) {
+        return new BannerRecipe(source.getName(), source.getBaseColorEnum(), new ArrayList<>(source.getLayers()))
+                .withCategory(source.getCategory());
+    }
+
+    private static Map<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
+        EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
+        if (replacements == null) return normalized;
+        for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
+            DyeColor src = entry.getKey();
+            DyeColor dst = entry.getValue();
+            if (src != null && dst != null && src != dst) {
+                normalized.put(src, dst);
+            }
+        }
+        return normalized;
+    }
+
+    private static BannerRecipe applyDyeReplacementMap(BannerRecipe source, Map<DyeColor, DyeColor> replacements) {
+        if (source == null) return null;
+        BannerRecipe copy = cloneBanner(source);
+        DyeColor newBase = replacements.getOrDefault(copy.getBaseColorEnum(), copy.getBaseColorEnum());
+        copy = copy.withBannerColor(newBase.getName());
+        List<BannerRecipeLayer> replacedLayers = new ArrayList<>();
+        for (BannerRecipeLayer layer : copy.getLayers()) {
+            DyeColor current = layer.getDyeColorEnum();
+            DyeColor target = replacements.getOrDefault(current, current);
+            replacedLayers.add(BannerRecipeLayer.of(layer.patternId(), target.getName()));
+        }
+        return copy.withLayers(replacedLayers);
+    }
+
+    private static boolean bannersEquivalent(BannerRecipe a, BannerRecipe b) {
+        if (a.getBaseColorEnum() != b.getBaseColorEnum()) return false;
+        List<BannerRecipeLayer> la = a.getLayers();
+        List<BannerRecipeLayer> lb = b.getLayers();
+        if (la.size() != lb.size()) return false;
+        for (int i = 0; i < la.size(); i++) {
+            if (!la.get(i).equals(lb.get(i))) return false;
+        }
+        return true;
+    }
+
+    private static String currentWorldKey() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null) return "unknown";
+        IntegratedServer sp = mc.getSingleplayerServer();
+        if (sp != null) {
+            return "sp:" + sp.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
+        }
+        ServerData server = mc.getCurrentServer();
+        if (server != null && server.ip != null && !server.ip.isBlank()) {
+            return "mp:" + server.ip.toLowerCase();
+        }
+        return "unknown";
+    }
+
+    private static JsonObject asObject(JsonElement element) {
+        return element != null && element.isJsonObject() ? element.getAsJsonObject() : new JsonObject();
+    }
+
+    private static JsonObject getOrCreateObject(JsonObject root, String key) {
+        JsonElement existing = root.get(key);
+        if (existing != null && existing.isJsonObject()) return existing.getAsJsonObject();
+        JsonObject created = new JsonObject();
+        root.add(key, created);
+        return created;
+    }
+
+    private static boolean getBoolean(JsonElement element, boolean fallback) {
+        return element != null && element.isJsonPrimitive() ? element.getAsBoolean() : fallback;
+    }
+
+    private static String getString(JsonElement element) {
+        return element != null && element.isJsonPrimitive() ? element.getAsString() : null;
+    }
+}

@@ -13,7 +13,7 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
@@ -27,7 +27,7 @@ public class BannerSaveEditScreen extends Screen {
     private static final int NOTICE_EXTRA_H = 20;
 
     private final Screen previousScreen;
-    private final LoomScreenState state;
+    private final LoomScreenStateManager manager;
     private final boolean editMode;
     private final boolean readOnlySource;
     private final List<BannerRecipeCategory> categories;
@@ -35,15 +35,15 @@ public class BannerSaveEditScreen extends Screen {
     private EditBox nameBox;
     private String selectedCategoryId;
 
-    public BannerSaveEditScreen(Screen previousScreen, LoomScreenState state, boolean editMode) {
+    public BannerSaveEditScreen(Screen previousScreen, LoomScreenStateManager manager, boolean editMode) {
         super(Component.translatable(
                 editMode
                         ? "loom-assistant.screen.save_edit.title_edit"
                         : "loom-assistant.screen.save_edit.title_save"));
         this.previousScreen = previousScreen;
-        this.state = state;
+        this.manager = manager;
         this.editMode = editMode;
-        this.readOnlySource = editMode && state.isActiveBannerFromReadOnlySource();
+        this.readOnlySource = editMode && manager.isActiveBannerFromReadOnlySource();
         this.categories = BannerRecipeCategories.getCategories();
     }
 
@@ -56,8 +56,8 @@ public class BannerSaveEditScreen extends Screen {
         int x = (this.width - PANEL_W) / 2;
         int y = (this.height - panelH()) / 2;
 
-        String initialName = state.getActiveBannerDialogName(editMode);
-        this.selectedCategoryId = normalizeCategory(state.getActiveBannerDialogCategory(editMode));
+        String initialName = manager.getActiveBannerDialogName(editMode);
+        this.selectedCategoryId = normalizeCategory(manager.getActiveBannerDialogCategory(editMode));
 
         this.nameBox = this.addRenderableWidget(new EditBox(
                 this.font,
@@ -202,7 +202,7 @@ public class BannerSaveEditScreen extends Screen {
 
     private void applyAndClose() {
         String name = this.nameBox == null ? "" : this.nameBox.getValue();
-        state.applyActiveBannerMetadata(name, selectedCategoryId);
+        manager.applyActiveBannerMetadata(name, selectedCategoryId);
         this.minecraft.gui.setScreen(previousScreen);
     }
 

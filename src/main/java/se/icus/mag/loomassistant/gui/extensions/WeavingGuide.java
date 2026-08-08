@@ -29,21 +29,22 @@ public class WeavingGuide {
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
 
     private final LoomScreen screen;
-    private final LoomScreenState state;
+    private final LoomScreenStateManager manager;
 
-    public WeavingGuide(LoomScreen screen, LoomScreenState state) {
+    public WeavingGuide(LoomScreen screen, LoomScreenStateManager manager) {
         this.screen = screen;
-        this.state = state;
+        this.manager = manager;
     }
 
     public void render(GuiGraphicsExtractor context) {
-        if (!state.hasActiveBanner()) return;
+        if (!manager.hasActiveBanner()) return;
 
         Minecraft minecraft = screen.minecraft;
-        boolean survivalNotWeavable =
-                !state.isActiveBannerWeavable() && minecraft.player != null && !minecraft.player.hasInfiniteMaterials();
+        boolean survivalNotWeavable = !manager.isActiveBannerWeavable()
+                && minecraft.player != null
+                && !minecraft.player.hasInfiniteMaterials();
         if (!survivalNotWeavable) {
-            int progress = state.detectCraftingProgress();
+            int progress = manager.detectCraftingProgress();
             if (progress >= 0) {
                 if (screen.menu.getResultSlot().getItem().isEmpty()) {
                     renderNextStepHint(context, progress);
@@ -96,7 +97,7 @@ public class WeavingGuide {
     }
 
     private void renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
-        BannerRecipe recipe = state.getActiveBannerRecipe();
+        BannerRecipe recipe = manager.getActiveBannerRecipe();
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
         BannerRecipeLayer layer = recipe.getLayers().get(nextLayerIndex);
@@ -139,7 +140,7 @@ public class WeavingGuide {
         ItemStack result = screen.menu.getResultSlot().getItem();
         if (result.isEmpty()) return;
 
-        boolean correct = resultMatchesExpected(state.getActiveBannerStack(), result, progress);
+        boolean correct = resultMatchesExpected(manager.getActiveBannerStack(), result, progress);
         int color = correct ? 0xFF44FF44 : 0xFFFF4444;
         context.fill(resultX - 1, resultY - 1, resultX + 17, resultY, color);
         context.fill(resultX - 1, resultY + 16, resultX + 17, resultY + 17, color);

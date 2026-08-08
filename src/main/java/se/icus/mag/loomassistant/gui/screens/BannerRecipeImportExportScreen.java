@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
@@ -44,7 +44,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     private static final int ERROR_COLOR = 0xFFB00020;
 
     private final Screen previousScreen;
-    private final LoomScreenState state;
+    private final LoomScreenStateManager manager;
 
     private EditBox importBox;
     private Button importButton;
@@ -53,10 +53,10 @@ public class BannerRecipeImportExportScreen extends Screen {
             new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
     private boolean copiedFeedback;
 
-    public BannerRecipeImportExportScreen(Screen previousScreen, LoomScreenState state) {
+    public BannerRecipeImportExportScreen(Screen previousScreen, LoomScreenStateManager manager) {
         super(Component.translatable("loom-assistant.screen.import_export.title"));
         this.previousScreen = previousScreen;
-        this.state = state;
+        this.manager = manager;
     }
 
     private int panelX() {
@@ -222,7 +222,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private void renderExportPreview(GuiGraphicsExtractor ctx, int x, int y, int mouseX, int mouseY) {
-        BannerRecipe recipe = state != null ? state.getActiveBannerRecipe() : null;
+        BannerRecipe recipe = manager.getActiveBannerRecipe();
         if (recipe == null) {
             drawPreviewSlot(ctx, x, y);
             return;
@@ -294,18 +294,18 @@ public class BannerRecipeImportExportScreen extends Screen {
 
     private void doImport() {
         BannerRecipe recipe = importParseResult.recipe();
-        if (recipe == null || state == null || this.minecraft == null) return;
+        if (recipe == null || this.minecraft == null) return;
 
-        state.loadImportedBanner(recipe);
-        this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, state, false));
+        manager.loadImportedBanner(recipe);
+        this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, manager, false));
     }
 
     private boolean hasExportTarget() {
-        return state != null && state.getActiveBannerRecipe() != null;
+        return manager.getActiveBannerRecipe() != null;
     }
 
     private String buildExportCommand() {
-        BannerRecipe recipe = state != null ? state.getActiveBannerRecipe() : null;
+        BannerRecipe recipe = manager.getActiveBannerRecipe();
         return recipe == null ? "" : recipe.toCommand();
     }
 

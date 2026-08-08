@@ -47,7 +47,7 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.extensions.WeavingGuide;
 import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -117,7 +117,7 @@ public class LoomRecipePanel {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
-    private final LoomScreenState state;
+    private final LoomScreenStateManager manager;
     private final LoomMenu handler;
     private int x;
     private int y;
@@ -131,8 +131,8 @@ public class LoomRecipePanel {
     private final ImageButton pageForwardButton;
     private final ImageButton pageBackButton;
 
-    public LoomRecipePanel(LoomScreenState state, LoomScreen screen, LoomMenu handler, int x, int y) {
-        this.state = state;
+    public LoomRecipePanel(LoomScreenStateManager manager, LoomScreen screen, LoomMenu handler, int x, int y) {
+        this.manager = manager;
         this.handler = handler;
         this.x = x;
         this.y = y;
@@ -150,7 +150,7 @@ public class LoomRecipePanel {
                 Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
         this.tabs = List.of();
-        this.selectedCategoryId = state.getSelectedCategoryId();
+        this.selectedCategoryId = manager.getSelectedCategoryId();
         refreshVisibleTabs();
 
         pageForwardButton = new ImageButton(
@@ -195,7 +195,7 @@ public class LoomRecipePanel {
         renderFilterButton(ctx, mouseX, mouseY);
         renderBannerGrid(ctx, font, mouseX, mouseY);
 
-        if (state.isWeavingActive()) {
+        if (manager.isWeavingActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
         }
     }
@@ -611,7 +611,7 @@ public class LoomRecipePanel {
 
     private void setSelectedCategoryId(String categoryId) {
         this.selectedCategoryId = categoryId;
-        state.setSelectedCategoryId(categoryId);
+        manager.setSelectedCategoryId(categoryId);
     }
 
     private boolean clickBannerGrid(int mx, int my) {
@@ -630,7 +630,7 @@ public class LoomRecipePanel {
             int by = y + GRID_START_Y + row * GRID_CELL;
             if (isIn(mx, my, bx, by, 16, 16)) {
                 BannerRecipe banner = items.get(i);
-                state.setActiveBannerFromRecipe(banner, banner.getId());
+                manager.setActiveBannerFromRecipe(banner, banner.getId());
                 playUiClickSound();
                 if (isShiftPressed) {
                     craftSelectedBanner();
@@ -692,7 +692,7 @@ public class LoomRecipePanel {
     }
 
     public void tick() {
-        state.tick();
+        manager.tick();
     }
 
     public void setPosition(int x, int y) {
@@ -733,23 +733,23 @@ public class LoomRecipePanel {
      * or -1 if the slot is empty, wrong color, or layers don't match the recipe so far.
      */
     public int getActiveBannerLayerCount() {
-        return state.getActiveBannerLayerCount();
+        return manager.getActiveBannerLayerCount();
     }
 
     public int detectCraftingProgress() {
-        return state.detectCraftingProgress();
+        return manager.detectCraftingProgress();
     }
 
     private BannerRecipe getSelectedBanner() {
-        return state.getActiveBannerRecipe();
+        return manager.getActiveBannerRecipe();
     }
 
     public ItemStack getActiveBannerStack() {
-        return state.getActiveBannerStack();
+        return manager.getActiveBannerStack();
     }
 
     public BannerRecipe getActiveBannerRecipe() {
-        return state.getActiveBannerRecipe();
+        return manager.getActiveBannerRecipe();
     }
 
     public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
@@ -760,7 +760,7 @@ public class LoomRecipePanel {
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
         int progress = detectCraftingProgress();
         int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        setBannerTooltip(ctx, state.getActiveBannerDisplayName(), selectedBanner, currentRowIndex, mouseX, mouseY);
+        setBannerTooltip(ctx, manager.getActiveBannerDisplayName(), selectedBanner, currentRowIndex, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
@@ -775,97 +775,97 @@ public class LoomRecipePanel {
     }
 
     public void craftSelectedBanner() {
-        state.craftActiveBanner();
+        manager.craftActiveBanner();
     }
 
     public boolean isActiveBannerCraftable() {
-        return state.isActiveBannerCraftable();
+        return manager.isActiveBannerCraftable();
     }
 
     public String getActiveBannerMissingMaterialMessage() {
-        return state.getActiveBannerMissingMaterialMessage();
+        return manager.getActiveBannerMissingMaterialMessage();
     }
 
     public boolean isActiveBannerWeavable() {
-        return state.isActiveBannerWeavable();
+        return manager.isActiveBannerWeavable();
     }
 
     public void clearSelectedBanner() {
-        state.clearActiveBanner();
+        manager.clearActiveBanner();
     }
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        return state.setActiveBannerFromItemStack(stack);
+        return manager.setActiveBannerFromItemStack(stack);
     }
 
     public boolean hasActiveBanner() {
-        return state.hasActiveBanner();
+        return manager.hasActiveBanner();
     }
 
     public boolean isActiveBannerSavable() {
-        return state.isActiveBannerSavable();
+        return manager.isActiveBannerSavable();
     }
 
     public boolean isActiveBannerAlreadySaved() {
-        return state.isActiveBannerAlreadySaved();
+        return manager.isActiveBannerAlreadySaved();
     }
 
     public boolean isActiveBannerFromReadOnlySource() {
-        return state.isActiveBannerFromReadOnlySource();
+        return manager.isActiveBannerFromReadOnlySource();
     }
 
     public String getActiveBannerDialogName(boolean editMode) {
-        return state.getActiveBannerDialogName(editMode);
+        return manager.getActiveBannerDialogName(editMode);
     }
 
     public String getActiveBannerDialogCategory(boolean editMode) {
-        return state.getActiveBannerDialogCategory(editMode);
+        return manager.getActiveBannerDialogCategory(editMode);
     }
 
     public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
-        state.applyActiveBannerMetadata(nameInput, categoryInput);
+        manager.applyActiveBannerMetadata(nameInput, categoryInput);
     }
 
     public boolean saveActiveBanner() {
-        if (!state.hasActiveBanner() || !state.isActiveBannerSavable()) return false;
-        state.applyActiveBannerMetadata(state.getActiveBannerDisplayName(), getActiveBannerDialogCategory(false));
-        return state.isActiveBannerAlreadySaved();
+        if (!manager.hasActiveBanner() || !manager.isActiveBannerSavable()) return false;
+        manager.applyActiveBannerMetadata(manager.getActiveBannerDisplayName(), getActiveBannerDialogCategory(false));
+        return manager.isActiveBannerAlreadySaved();
     }
 
     public void loadImportedBanner(BannerRecipe imported) {
-        state.loadImportedBanner(imported);
+        manager.loadImportedBanner(imported);
     }
 
     public boolean isPersistentDyeSwitchEnabled() {
-        return state.isPersistentDyeSwitchEnabled();
+        return manager.isPersistentDyeSwitchEnabled();
     }
 
     public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
-        return state.getPersistentDyeReplacementMapCopy();
+        return manager.getPersistentDyeReplacementMapCopy();
     }
 
     public void restorePersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
         if (!enabled) {
-            state.disablePersistentDyeSwitchAndReload();
+            manager.disablePersistentDyeSwitchAndReload();
             return;
         }
-        state.applyDyeSwitch(replacements, true);
+        manager.applyDyeSwitch(replacements, true);
     }
 
     public List<DyeColor> getActiveBannerUsedColors() {
-        return state.getActiveBannerUsedColors();
+        return manager.getActiveBannerUsedColors();
     }
 
     public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
-        return state.getInitialDyeReplacementTargets(sourceColors);
+        return manager.getInitialDyeReplacementTargets(sourceColors);
     }
 
     public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
-        return state.applyDyeSwitch(replacements, persistent);
+        return manager.applyDyeSwitch(replacements, persistent);
     }
 
     public void disablePersistentDyeSwitchAndReload() {
-        state.disablePersistentDyeSwitchAndReload();
+        manager.disablePersistentDyeSwitchAndReload();
     }
 
     private static String getPatternDisplayName(BannerRecipeLayer layer) {
