@@ -20,7 +20,7 @@
       "se.icus.mag.loomassistant.LoomAssistantMod"
     ],
     "client": [
-      "se.icus.mag.loomassistant.LoomAssistantClientMod"
+      "se.icus.mag.loomassistant.LoomAssistantMod"
     ],
     "modmenu": [
       "se.icus.mag.loomassistant.config.LoomAssistantModMenuIntegration"

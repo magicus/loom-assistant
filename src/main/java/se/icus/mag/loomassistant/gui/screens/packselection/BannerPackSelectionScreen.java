@@ -42,6 +42,7 @@ import se.icus.mag.loomassistant.bannerpack.storage.ActivePacksConfig;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackSelectionScreen extends Screen {
@@ -63,6 +64,7 @@ public class BannerPackSelectionScreen extends Screen {
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this);
     private final BannerPackRepository repository;
     private final ActivePacksConfig activeConfig;
+    private final Screen parentScreen;
     private final Map<String, Identifier> packIcons = new HashMap<>();
 
     private BannerPackListWidget availablePackList;
@@ -71,9 +73,14 @@ public class BannerPackSelectionScreen extends Screen {
     private Button doneButton;
 
     public BannerPackSelectionScreen(BannerPackRepository repository, ActivePacksConfig activeConfig) {
+        this(repository, activeConfig, null);
+    }
+
+    public BannerPackSelectionScreen(BannerPackRepository repository, ActivePacksConfig activeConfig, Screen parentScreen) {
         super(Component.literal("Select Banner Packs"));
         this.repository = repository;
         this.activeConfig = activeConfig;
+        this.parentScreen = parentScreen;
     }
 
     @Override
@@ -92,7 +99,7 @@ public class BannerPackSelectionScreen extends Screen {
             this.activeConfig.setActivePacks(activePacks);
             BannerStorage.getInstance().load();
         }
-        this.minecraft.gui.setScreen(null);
+        this.minecraft.gui.setScreen(this.parentScreen);
     }
 
     @Override
@@ -112,6 +119,10 @@ public class BannerPackSelectionScreen extends Screen {
                 new BannerPackListWidget(this.minecraft, this, LIST_WIDTH, this.height - 66, ACTIVE_TITLE, true));
 
         LinearLayout footer = this.layout.addToFooter(LinearLayout.horizontal().spacing(8));
+        footer.addChild(Button.builder(
+                Component.translatable("loom-assistant.screen.pack_download.title"),
+                button -> this.minecraft.gui.setScreen(new BannerPackDownloadManagementScreen(this)))
+            .build());
         footer.addChild(Button.builder(
                         OPEN_PACK_DIR_TITLE, button -> Util.getPlatform().openPath(this.repository.getPacksRoot()))
                 .tooltip(Tooltip.create(PACK_FOLDER_TOOLTIP))

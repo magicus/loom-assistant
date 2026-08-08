@@ -272,7 +272,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             storage.load();
         }
         this.minecraft.gui.setScreen(
-                new BannerPackSelectionScreen(storage.getRepository(), storage.getActivePacksConfig()));
+                new BannerPackSelectionScreen(storage.getRepository(), storage.getActivePacksConfig(), this));
     }
 
     private void openPackDownloadManager() {

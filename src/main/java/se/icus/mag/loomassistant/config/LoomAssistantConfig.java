@@ -36,7 +36,7 @@ public class LoomAssistantConfig implements ConfigData {
         public String repoIndexUrl =
                 "https://raw.githubusercontent.com/magicus/banner-recipe-database/refs/heads/main/bannerpack-index-v1.json";
 
-        /** Comma-separated pack IDs to auto-install, e.g. "numbers, letters". */
+        @ConfigEntry.Gui.Tooltip(count = 1)
         public String autoInstallPackIds = "numbers";
 
         @ConfigEntry.Gui.Excluded
