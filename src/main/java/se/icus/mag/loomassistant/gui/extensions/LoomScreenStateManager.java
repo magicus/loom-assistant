@@ -4,8 +4,6 @@
  */
 package se.icus.mag.loomassistant.gui.extensions;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -26,6 +24,7 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.support.LoomPersistedState;
 import se.icus.mag.loomassistant.gui.support.LoomStatePersistence;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
@@ -35,22 +34,24 @@ import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomScreenStateManager {
     private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
-    private static final String PANEL_OPEN_BY_WORLD_KEY = "panelOpenByWorld";
-    private static final String ACTIVE_BANNER_BY_WORLD_KEY = "activeBannerByWorld";
-    private static final String PERSISTENT_DYE_BY_WORLD_KEY = "persistentDyeByWorld";
-    private static final String SELECTED_CATEGORY_BY_WORLD_KEY = "selectedCategoryByWorld";
-    private static final String DYE_ENABLED_KEY = "enabled";
-    private static final String DYE_REPLACEMENTS_KEY = "replacements";
 
     private final LoomScreenState state;
     private final BannerRecipeJsonConverter recipeConverter = new BannerRecipeJsonConverter();
+    private final LoomStatePersistence persistence;
+    private final LoomPersistedState persistedState;
 
     private LoomMenu currentMenu;
     private Weaver currentWeaver;
     private String loadedWorldKey;
 
     public LoomScreenStateManager(LoomScreenState state) {
+        this(state, new LoomStatePersistence());
+    }
+
+    LoomScreenStateManager(LoomScreenState state, LoomStatePersistence persistence) {
         this.state = state;
+        this.persistence = persistence;
+        this.persistedState = persistence.load();
     }
 
     public LoomScreenState getState() {
@@ -452,25 +453,21 @@ public class LoomScreenStateManager {
     // ── Persistence ───────────────────────────────────────────────────────────
 
     private void loadPersistedState(String worldKey) {
-        JsonObject root = LoomStatePersistence.load();
-        JsonObject panelOpenByWorld = asObject(root.get(PANEL_OPEN_BY_WORLD_KEY));
-        JsonObject activeBannerByWorld = asObject(root.get(ACTIVE_BANNER_BY_WORLD_KEY));
-        JsonObject persistentDyeByWorld = asObject(root.get(PERSISTENT_DYE_BY_WORLD_KEY));
-        JsonObject selectedCategoryByWorld = asObject(root.get(SELECTED_CATEGORY_BY_WORLD_KEY));
+        resetStateFromPersistence();
 
-        state.setPanelOpen(getBoolean(panelOpenByWorld.get(worldKey), false));
-        state.setSelectedCategoryId(getString(selectedCategoryByWorld.get(worldKey)));
+        LoomPersistedState.WorldState persistedWorldState = persistedState.getWorld(worldKey);
+        if (persistedWorldState == null) {
+            return;
+        }
 
-        state.setPersistentDyeSwitchEnabled(false);
-        state.getPersistentDyeReplacementMap().clear();
-        JsonObject persistentDyeState = asObject(persistentDyeByWorld.get(worldKey));
-        if (getBoolean(persistentDyeState.get(DYE_ENABLED_KEY), false)) {
-            JsonObject replacements = asObject(persistentDyeState.get(DYE_REPLACEMENTS_KEY));
-            for (Map.Entry<String, JsonElement> entry : replacements.entrySet()) {
+        state.setPanelOpen(persistedWorldState.isPanelOpen());
+        state.setSelectedCategoryId(blankToNull(persistedWorldState.getSelectedCategoryId()));
+
+        if (persistedWorldState.isPersistentDyeSwitchEnabled()) {
+            for (Map.Entry<String, String> entry :
+                    persistedWorldState.getPersistentDyeReplacements().entrySet()) {
                 DyeColor src = DyeColor.byName(entry.getKey(), null);
-                DyeColor dst = entry.getValue().isJsonPrimitive()
-                        ? DyeColor.byName(entry.getValue().getAsString(), null)
-                        : null;
+                DyeColor dst = DyeColor.byName(entry.getValue(), null);
                 if (src != null && dst != null && src != dst) {
                     state.getPersistentDyeReplacementMap().put(src, dst);
                 }
@@ -479,7 +476,7 @@ public class LoomScreenStateManager {
                     !state.getPersistentDyeReplacementMap().isEmpty());
         }
 
-        String recipeJson = getString(activeBannerByWorld.get(worldKey));
+        String recipeJson = blankToNull(persistedWorldState.getActiveBannerJson());
         if (recipeJson != null && !recipeJson.isBlank()) {
             try {
                 BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
@@ -494,45 +491,28 @@ public class LoomScreenStateManager {
 
     private void persistCurrentWorldState() {
         String worldKey = currentWorldKey();
-        JsonObject root = LoomStatePersistence.load();
+        LoomPersistedState.WorldState persistedWorldState = persistedState.getOrCreateWorld(worldKey);
 
-        JsonObject panelOpenByWorld = getOrCreateObject(root, PANEL_OPEN_BY_WORLD_KEY);
-        panelOpenByWorld.addProperty(worldKey, state.isPanelOpen());
+        persistedWorldState.setPanelOpen(state.isPanelOpen());
+        persistedWorldState.setActiveBannerJson(blankToNull(serializePersistedActiveBanner()));
+        persistedWorldState.setSelectedCategoryId(blankToNull(state.getSelectedCategoryId()));
 
-        JsonObject activeBannerByWorld = getOrCreateObject(root, ACTIVE_BANNER_BY_WORLD_KEY);
-        String recipeJson = serializePersistedActiveBanner();
-        if (recipeJson == null || recipeJson.isBlank()) {
-            activeBannerByWorld.remove(worldKey);
-        } else {
-            activeBannerByWorld.addProperty(worldKey, recipeJson);
+        boolean persistentDyeEnabled = state.isPersistentDyeSwitchEnabled()
+                && !state.getPersistentDyeReplacementMap().isEmpty();
+        persistedWorldState.setPersistentDyeSwitchEnabled(persistentDyeEnabled);
+
+        Map<String, String> replacements = new LinkedHashMap<>();
+        for (Map.Entry<DyeColor, DyeColor> entry :
+                state.getPersistentDyeReplacementMap().entrySet()) {
+            replacements.put(entry.getKey().getName(), entry.getValue().getName());
+        }
+        persistedWorldState.setPersistentDyeReplacements(replacements);
+
+        if (persistedWorldState.isEmpty()) {
+            persistedState.getWorlds().remove(worldKey);
         }
 
-        JsonObject persistentDyeByWorld = getOrCreateObject(root, PERSISTENT_DYE_BY_WORLD_KEY);
-        if (!state.isPersistentDyeSwitchEnabled()
-                || state.getPersistentDyeReplacementMap().isEmpty()) {
-            persistentDyeByWorld.remove(worldKey);
-        } else {
-            JsonObject dyeState = new JsonObject();
-            dyeState.addProperty(DYE_ENABLED_KEY, true);
-            JsonObject replacements = new JsonObject();
-            for (Map.Entry<DyeColor, DyeColor> entry :
-                    state.getPersistentDyeReplacementMap().entrySet()) {
-                replacements.addProperty(
-                        entry.getKey().getName(), entry.getValue().getName());
-            }
-            dyeState.add(DYE_REPLACEMENTS_KEY, replacements);
-            persistentDyeByWorld.add(worldKey, dyeState);
-        }
-
-        JsonObject selectedCategoryByWorld = getOrCreateObject(root, SELECTED_CATEGORY_BY_WORLD_KEY);
-        String cat = state.getSelectedCategoryId();
-        if (cat == null || cat.isBlank()) {
-            selectedCategoryByWorld.remove(worldKey);
-        } else {
-            selectedCategoryByWorld.addProperty(worldKey, cat);
-        }
-
-        LoomStatePersistence.save(root);
+        persistence.save(persistedState);
     }
 
     private String serializePersistedActiveBanner() {
@@ -542,6 +522,17 @@ public class LoomScreenStateManager {
                 ? state.getActiveBannerSource()
                 : banner;
         return recipeConverter.fromRecipe(toPersist);
+    }
+
+    private void resetStateFromPersistence() {
+        state.setPanelOpen(false);
+        state.setActiveBanner(null);
+        state.setSelectedBannerId(null);
+        state.setActiveBannerSource(null);
+        state.setActiveBannerSourceId(null);
+        state.setSelectedCategoryId(null);
+        state.setPersistentDyeSwitchEnabled(false);
+        state.getPersistentDyeReplacementMap().clear();
     }
 
     // ── Static helpers ────────────────────────────────────────────────────────
@@ -608,23 +599,7 @@ public class LoomScreenStateManager {
         return "unknown";
     }
 
-    private static JsonObject asObject(JsonElement element) {
-        return element != null && element.isJsonObject() ? element.getAsJsonObject() : new JsonObject();
-    }
-
-    private static JsonObject getOrCreateObject(JsonObject root, String key) {
-        JsonElement existing = root.get(key);
-        if (existing != null && existing.isJsonObject()) return existing.getAsJsonObject();
-        JsonObject created = new JsonObject();
-        root.add(key, created);
-        return created;
-    }
-
-    private static boolean getBoolean(JsonElement element, boolean fallback) {
-        return element != null && element.isJsonPrimitive() ? element.getAsBoolean() : fallback;
-    }
-
-    private static String getString(JsonElement element) {
-        return element != null && element.isJsonPrimitive() ? element.getAsString() : null;
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }
