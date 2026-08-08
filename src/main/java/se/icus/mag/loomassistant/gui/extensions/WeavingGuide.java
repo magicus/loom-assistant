@@ -39,7 +39,7 @@ public class WeavingGuide {
     public void render(GuiGraphicsExtractor context) {
         if (!state.hasActiveBanner()) return;
 
-		Minecraft minecraft = screen.minecraft;
+        Minecraft minecraft = screen.minecraft;
         boolean survivalNotWeavable =
                 !state.isActiveBannerWeavable() && minecraft.player != null && !minecraft.player.hasInfiniteMaterials();
         if (!survivalNotWeavable) {
@@ -72,8 +72,8 @@ public class WeavingGuide {
         if (layers.layers().size() != expected) return false;
 
         for (int i = 0; i < expected; i++) {
-			BannerPatternLayers.Layer current = layers.layers().get(i);
-			BannerRecipeLayer expectedLayer = recipe.getLayers().get(i);
+            BannerPatternLayers.Layer current = layers.layers().get(i);
+            BannerRecipeLayer expectedLayer = recipe.getLayers().get(i);
             if (current.color() != expectedLayer.getDyeColorEnum()) return false;
             String currentId = current.pattern()
                     .unwrapKey()
@@ -99,7 +99,7 @@ public class WeavingGuide {
         BannerRecipe recipe = state.getActiveBannerRecipe();
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
-		BannerRecipeLayer layer = recipe.getLayers().get(nextLayerIndex);
+        BannerRecipeLayer layer = recipe.getLayers().get(nextLayerIndex);
         int previewX = screen.leftPos + 141;
         int previewY = screen.topPos + 8;
 
@@ -110,10 +110,11 @@ public class WeavingGuide {
             Identifier patternId = Identifier.tryParse(layer.patternId());
             if (patternId == null || screen.minecraft.level == null) return;
 
-			Optional<Registry<BannerPattern>> registry = screen.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
+            Optional<Registry<BannerPattern>> registry =
+                    screen.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
             if (registry.isEmpty()) return;
 
-			Optional<Holder.Reference<BannerPattern>> entry = registry.get().get(patternId);
+            Optional<Holder.Reference<BannerPattern>> entry = registry.get().get(patternId);
             if (entry.isEmpty()) return;
 
             Holder<BannerPattern> holder = entry.get();

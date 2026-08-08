@@ -253,7 +253,7 @@ public class LoomScreenLeftBar {
     }
 
     private boolean isSurvivalNotWeavable() {
-		LocalPlayer player = screen.minecraft.player;
+        LocalPlayer player = screen.minecraft.player;
         return !state.isActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
     }
 
@@ -271,8 +271,7 @@ public class LoomScreenLeftBar {
         return mouseX >= slotX && mouseX < slotX + ACTIVE_SLOT_W && mouseY >= slotY && mouseY < slotY + ACTIVE_SLOT_H;
     }
 
-    private static boolean isMouseOverWidget(
-            AbstractWidget widget, int mouseX, int mouseY) {
+    private static boolean isMouseOverWidget(AbstractWidget widget, int mouseX, int mouseY) {
         return mouseX >= widget.getX()
                 && mouseX < widget.getX() + widget.getWidth()
                 && mouseY >= widget.getY()
@@ -284,13 +283,13 @@ public class LoomScreenLeftBar {
     }
 
     private boolean isShiftHeld() {
-		Window window = screen.minecraft.getWindow();
+        Window window = screen.minecraft.getWindow();
         return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT)
                 || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     private void playActiveSlotSetSound() {
-		Minecraft mc = screen.minecraft;
+        Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
@@ -307,7 +306,7 @@ public class LoomScreenLeftBar {
     }
 
     private void playActiveSlotClearSound() {
-		Minecraft mc = screen.minecraft;
+        Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
