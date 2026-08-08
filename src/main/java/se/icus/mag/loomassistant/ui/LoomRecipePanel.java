@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -27,7 +28,6 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
@@ -54,7 +54,7 @@ import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomRecipePanel {
     public static final int PANEL_WIDTH = 147;
-    public static final int PANEL_HEIGHT = 166;
+    private static final int PANEL_HEIGHT = 166;
     private static final int GRID_COLUMNS = 5;
     private static final int GRID_ROWS = 4;
     private static final int GRID_CELL = 25;
@@ -114,7 +114,6 @@ public class LoomRecipePanel {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
-    private final LoomScreen screen;
     private final LoomMenu handler;
     private int x;
     private int y;
@@ -132,11 +131,10 @@ public class LoomRecipePanel {
     private String activeBannerSourceId = null;
     private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
     private boolean persistentDyeSwitchEnabled = false;
-    private ImageButton pageForwardButton;
-    private ImageButton pageBackButton;
+    private final ImageButton pageForwardButton;
+    private final ImageButton pageBackButton;
 
     public LoomRecipePanel(LoomScreen screen, LoomMenu handler, int x, int y) {
-        this.screen = screen;
         this.handler = handler;
         this.x = x;
         this.y = y;
@@ -164,9 +162,7 @@ public class LoomRecipePanel {
                 PAGE_BTN_W,
                 PAGE_BTN_H,
                 PAGE_FORWARD_SPRITES,
-                button -> {
-                    page++;
-                },
+                button -> page++,
                 Component.translatable("gui.recipebook.next_page"));
         pageBackButton = new ImageButton(
                 x + 38,
@@ -174,9 +170,7 @@ public class LoomRecipePanel {
                 PAGE_BTN_W,
                 PAGE_BTN_H,
                 PAGE_BACKWARD_SPRITES,
-                button -> {
-                    page--;
-                },
+                button -> page--,
                 Component.translatable("gui.recipebook.previous_page"));
     }
 
@@ -398,7 +392,6 @@ public class LoomRecipePanel {
         return rows;
     }
 
-    @SuppressWarnings("unchecked")
     private static ItemStack createLayerPreviewStack(BannerRecipeLayer layer) {
         ItemStack stack = new ItemStack(Items.BANNER.white());
         Minecraft mc = Minecraft.getInstance();
@@ -422,15 +415,14 @@ public class LoomRecipePanel {
             }
 
             BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
-            builder.add((Holder) entry.get(), layer.getDyeColorEnum());
+            builder.add(entry.get(), layer.getDyeColorEnum());
             stack.set(DataComponents.BANNER_PATTERNS, builder.build());
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
         }
 
         return stack;
     }
 
-    @SuppressWarnings("unchecked")
     private static ItemStack getPatternItem(String patternId) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
@@ -454,7 +446,7 @@ public class LoomRecipePanel {
             if (entry.isPresent()) {
                 return new ItemStack(entry.get().value());
             }
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
         }
         return ItemStack.EMPTY;
     }
@@ -570,7 +562,7 @@ public class LoomRecipePanel {
     private void scrollTabs(int direction) {
         int newOffset = tabScrollOffset + direction;
         int maxOffset = Math.max(0, tabs.size() - getVisibleTabCount());
-        newOffset = Math.max(0, Math.min(newOffset, maxOffset));
+        newOffset = Math.clamp(newOffset, 0, maxOffset);
         if (newOffset == tabScrollOffset) {
             return;
         }
@@ -613,7 +605,7 @@ public class LoomRecipePanel {
     }
 
     private List<TabDescriptor> buildTabs(List<BannerRecipeCategory> categories) {
-        LinkedHashSet<String> nonEmptyCategoryIds = new LinkedHashSet<>();
+        Set<String> nonEmptyCategoryIds = new LinkedHashSet<>();
         for (BannerRecipe banner : BannerStorage.getInstance().getBanners()) {
             String categoryId = banner.getCategory();
             if (categoryId != null && !categoryId.isBlank()) {
@@ -900,7 +892,7 @@ public class LoomRecipePanel {
                     .getString());
         }
         if (!missingMaterials.isEmpty()) {
-            if (msg.length() > 0) msg.append("\n");
+            if (!msg.isEmpty()) msg.append("\n");
             msg.append(Component.translatable("loom-assistant.active.missing_header")
                             .getString())
                     .append("\n")
@@ -918,8 +910,6 @@ public class LoomRecipePanel {
         Minecraft mc = Minecraft.getInstance();
         return mc != null && mc.player != null && !mc.player.hasInfiniteMaterials();
     }
-
-    public void editSelectedBanner() {}
 
     public void clearSelectedBanner() {
         selectedBannerId = null;
@@ -1020,10 +1010,10 @@ public class LoomRecipePanel {
         return selectedCategoryId != null ? selectedCategoryId : BannerRecipeCategories.MISC.id();
     }
 
-    public boolean applyActiveBannerMetadata(String nameInput, String categoryInput) {
+    public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
         BannerRecipe selected = getSelectedBanner();
         if (selected == null) {
-            return false;
+            return;
         }
 
         String name = (nameInput == null || nameInput.isBlank())
@@ -1038,17 +1028,14 @@ public class LoomRecipePanel {
             if (updated != null) {
                 setActiveBannerFromSource(updated, updated.getId());
             }
-            return true;
+            return;
         }
 
         BannerRecipe toSave = cloneBannerForSave(selected).withDescription(name).withCategory(category);
         BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
         if (created != null) {
             setActiveBannerFromSource(created, created.getId());
-            return true;
         }
-
-        return false;
     }
 
     public boolean saveActiveBanner() {
@@ -1099,7 +1086,7 @@ public class LoomRecipePanel {
             return List.of();
         }
 
-        LinkedHashSet<DyeColor> colors = new LinkedHashSet<>();
+        Set<DyeColor> colors = new LinkedHashSet<>();
         colors.add(activeBanner.getBaseColorEnum());
         for (BannerRecipeLayer layer : activeBanner.getLayers()) {
             colors.add(layer.getDyeColorEnum());
@@ -1108,7 +1095,7 @@ public class LoomRecipePanel {
     }
 
     public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
-        LinkedHashMap<DyeColor, DyeColor> out = new LinkedHashMap<>();
+        Map<DyeColor, DyeColor> out = new LinkedHashMap<>();
         for (DyeColor source : sourceColors) {
             out.put(source, persistentDyeReplacementMap.getOrDefault(source, source));
         }
@@ -1131,7 +1118,7 @@ public class LoomRecipePanel {
             persistentDyeReplacementMap.clear();
         }
 
-        EnumMap<DyeColor, DyeColor> normalized = normalizeReplacementMap(replacements);
+        Map<DyeColor, DyeColor> normalized = normalizeReplacementMap(replacements);
         if (persistent) {
             persistentDyeReplacementMap.clear();
             persistentDyeReplacementMap.putAll(normalized);
@@ -1191,7 +1178,7 @@ public class LoomRecipePanel {
         activeBanner = cloneBannerForSave(sourceBanner);
     }
 
-    private static EnumMap<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
+    private static Map<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
         EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
         if (replacements == null) {
             return normalized;
@@ -1235,7 +1222,7 @@ public class LoomRecipePanel {
     }
 
     private boolean bannersEquivalent(BannerRecipe a, BannerRecipe b) {
-        if (!a.getBaseColorEnum().equals(b.getBaseColorEnum())) {
+        if (a.getBaseColorEnum() != b.getBaseColorEnum()) {
             return false;
         }
         List<BannerRecipeLayer> la = a.getLayers();
@@ -1251,7 +1238,6 @@ public class LoomRecipePanel {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     private static String getPatternDisplayName(BannerRecipeLayer layer) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
@@ -1263,15 +1249,14 @@ public class LoomRecipePanel {
                         var entry = regOpt.get().get(id);
                         if (entry.isPresent()) {
                             net.minecraft.world.level.block.entity.BannerPattern pattern =
-                                    (net.minecraft.world.level.block.entity.BannerPattern)
-                                            entry.get().value();
+                                    entry.get().value();
                             String key = pattern.translationKey() + "."
                                     + layer.getDyeColorEnum().getName();
                             return Component.translatable(key).getString();
                         }
                     }
                 }
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
             }
         }
         return toTitle(layer.getDyeColorEnum().getSerializedName()) + " " + toTitle(layer.patternId());

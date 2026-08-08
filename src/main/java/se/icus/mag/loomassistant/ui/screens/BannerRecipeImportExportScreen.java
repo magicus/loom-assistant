@@ -46,11 +46,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     private final LoomRecipePanel loomPanel;
 
     private EditBox importBox;
-    private EditBox exportBox;
-    private Button pasteButton;
     private Button importButton;
-    private Button copyButton;
-    private Button managePacksButton;
 
     private BannerRecipe.CommandParseResult importParseResult =
             new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
@@ -94,7 +90,7 @@ public class BannerRecipeImportExportScreen extends Screen {
         this.setFocused(this.importBox);
 
         int importBtnY = importY() + SECTION_H - BTN_H - PAD;
-        this.pasteButton = this.addRenderableWidget(Button.builder(
+        Button pasteButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.paste"), b -> pasteFromClipboard())
                 .bounds(px + PAD, importBtnY, BTN_W, BTN_H)
                 .build());
@@ -105,21 +101,21 @@ public class BannerRecipeImportExportScreen extends Screen {
                         .build());
         this.importButton.active = false;
 
-        this.exportBox = this.addRenderableWidget(
+        EditBox exportBox = this.addRenderableWidget(
                 new EditBox(this.font, px + PAD, exportY() + 20, PANEL_W - PAD * 2, INPUT_H, Component.empty()));
-        this.exportBox.setMaxLength(2048);
-        this.exportBox.active = false;
-        this.exportBox.setValue(buildExportCommand());
+        exportBox.setMaxLength(2048);
+        exportBox.active = false;
+        exportBox.setValue(buildExportCommand());
 
         int exportBtnY = exportY() + SECTION_H - BTN_H - PAD;
-        this.copyButton = this.addRenderableWidget(Button.builder(
+        Button copyButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.copy"), b -> copyToClipboard())
                 .bounds(px + PANEL_W - PAD - BTN_W, exportBtnY + SECTION_H - BTN_H - 6, BTN_W, BTN_H)
                 .build());
-        this.copyButton.active = hasExportTarget();
+        copyButton.active = hasExportTarget();
 
         int packsBtnY = packsY() + PAD;
-        this.managePacksButton = this.addRenderableWidget(Button.builder(
+        Button managePacksButton = this.addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.import_export.manage_packs"),
                         b -> openBannerPackManager())
                 .bounds(px + PAD, packsBtnY, PANEL_W - PAD * 2, BTN_H)
@@ -127,8 +123,8 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
-        ctx.fill(0, 0, this.width, this.height, 0x88000000);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, this.width, this.height, 0x88000000);
 
         int px = panelX();
         int py = panelY();
@@ -137,22 +133,22 @@ public class BannerRecipeImportExportScreen extends Screen {
         int packsY = packsY();
 
         // Draw two separate panels for import and export
-        drawPanel(ctx, px + PAD, iy, PANEL_W - PAD * 2, SECTION_H);
-        drawPanel(ctx, px + PAD, ey, PANEL_W - PAD * 2, SECTION_H);
-        drawPanel(ctx, px + PAD, packsY, PANEL_W - PAD * 2, SECTION_H);
+        drawPanel(graphics, px + PAD, iy, PANEL_W - PAD * 2, SECTION_H);
+        drawPanel(graphics, px + PAD, ey, PANEL_W - PAD * 2, SECTION_H);
+        drawPanel(graphics, px + PAD, packsY, PANEL_W - PAD * 2, SECTION_H);
 
         // Title
-        ctx.text(this.font, this.title, px + PAD, py + 7, TEXT_COLOR, false);
+        graphics.text(this.font, this.title, px + PAD, py + 7, TEXT_COLOR, false);
 
         // Import section labels
-        ctx.text(
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.import_label"),
                 px + PAD + 4,
                 iy + 6,
                 TEXT_COLOR,
                 false);
-        ctx.text(
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.import_command_label"),
                 px + PAD,
@@ -161,14 +157,14 @@ public class BannerRecipeImportExportScreen extends Screen {
                 false);
 
         // Export section labels
-        ctx.text(
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.export_label"),
                 px + PAD + 4,
                 ey + 6,
                 TEXT_COLOR,
                 false);
-        ctx.text(
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.import_export.export_command_label"),
                 px + PAD,
@@ -177,19 +173,19 @@ public class BannerRecipeImportExportScreen extends Screen {
                 false);
 
         // Render previews and status messages
-        renderImportPreview(ctx, px + PAD, iy + 42, mouseX, mouseY);
-        renderExportPreview(ctx, px + PAD, ey + 42, mouseX, mouseY);
+        renderImportPreview(graphics, px + PAD, iy + 42, mouseX, mouseY);
+        renderExportPreview(graphics, px + PAD, ey + 42, mouseX, mouseY);
 
         // Status text for import (below preview)
         String statusText = getImportStatusText();
         if (statusText != null) {
             int color = importParseResult.recipe() != null ? OK_COLOR : ERROR_COLOR;
-            ctx.text(this.font, Component.literal(statusText), px + PAD, iy + 74, color, false);
+            graphics.text(this.font, Component.literal(statusText), px + PAD, iy + 74, color, false);
         }
 
         // Status/feedback for export (below preview)
         if (!hasExportTarget()) {
-            ctx.text(
+            graphics.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.import_export.select_banner_to_export"),
                     px + PAD,
@@ -197,7 +193,7 @@ public class BannerRecipeImportExportScreen extends Screen {
                     TEXT_DISABLED,
                     false);
         } else if (copiedFeedback) {
-            ctx.text(
+            graphics.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.import_export.copied"),
                     px + PAD,
@@ -206,7 +202,7 @@ public class BannerRecipeImportExportScreen extends Screen {
                     false);
         }
 
-        super.extractRenderState(ctx, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 
     private void renderImportPreview(GuiGraphicsExtractor ctx, int x, int y, int mouseX, int mouseY) {

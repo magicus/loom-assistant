@@ -15,6 +15,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -23,7 +24,9 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 /**
  * Renders banner preview thumbnails in the side panel.
  */
-public class PreviewExtension {
+public final class PreviewExtension {
+    private PreviewExtension() {}
+
     public static void render(
             GuiGraphicsExtractor context, BannerRecipe banner, LoomMenu handler, int x, int y, int size) {
         // Create a banner item stack with patterns applied
@@ -44,7 +47,7 @@ public class PreviewExtension {
             try {
                 BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
 
-                Registry<Object> registry = getBannerPatternRegistry();
+                Registry<BannerPattern> registry = getBannerPatternRegistry();
 
                 if (registry != null) {
                     for (BannerRecipeLayer layer : layers) {
@@ -53,25 +56,22 @@ public class PreviewExtension {
                             Identifier patternId = Identifier.tryParse(patternIdStr);
 
                             if (patternId != null) {
-                                Optional<Holder.Reference<Object>> entry = registry.get(patternId);
+                                Optional<Holder.Reference<BannerPattern>> entry = registry.get(patternId);
 
                                 if (entry.isPresent()) {
-                                    // We need to cast to the specific type expected by the builder
-                                    @SuppressWarnings("unchecked")
-                                    Holder<Object> castedEntry = entry.get();
-                                    builder.add((Holder) castedEntry, layer.getDyeColorEnum());
+                                    builder.add(entry.get(), layer.getDyeColorEnum());
                                 } else {
                                     LoomAssistantMod.LOGGER.debug("Pattern not found in registry: {}", patternId);
                                 }
                             }
-                        } catch (Exception e) {
+                        } catch (RuntimeException e) {
                             LoomAssistantMod.LOGGER.debug("Error processing banner pattern: {}", layer.patternId(), e);
                         }
                     }
                 }
 
                 stack.set(DataComponents.BANNER_PATTERNS, builder.build());
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LoomAssistantMod.LOGGER.debug("Error creating banner patterns component", e);
             }
         }
@@ -79,17 +79,17 @@ public class PreviewExtension {
         return stack;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Registry<Object> getBannerPatternRegistry() {
+    // @SuppressWarnings("unchecked")
+    private static Registry<BannerPattern> getBannerPatternRegistry() {
         Minecraft client = Minecraft.getInstance();
         if (client.level != null) {
             try {
                 // Try getOptional first
-                return (Registry<Object>) (Object) client.level
+                return client.level
                         .registryAccess()
                         .lookup(Registries.BANNER_PATTERN)
                         .orElse(null);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LoomAssistantMod.LOGGER.debug("Failed to get registry from world", e);
             }
         }
@@ -97,7 +97,6 @@ public class PreviewExtension {
     }
 
     public static BannerRecipe extractBannerData(ItemStack stack) {
-        BannerRecipe recipe = BannerRecipe.fromItem(stack);
-        return recipe == null ? null : recipe;
+        return BannerRecipe.fromItem(stack);
     }
 }

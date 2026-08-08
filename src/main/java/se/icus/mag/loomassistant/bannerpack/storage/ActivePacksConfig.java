@@ -33,7 +33,7 @@ public class ActivePacksConfig {
         load();
     }
 
-    public void load() {
+    private void load() {
         activePacks.clear();
 
         if (Files.exists(configFile)) {
@@ -50,11 +50,11 @@ public class ActivePacksConfig {
 
         // Ensure local pack is always in the list
         if (!activePacks.contains(BannerPackRepository.LOCAL_PACK_ID)) {
-            activePacks.add(0, BannerPackRepository.LOCAL_PACK_ID);
+            activePacks.addFirst(BannerPackRepository.LOCAL_PACK_ID);
         }
     }
 
-    public void save() {
+    private void save() {
         try {
             Files.createDirectories(configFile.getParent());
             ConfigData data = new ConfigData();
@@ -80,7 +80,7 @@ public class ActivePacksConfig {
         activePacks = new ArrayList<>(packIds);
         // Ensure local pack is always active
         if (!activePacks.contains(BannerPackRepository.LOCAL_PACK_ID)) {
-            activePacks.add(0, BannerPackRepository.LOCAL_PACK_ID);
+            activePacks.addFirst(BannerPackRepository.LOCAL_PACK_ID);
         }
         save();
     }
@@ -128,6 +128,6 @@ public class ActivePacksConfig {
     }
 
     private static class ConfigData {
-        public List<String> activePacks;
+        protected List<String> activePacks;
     }
 }

@@ -83,7 +83,7 @@ public abstract class BannerPack {
 
     public abstract BannerRecipe addBannerRecipe(BannerRecipe recipe) throws IOException;
 
-    public abstract BannerRecipe updateBannerRecipe(BannerRecipe recipe) throws IOException;
+    public abstract void updateBannerRecipe(BannerRecipe recipe) throws IOException;
 
     public abstract void removeBannerRecipe(String recipeId) throws IOException;
 

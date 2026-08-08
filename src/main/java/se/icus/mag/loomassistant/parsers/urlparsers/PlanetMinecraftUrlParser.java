@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -75,13 +76,13 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
             Map.entry(42, "flow"),
             Map.entry(43, "guster"));
 
-    private final String url;
     private final URI uri;
 
     public PlanetMinecraftUrlParser(String url) {
-        this.url = url;
         try {
             this.uri = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid PlanetMinecraft URL: " + url, e);
         }

@@ -17,13 +17,13 @@ import net.minecraft.world.item.Items;
 
 /**
  * Dynamic registry for banner recipe categories.
- *
+ * <p>
  * Categories are assembled at load time from three sources (in priority order):
  *  1. The global categories.json in the loom-assistant config directory.
  *  2. Category definitions inside each banner pack's bannerpack.mcmeta.
  *  3. Implicit fallback categories auto-created for any category id used in a recipe
  *     that has no explicit definition.
- *
+ * <p>
  * Tabs are sorted alphabetically by id.
  */
 public final class BannerRecipeCategories {

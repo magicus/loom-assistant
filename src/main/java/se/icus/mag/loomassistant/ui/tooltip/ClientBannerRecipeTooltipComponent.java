@@ -110,8 +110,7 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
                 BannerPatternLayers patterns = Objects.requireNonNullElseGet(
                         component.previewPatterns(), () -> new BannerPatternLayers.Builder().build());
                 // Align preview to the top of the tooltip image area
-                int previewY = y;
-                graphics.bannerPattern(sharedFlag, base, patterns, x, previewY, x + PREVIEW_W, previewY + PREVIEW_H);
+                graphics.bannerPattern(sharedFlag, base, patterns, x, y, x + PREVIEW_W, y + PREVIEW_H);
             }
             // Uncraftable icon below preview when banner has too many steps in survival.
             if (component.notWeavableInSurvival()) {
@@ -168,11 +167,10 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             var entryOpt = registry.get().get(row.patternSprite());
             if (entryOpt.isEmpty()) return;
 
-            @SuppressWarnings("unchecked")
-            Holder<BannerPattern> holder = (Holder<BannerPattern>) (Object) entryOpt.get();
+            Holder<BannerPattern> holder = entryOpt.get();
             TextureAtlasSprite sprite = graphics.getSprite(Sheets.getBannerSprite(holder));
 
-            // Centre the scaled mini-banner inside the 16×16 slot
+            // Center the scaled mini-banner inside the 16×16 slot
             int slotCentreX = x + (SLOT_SIZE - PATTERN_RENDER_W) / 2;
             int slotCentreY = y + (SLOT_SIZE - PATTERN_RENDER_H) / 2;
 
@@ -187,7 +185,7 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             graphics.fill(0, 0, PATTERN_RENDER_W, PATTERN_RENDER_H, DyeColor.GRAY.getTextureDiffuseColor());
             graphics.blit(sprite.atlasLocation(), 0, 0, PATTERN_RENDER_W, PATTERN_RENDER_H, u0, u1, v0, v1);
             graphics.pose().popMatrix();
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // Fall back to nothing if registry not available.
         }
     }
@@ -197,7 +195,7 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             try {
                 ModelPart part = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
                 sharedFlag = new BannerFlagModel(part);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Silently fail; preview just won't render this frame.
             }
         }

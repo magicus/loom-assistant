@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types;
+package se.icus.mag.loomassistant.bannerpack.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -23,7 +24,6 @@ import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
@@ -35,7 +35,7 @@ class BannerPackRepositoryTest {
     }
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     @Test
     void createsLocalPackWhenMissing() {
@@ -69,7 +69,8 @@ class BannerPackRepositoryTest {
         assertEquals("Letter A", parsed.description());
         assertEquals("light_blue", parsed.bannerColor());
         assertEquals(1, parsed.layers().size());
-        assertEquals("minecraft:small_stripes", parsed.layers().get(0).pattern().toString());
+        assertEquals(
+                "minecraft:small_stripes", parsed.layers().getFirst().pattern().toString());
 
         BannerRecipe whiteDesign = new BannerRecipe("Test", DyeColor.WHITE, List.of());
         String whiteJson = whiteDesign.toJson();
@@ -88,7 +89,7 @@ class BannerPackRepositoryTest {
     }
 
     @Test
-    void canCreateMoveAndDeleteDesignsAndPacks() throws Exception {
+    void canCreateMoveAndDeleteDesignsAndPacks() throws IOException {
         BannerPackRepository repository = new BannerPackRepository(tempDir.resolve("bannerpacks"));
         repository.load();
 

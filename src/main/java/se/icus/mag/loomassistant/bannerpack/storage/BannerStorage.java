@@ -26,21 +26,20 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 /**
  * Compatibility wrapper around the new types-based banner pack backend.
  */
-public class BannerStorage {
+public final class BannerStorage {
     private static final Gson GSON = new GsonBuilder().create();
 
     private static BannerStorage instance;
 
     private final Path packRootPath;
-    // Config dir used for the global categories.json
-    private final Path configDir;
     private BannerPackRepository repository;
     private ActivePacksConfig activePacksConfig;
     private final List<BannerRecipe> banners = new ArrayList<>();
 
-    public BannerStorage() {
+    private BannerStorage() {
         this.packRootPath = FabricLoader.getInstance().getGameDir().resolve("bannerpacks");
-        this.configDir = FabricLoader.getInstance().getConfigDir().resolve(LoomAssistantMod.MOD_ID);
+        // Config dir used for the global categories.json
+        Path configDir = FabricLoader.getInstance().getConfigDir().resolve(LoomAssistantMod.MOD_ID);
     }
 
     public static BannerStorage getInstance() {
@@ -217,7 +216,7 @@ public class BannerStorage {
         return recipe.toCommand();
     }
 
-    public BannerRecipe importBannerFromJson(String input) {
+    private BannerRecipe importBannerFromJson(String input) {
         ensureRepositoryLoaded();
         if (input == null || input.trim().isEmpty()) {
             return null;
@@ -272,6 +271,8 @@ public class BannerStorage {
                 }
             }
             return last;
+        } catch (JsonSyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.error("Failed to import banner array", e);
             return null;
@@ -288,9 +289,7 @@ public class BannerStorage {
         for (String packId : activePacks) {
             BannerPack pack = repository.getPack(packId);
             if (pack != null) {
-                for (BannerRecipe recipe : pack.getDesigns()) {
-                    banners.add(recipe);
-                }
+                banners.addAll(pack.getDesigns());
             }
         }
     }

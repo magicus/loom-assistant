@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,13 +36,13 @@ public final class MinecraftToolsUrlParser extends UrlParser {
 
     private static final int NUM_PATTERNS = MINECRAFT_PATTERNS.length;
 
-    private final String url;
     private final URI uri;
 
     public MinecraftToolsUrlParser(String url) {
-        this.url = url;
         try {
             this.uri = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid minecraft.tools URL: " + url, e);
         }
@@ -74,7 +75,7 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             return "";
         }
 
-        return "minecraft-tools:" + params.toString();
+        return "minecraft-tools:" + params;
     }
 
     @Override

@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -16,13 +17,13 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
  * - Editor link: https://skinmc.net/banner/editor?=BANNERCODE
  */
 public final class SkinMcUrlParser extends UrlParser {
-    private final String url;
     private final URI uri;
 
     public SkinMcUrlParser(String url) {
-        this.url = url;
         try {
             this.uri = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid SkinMC URL: " + url, e);
         }

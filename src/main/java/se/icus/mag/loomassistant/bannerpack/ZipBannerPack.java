@@ -29,7 +29,7 @@ public class ZipBannerPack extends BannerPack {
     }
 
     @Override
-    public BannerRecipe updateBannerRecipe(BannerRecipe recipe) {
+    public void updateBannerRecipe(BannerRecipe recipe) {
         throw new IllegalStateException(
                 "Cannot update recipe in read-only pack " + getMetadata().id());
     }

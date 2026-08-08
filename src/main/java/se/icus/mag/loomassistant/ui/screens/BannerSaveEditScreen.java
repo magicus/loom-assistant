@@ -71,12 +71,12 @@ public class BannerSaveEditScreen extends Screen {
         this.nameBox.setFocused(true);
         this.setFocused(this.nameBox);
 
-        if (!editMode) {
-            this.nameBox.setCursorPosition(initialName.length());
-            this.nameBox.setHighlightPos(0);
-        } else {
+        if (editMode) {
             this.nameBox.setCursorPosition(initialName.length());
             this.nameBox.setHighlightPos(initialName.length());
+        } else {
+            this.nameBox.setCursorPosition(initialName.length());
+            this.nameBox.setHighlightPos(0);
         }
 
         this.addRenderableWidget(Button.builder(Component.literal("<"), button -> cycleCategory(-1))
@@ -101,24 +101,24 @@ public class BannerSaveEditScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
-        ctx.fill(0, 0, this.width, this.height, 0xAA000000);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, this.width, this.height, 0xAA000000);
 
         int x = (this.width - PANEL_W) / 2;
         int y = (this.height - panelH()) / 2;
 
-        ctx.fill(x, y, x + PANEL_W, y + panelH(), 0xFF222222);
-        ctx.outline(x, y, PANEL_W, panelH(), 0xFFFFFFFF);
+        graphics.fill(x, y, x + PANEL_W, y + panelH(), 0xFF222222);
+        graphics.outline(x, y, PANEL_W, panelH(), 0xFFFFFFFF);
 
-        ctx.text(this.font, this.title, x + 16, y + 12, 0xFFFFFFFF, false);
-        ctx.text(
+        graphics.text(this.font, this.title, x + 16, y + 12, 0xFFFFFFFF, false);
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.save_edit.name"),
                 x + 16,
                 y + 28,
                 0xFFDDDDDD,
                 false);
-        ctx.text(
+        graphics.text(
                 this.font,
                 Component.translatable("loom-assistant.screen.save_edit.category"),
                 x + 16,
@@ -128,10 +128,10 @@ public class BannerSaveEditScreen extends Screen {
 
         Component category = Component.literal(BannerRecipeCategories.getLocalizedDescription(selectedCategoryId));
         int categoryX = x + (PANEL_W - this.font.width(category)) / 2;
-        ctx.text(this.font, category, categoryX, y + 79, 0xFFFFFFFF, false);
+        graphics.text(this.font, category, categoryX, y + 79, 0xFFFFFFFF, false);
 
         if (readOnlySource) {
-            ctx.text(
+            graphics.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.save_edit.read_only_notice"),
                     x + 16,
@@ -140,7 +140,7 @@ public class BannerSaveEditScreen extends Screen {
                     false);
         }
 
-        super.extractRenderState(ctx, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 
     @Override

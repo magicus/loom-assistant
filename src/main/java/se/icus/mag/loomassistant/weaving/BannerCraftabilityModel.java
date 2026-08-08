@@ -7,6 +7,7 @@ package se.icus.mag.loomassistant.weaving;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.inventory.LoomMenu;
@@ -55,7 +56,7 @@ public class BannerCraftabilityModel {
         if (missingMaterials.isEmpty()) {
             return MissingMaterialType.NONE;
         }
-        return missingMaterials.get(0).type();
+        return missingMaterials.getFirst().type();
     }
 
     public List<String> getMissingMaterialDescriptions(BannerRecipe banner) {
@@ -81,7 +82,7 @@ public class BannerCraftabilityModel {
 
     public static Item getRequiredPatternItem(String patternId) {
         // These patterns require a banner pattern item.
-        String lowerId = patternId.toLowerCase();
+        String lowerId = patternId.toLowerCase(Locale.ROOT);
         if (lowerId.contains("globe")) return Items.GLOBE_BANNER_PATTERN;
         if (lowerId.contains("creeper")) return Items.CREEPER_BANNER_PATTERN;
         if (lowerId.contains("skull")) return Items.SKULL_BANNER_PATTERN;

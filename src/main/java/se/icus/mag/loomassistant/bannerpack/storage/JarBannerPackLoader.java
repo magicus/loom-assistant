@@ -64,12 +64,14 @@ public class JarBannerPackLoader {
      * This is a simplified implementation that may need adjustment
      * based on actual JAR structure and Fabric API capabilities.
      */
-    private void loadFromModResources(List<BannerPack> packs) throws IOException {
+    private void loadFromModResources(List<BannerPack> packs) {
         FabricLoader loader = FabricLoader.getInstance();
         for (ModContainer modContainer : loader.getAllMods()) {
             if (modContainer.getMetadata().getId().equals(LoomAssistantMod.MOD_ID)) {
                 try {
                     loadFromModContainer(modContainer, packs);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 } catch (Exception e) {
                     LoomAssistantMod.LOGGER.debug("Could not load bundled packs from mod container", e);
                 }

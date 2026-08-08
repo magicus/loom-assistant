@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
@@ -47,8 +49,8 @@ import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
 /** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
 public class LoomScreenExtension {
-    public static final int CONTENT_X_SHIFT = 3;
-    public static final int BG_LEFT_PADDING = 19;
+    private static final int CONTENT_X_SHIFT = 3;
+    private static final int BG_LEFT_PADDING = 19;
 
     private static final int PANEL_TAB_LEFT_OVERHANG = 32;
     private static final int LEFT_STRIP_BUTTON_X = 3;
@@ -60,10 +62,10 @@ public class LoomScreenExtension {
     private static final int LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN = 6;
     private static final int ACTIVE_SLOT_W = 20;
     private static final int ACTIVE_SLOT_H = 18;
-    public static final int CUSTOM_BG_WIDTH = 278;
-    public static final int CUSTOM_BG_HEIGHT = 256;
+    private static final int CUSTOM_BG_WIDTH = 278;
+    private static final int CUSTOM_BG_HEIGHT = 256;
 
-    public static final Identifier BG_LOCATION =
+    private static final Identifier BG_LOCATION =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/loom-gui.png");
 
     private static final Identifier RECIPE_WEAVE_ICON =
@@ -108,13 +110,12 @@ public class LoomScreenExtension {
     private Button importExportButton;
     private ItemStack activeBannerStack = ItemStack.EMPTY;
     private ItemStack pendingActiveBannerStack = ItemStack.EMPTY;
-    private final EnumMap<DyeColor, DyeColor> persistentDyeMap = new EnumMap<>(DyeColor.class);
+    private final Map<DyeColor, DyeColor> persistentDyeMap = new EnumMap<>(DyeColor.class);
     private boolean persistentDyeSwitchEnabled = false;
     private String lastPersistedActiveBannerJson = null;
-    private final EnumMap<DyeColor, DyeColor> lastPersistedDyeMap = new EnumMap<>(DyeColor.class);
+    private final Map<DyeColor, DyeColor> lastPersistedDyeMap = new EnumMap<>(DyeColor.class);
     private boolean lastPersistedDyeEnabled = false;
     private BannerCraftabilityModel craftabilityProbe;
-    private BannerFlagModel previewFlag;
 
     public LoomScreenExtension(LoomScreen screen) {
         this.screen = screen;
@@ -175,7 +176,7 @@ public class LoomScreenExtension {
         this.craftabilityProbe = new BannerCraftabilityModel(screen.menu);
 
         ModelPart flagPart = screen.minecraft.getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
-        this.previewFlag = new BannerFlagModel(flagPart);
+        BannerFlagModel previewFlag = new BannerFlagModel(flagPart);
 
         LoomUiStateStore.PersistentDyeState persistentDyeState =
                 LoomUiStateStore.getPersistentDyeState(screen.minecraft);
@@ -187,13 +188,13 @@ public class LoomScreenExtension {
         this.lastPersistedDyeMap.putAll(this.persistentDyeMap);
 
         this.pendingActiveBannerStack = LoomUiStateStore.getPersistedActiveBannerStack(screen.minecraft);
-        if (!this.pendingActiveBannerStack.isEmpty()) {
+        if (this.pendingActiveBannerStack.isEmpty()) {
+            this.activeBannerStack = ItemStack.EMPTY;
+            this.lastPersistedActiveBannerJson = null;
+        } else {
             this.activeBannerStack = this.pendingActiveBannerStack.copy();
             BannerRecipe persistedRecipe = BannerRecipe.fromItem(this.activeBannerStack);
             this.lastPersistedActiveBannerJson = persistedRecipe == null ? null : persistedRecipe.toJson();
-        } else {
-            this.activeBannerStack = ItemStack.EMPTY;
-            this.lastPersistedActiveBannerJson = null;
         }
 
         this.recipeBookButton = screen.addRenderableWidget(new ImageButton(
@@ -210,138 +211,13 @@ public class LoomScreenExtension {
                     refreshPanel();
                 }));
 
-        this.saveButton = screen.addRenderableWidget(
-                new Button.Plain(
-                        getLeftStripButtonX(),
-                        screen.topPos + LEFT_STRIP_SAVE_EDIT_Y,
-                        20,
-                        18,
-                        Component.empty(),
-                        button -> {
-                            if (panel != null && panel.hasActiveBanner()) {
-                                screen.minecraft.gui.setScreen(
-                                        new BannerSaveEditScreen(screen, panel, showEditOnSaveButton()));
-                            }
-                        },
-                        defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
-                    @Override
-                    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-                        this.extractDefaultSprite(graphics);
-                        Identifier icon = shouldUseEditIconOnSaveButton() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
-                        graphics.blit(
-                                RenderPipelines.GUI_TEXTURED,
-                                icon,
-                                this.getX() + 2,
-                                this.getY() + 1,
-                                0.0F,
-                                0.0F,
-                                16,
-                                16,
-                                16,
-                                16);
-                    }
-                });
+        this.saveButton = screen.addRenderableWidget(new SaveEditButton());
 
-        this.craftButton = screen.addRenderableWidget(
-                new Button.Plain(
-                        getLeftStripButtonX(),
-                        screen.topPos + LEFT_STRIP_CRAFT_Y,
-                        20,
-                        18,
-                        Component.empty(),
-                        button -> {
-                            if (panel != null) {
-                                panel.craftSelectedBanner();
-                            }
-                        },
-                        defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
-                    @Override
-                    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-                        this.extractDefaultSprite(graphics);
-                        graphics.blit(
-                                RenderPipelines.GUI_TEXTURED,
-                                RECIPE_WEAVE_ICON,
-                                this.getX() + 2,
-                                this.getY() + 1,
-                                0.0F,
-                                0.0F,
-                                16,
-                                16,
-                                16,
-                                16);
-                    }
-                });
+        this.craftButton = screen.addRenderableWidget(new WeaveButton());
 
-        this.importExportButton = screen.addRenderableWidget(
-                new Button.Plain(
-                        getLeftStripButtonX(),
-                        getImportExportButtonY(),
-                        20,
-                        18,
-                        Component.empty(),
-                        button -> screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(screen, panel)),
-                        defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
-                    @Override
-                    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-                        this.extractDefaultSprite(graphics);
-                        graphics.blit(
-                                RenderPipelines.GUI_TEXTURED,
-                                RECIPE_IMPORT_EXPORT_ICON,
-                                this.getX() + 2,
-                                this.getY() + 1,
-                                0.0F,
-                                0.0F,
-                                16,
-                                16,
-                                16,
-                                16);
-                    }
-                });
+        this.importExportButton = screen.addRenderableWidget(new ImportExportButton());
 
-        this.colorButton = screen.addRenderableWidget(
-                new Button.Plain(
-                        getLeftStripButtonX(),
-                        screen.topPos + LEFT_STRIP_COLOR_Y,
-                        20,
-                        18,
-                        Component.empty(),
-                        button -> {
-                            if (panel == null || !panel.hasActiveBanner()) {
-                                return;
-                            }
-                            if (panel.isPersistentDyeSwitchEnabled()) {
-                                panel.disablePersistentDyeSwitchAndReload();
-                                return;
-                            }
-                            screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(screen, panel));
-                        },
-                        defaultNarrationSupplier -> defaultNarrationSupplier.get()) {
-                    @Override
-                    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-                        this.extractDefaultSprite(graphics);
-                        boolean persistent = panel != null && panel.isPersistentDyeSwitchEnabled();
-                        int iconOffset = persistent ? 1 : 0;
-                        graphics.blit(
-                                RenderPipelines.GUI_TEXTURED,
-                                RECIPE_SWAP_COLORS_ICON,
-                                this.getX() + 2 + iconOffset,
-                                this.getY() + 1 + iconOffset,
-                                0.0F,
-                                0.0F,
-                                16,
-                                16,
-                                16,
-                                16);
-                        if (panel != null && panel.isPersistentDyeSwitchEnabled()) {
-                            graphics.fill(
-                                    this.getX() + 1,
-                                    this.getY() + 1,
-                                    this.getX() + this.getWidth() - 1,
-                                    this.getY() + 2,
-                                    0x55000000);
-                        }
-                    }
-                });
+        this.colorButton = screen.addRenderableWidget(new ReplaceColorButton());
         this.colorButton.setOverrideRenderHighlightedSprite(
                 () -> (panel != null && panel.isPersistentDyeSwitchEnabled()) || this.colorButton.isHoveredOrFocused());
 
@@ -612,7 +488,7 @@ public class LoomScreenExtension {
         int panelLeft = leftPos - leftExtensionWithoutTabs;
         int tabLeft = panelLeft - PANEL_TAB_LEFT_OVERHANG;
         if (tabLeft < 0) {
-            leftPos += -tabLeft;
+            leftPos -= tabLeft;
         }
         return leftPos;
     }
@@ -694,7 +570,7 @@ public class LoomScreenExtension {
         int px = screen.leftPos + 141;
         int py = screen.topPos + 8;
 
-        ItemStack dye = new ItemStack((net.minecraft.world.item.Item) BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
+        ItemStack dye = new ItemStack(BannerRecipe.getDyeItem(layer.getDyeColorEnum()));
         context.fakeItem(dye, px + 2, py + 2);
 
         try {
@@ -704,8 +580,7 @@ public class LoomScreenExtension {
                 if (reg.isPresent()) {
                     var entry = reg.get().get(patId);
                     if (entry.isPresent()) {
-                        @SuppressWarnings("unchecked")
-                        Holder<BannerPattern> holder = (Holder<BannerPattern>) (Object) entry.get();
+                        Holder<BannerPattern> holder = entry.get();
                         TextureAtlasSprite sprite = context.getSprite(Sheets.getBannerSprite(holder));
                         float u0 = sprite.getU0();
                         float u1 = u0 + (sprite.getU1() - u0) * 21.0F / 64.0F;
@@ -720,7 +595,7 @@ public class LoomScreenExtension {
                     }
                 }
             }
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
         }
     }
 
@@ -769,9 +644,7 @@ public class LoomScreenExtension {
     private void syncPerWorldUiState() {
         BannerRecipe activeRecipe = BannerRecipe.fromItem(this.activeBannerStack);
         String currentActiveJson = activeRecipe == null ? null : activeRecipe.toJson();
-        boolean activeChanged = currentActiveJson == null
-                ? this.lastPersistedActiveBannerJson != null
-                : !currentActiveJson.equals(this.lastPersistedActiveBannerJson);
+        boolean activeChanged = !Objects.equals(currentActiveJson, this.lastPersistedActiveBannerJson);
         if (activeChanged) {
             LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, this.activeBannerStack);
             this.lastPersistedActiveBannerJson = currentActiveJson;
@@ -862,5 +735,148 @@ public class LoomScreenExtension {
                 height,
                 CUSTOM_BG_WIDTH,
                 CUSTOM_BG_HEIGHT);
+    }
+
+    private class ReplaceColorButton extends Button.Plain {
+        protected ReplaceColorButton() {
+            super(
+                    LoomScreenExtension.this.getLeftStripButtonX(),
+                    LoomScreenExtension.this.screen.topPos + LoomScreenExtension.LEFT_STRIP_COLOR_Y,
+                    20,
+                    18,
+                    Component.empty(),
+                    button -> {
+                        if (LoomScreenExtension.this.panel == null
+                                || !LoomScreenExtension.this.panel.hasActiveBanner()) {
+                            return;
+                        }
+                        if (LoomScreenExtension.this.panel.isPersistentDyeSwitchEnabled()) {
+                            LoomScreenExtension.this.panel.disablePersistentDyeSwitchAndReload();
+                            return;
+                        }
+                        LoomScreenExtension.this.screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(
+                                LoomScreenExtension.this.screen, LoomScreenExtension.this.panel));
+                    },
+                    Supplier::get);
+        }
+
+        @Override
+        public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            this.extractDefaultSprite(graphics);
+            boolean persistent = panel != null && panel.isPersistentDyeSwitchEnabled();
+            int iconOffset = persistent ? 1 : 0;
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    RECIPE_SWAP_COLORS_ICON,
+                    this.getX() + 2 + iconOffset,
+                    this.getY() + 1 + iconOffset,
+                    0.0F,
+                    0.0F,
+                    16,
+                    16,
+                    16,
+                    16);
+            if (panel != null && panel.isPersistentDyeSwitchEnabled()) {
+                graphics.fill(
+                        this.getX() + 1,
+                        this.getY() + 1,
+                        this.getX() + this.getWidth() - 1,
+                        this.getY() + 2,
+                        0x55000000);
+            }
+        }
+    }
+
+    private class SaveEditButton extends Button.Plain {
+        protected SaveEditButton() {
+            super(
+                    LoomScreenExtension.this.getLeftStripButtonX(),
+                    LoomScreenExtension.this.screen.topPos + LoomScreenExtension.LEFT_STRIP_SAVE_EDIT_Y,
+                    20,
+                    18,
+                    Component.empty(),
+                    button -> {
+                        if (LoomScreenExtension.this.panel != null
+                                && LoomScreenExtension.this.panel.hasActiveBanner()) {
+                            LoomScreenExtension.this.screen.minecraft.gui.setScreen(new BannerSaveEditScreen(
+                                    LoomScreenExtension.this.screen,
+                                    LoomScreenExtension.this.panel,
+                                    LoomScreenExtension.this.showEditOnSaveButton()));
+                        }
+                    },
+                    Supplier::get);
+        }
+
+        @Override
+        public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            this.extractDefaultSprite(graphics);
+            Identifier icon = shouldUseEditIconOnSaveButton() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED, icon, this.getX() + 2, this.getY() + 1, 0.0F, 0.0F, 16, 16, 16, 16);
+        }
+    }
+
+    private class WeaveButton extends Button.Plain {
+        protected WeaveButton() {
+            super(
+                    LoomScreenExtension.this.getLeftStripButtonX(),
+                    LoomScreenExtension.this.screen.topPos + LoomScreenExtension.LEFT_STRIP_CRAFT_Y,
+                    20,
+                    18,
+                    Component.empty(),
+                    button -> {
+                        if (LoomScreenExtension.this.panel != null) {
+                            LoomScreenExtension.this.panel.craftSelectedBanner();
+                        }
+                    },
+                    Supplier::get);
+        }
+
+        @Override
+        public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            this.extractDefaultSprite(graphics);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    RECIPE_WEAVE_ICON,
+                    this.getX() + 2,
+                    this.getY() + 1,
+                    0.0F,
+                    0.0F,
+                    16,
+                    16,
+                    16,
+                    16);
+        }
+    }
+
+    private class ImportExportButton extends Button.Plain {
+        protected ImportExportButton() {
+            super(
+                    LoomScreenExtension.this.getLeftStripButtonX(),
+                    LoomScreenExtension.this.getImportExportButtonY(),
+                    20,
+                    18,
+                    Component.empty(),
+                    button ->
+                            LoomScreenExtension.this.screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(
+                                    LoomScreenExtension.this.screen, LoomScreenExtension.this.panel)),
+                    Supplier::get);
+        }
+
+        @Override
+        public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            this.extractDefaultSprite(graphics);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    RECIPE_IMPORT_EXPORT_ICON,
+                    this.getX() + 2,
+                    this.getY() + 1,
+                    0.0F,
+                    0.0F,
+                    16,
+                    16,
+                    16,
+                    16);
+        }
     }
 }

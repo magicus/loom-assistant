@@ -39,11 +39,11 @@ public class DirectoryBannerPack extends BannerPack {
     }
 
     @Override
-    public BannerRecipe updateBannerRecipe(BannerRecipe recipe) throws IOException {
+    public void updateBannerRecipe(BannerRecipe recipe) throws IOException {
         if (recipe.id() == null || recipe.id().isBlank()) {
             throw new IllegalArgumentException("recipe id is required for update");
         }
-        return addBannerRecipe(recipe);
+        addBannerRecipe(recipe);
     }
 
     @Override

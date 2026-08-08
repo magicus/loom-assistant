@@ -12,19 +12,17 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 
-public final class BannerRecipeTooltipComponent implements TooltipComponent {
-    private final List<Row> rows;
-
-    private final DyeColor previewBaseColor;
-
-    private final BannerPatternLayers previewPatterns;
-
-    /** Row index to highlight as the current crafting step (-1 = no highlighting). */
-    private final int currentRowIndex;
-
-    /** True when the banner has more than 6 layers and the player is in survival mode. */
-    private final boolean notWeavableInSurvival;
-
+/**
+ * @param currentRowIndex       Row index to highlight as the current crafting step (-1 = no highlighting).
+ * @param notWeavableInSurvival True when the banner has more than 6 layers and the player is in survival mode.
+ */
+public record BannerRecipeTooltipComponent(
+        List<Row> rows,
+        DyeColor previewBaseColor,
+        BannerPatternLayers previewPatterns,
+        int currentRowIndex,
+        boolean notWeavableInSurvival)
+        implements TooltipComponent {
     public BannerRecipeTooltipComponent(
             List<Row> rows,
             DyeColor previewBaseColor,
@@ -38,28 +36,8 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
         this.notWeavableInSurvival = notWeavableInSurvival;
     }
 
-    public int currentRowIndex() {
-        return currentRowIndex;
-    }
-
-    public boolean notWeavableInSurvival() {
-        return notWeavableInSurvival;
-    }
-
-    public List<Row> rows() {
-        return this.rows;
-    }
-
     public boolean hasPreview() {
         return previewBaseColor != null;
-    }
-
-    public DyeColor previewBaseColor() {
-        return previewBaseColor;
-    }
-
-    public BannerPatternLayers previewPatterns() {
-        return previewPatterns;
     }
 
     public record Row(
@@ -72,12 +50,14 @@ public final class BannerRecipeTooltipComponent implements TooltipComponent {
             return new Row(primary, secondary, text, null, false);
         }
 
-        /** Row that renders a loom pattern sprite on the right with dye item on the left. */
+        /**
+         * Row that renders a loom pattern sprite on the right with dye item on the left.
+         */
         public static Row withPattern(ItemStack dye, Identifier patternId, Component text) {
             return new Row(dye, ItemStack.EMPTY, text, patternId, false);
         }
 
-        public Row copy() {
+        private Row copy() {
             return new Row(
                     this.primary.copy(), this.secondary.copy(), this.text.copy(), this.patternSprite, this.indented);
         }

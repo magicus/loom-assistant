@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -74,10 +76,9 @@ public final class LoomUiStateStore {
         }
 
         try {
-            BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
-            BannerRecipe banner = recipe;
+            BannerRecipe banner = BannerRecipe.fromJson(recipeJson);
             return PreviewExtension.createBannerWithPatterns(banner);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
             return ItemStack.EMPTY;
         }
@@ -232,6 +233,8 @@ public final class LoomUiStateStore {
                     }
                 }
             }
+        } catch (JsonSyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.warn("Failed to load loom UI state", e);
         }
@@ -280,6 +283,8 @@ public final class LoomUiStateStore {
             try (Writer writer = Files.newBufferedWriter(FILE_PATH)) {
                 GSON.toJson(root, writer);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             LoomAssistantMod.LOGGER.warn("Failed to save loom UI state", e);
         }

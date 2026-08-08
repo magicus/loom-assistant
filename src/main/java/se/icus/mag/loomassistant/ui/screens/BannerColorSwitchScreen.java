@@ -15,13 +15,15 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.ui.screens.colorswitch.ColorSelectButton;
+import se.icus.mag.loomassistant.ui.screens.colorswitch.DisabledColorSelectButton;
+import se.icus.mag.loomassistant.util.DyeColorSorting;
 
 public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
@@ -37,8 +39,8 @@ public class BannerColorSwitchScreen extends Screen {
     private static final int ICON_SIZE = 16;
     private static final int ARROW_W = 7;
     private static final int ARROW_H = 11;
-    private static final int TARGET_BTN_W = 20;
-    private static final int TARGET_BTN_H = 20;
+    public static final int TARGET_BTN_W = 20;
+    public static final int TARGET_BTN_H = 20;
     private static final int PAD = 10;
     private static final int COL_GAP = 14;
     private static final int TITLE_H = 24;
@@ -58,7 +60,7 @@ public class BannerColorSwitchScreen extends Screen {
     private static final int PICKER_W = PICKER_PAD + PICKER_GRID_W + PICKER_PAD;
     private static final int PICKER_H = PICKER_PAD + PICKER_GRID_ROWS * PICKER_CELL + PICKER_PAD;
 
-    // Vanilla loom-grey background + bevel colours
+    // Vanilla loom-gray background + bevel colors
     private static final int BG_COLOR = 0xFFC6C6C6;
     private static final int BG_DARK = 0xFF555555;
     private static final int BG_LIGHT = 0xFFFFFFFF;
@@ -66,7 +68,7 @@ public class BannerColorSwitchScreen extends Screen {
 
     private static final Identifier REPLACE_COLOR_ICON =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/change_color.png");
-    private static final Identifier DYE_OUTLINE_ICON =
+    public static final Identifier DYE_OUTLINE_ICON =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/dye_outline.png");
 
     // -------------------------------------------------------------------------
@@ -75,8 +77,8 @@ public class BannerColorSwitchScreen extends Screen {
 
     private final Screen previousScreen;
     private final LoomRecipePanel panel;
-    private final List<DyeColor> sourceColors;
-    private final EnumMap<DyeColor, DyeColor> targets = new EnumMap<>(DyeColor.class);
+    public final List<DyeColor> sourceColors;
+    public final EnumMap<DyeColor, DyeColor> targets = new EnumMap<>(DyeColor.class);
 
     private DyeColor[] pickerColors; // resolved from config on init
     private DyeColor pickerOpenFor = null;
@@ -109,7 +111,7 @@ public class BannerColorSwitchScreen extends Screen {
         int px = panelLeft();
         int py = panelTop();
 
-        // Target-colour buttons for active slots only
+        // Target-color buttons for active slots only
         for (int slotIdx = 0; slotIdx < sourceColors.size(); slotIdx++) {
             DyeColor source = sourceColors.get(slotIdx);
             int col = slotIdx / LAYOUT_ROWS;
@@ -118,23 +120,7 @@ public class BannerColorSwitchScreen extends Screen {
             int btnY = slotY(py, row) + (ROW_H - TARGET_BTN_H) / 2;
             int btnCenterX = btnX + TARGET_BTN_W / 2;
             int btnCenterY = btnY + TARGET_BTN_H / 2;
-            final int fi = slotIdx;
-            this.addRenderableWidget(
-                    new Button.Plain(
-                            btnX,
-                            btnY,
-                            TARGET_BTN_W,
-                            TARGET_BTN_H,
-                            Component.empty(),
-                            button -> openPicker(source, btnCenterX, btnCenterY),
-                            s -> s.get()) {
-                        @Override
-                        public void extractContents(GuiGraphicsExtractor g, int mx, int my, float a) {
-                            this.extractDefaultSprite(g);
-                            DyeColor target = targets.getOrDefault(sourceColors.get(fi), sourceColors.get(fi));
-                            g.fakeItem(dyeStack(target), this.getX() + 2, this.getY() + 2);
-                        }
-                    });
+            this.addRenderableWidget(new ColorSelectButton(this, btnX, btnY, source, btnCenterX, btnCenterY, slotIdx));
         }
 
         // OK and Cancel in column 2, rows 1 and 2
@@ -147,25 +133,7 @@ public class BannerColorSwitchScreen extends Screen {
             if (col == 2 && row >= 1) continue;
             int btnX = slotX(px, col) + ICON_SIZE + 6 + ARROW_W + 6;
             int btnY = slotY(py, row) + (ROW_H - TARGET_BTN_H) / 2;
-            Button btn = this.addRenderableWidget(
-                    new Button.Plain(
-                            btnX, btnY, TARGET_BTN_W, TARGET_BTN_H, Component.empty(), button -> {}, s -> s.get()) {
-                        @Override
-                        public void extractContents(GuiGraphicsExtractor g, int mx, int my, float a) {
-                            this.extractDefaultSprite(g);
-                            g.blit(
-                                    RenderPipelines.GUI_TEXTURED,
-                                    DYE_OUTLINE_ICON,
-                                    this.getX() + 2,
-                                    this.getY() + 2,
-                                    0f,
-                                    0f,
-                                    16,
-                                    16,
-                                    16,
-                                    16);
-                        }
-                    });
+            Button btn = this.addRenderableWidget(new DisabledColorSelectButton(btnX, btnY));
             btn.active = false;
         }
         int okY = slotY(py, 1) + (ROW_H - 20) / 2;
@@ -187,14 +155,14 @@ public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
-        ctx.fill(0, 0, this.width, this.height, 0x88000000);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, this.width, this.height, 0x88000000);
 
         int px = panelLeft();
         int py = panelTop();
-        drawPanel(ctx, px, py, PANEL_W, PANEL_H);
+        drawPanel(graphics, px, py, PANEL_W, PANEL_H);
 
-        ctx.text(this.font, this.title, px + PAD, py + 8, 0xFF000000, false);
+        graphics.text(this.font, this.title, px + PAD, py + 8, 0xFF000000, false);
 
         for (int slotIdx = 0; slotIdx < MAX_SLOTS; slotIdx++) {
             int col = slotIdx / LAYOUT_ROWS;
@@ -212,12 +180,12 @@ public class BannerColorSwitchScreen extends Screen {
             if (active) {
                 DyeColor source = sourceColors.get(slotIdx);
                 int iconY = centerY - ICON_SIZE / 2;
-                ctx.fakeItem(dyeStack(source), sx, iconY);
+                graphics.fakeItem(dyeStack(source), sx, iconY);
 
                 int arrowGap = ICON_SIZE + 6 + ARROW_W + 6 + TARGET_BTN_W;
                 int arrowX = sx + ICON_SIZE + (arrowGap - ICON_SIZE - TARGET_BTN_W) / 2 - ARROW_W / 2;
                 int arrowY = centerY - ARROW_H / 2;
-                ctx.blit(
+                graphics.blit(
                         RenderPipelines.GUI_TEXTURED,
                         REPLACE_COLOR_ICON,
                         arrowX,
@@ -230,18 +198,18 @@ public class BannerColorSwitchScreen extends Screen {
                         ARROW_H);
 
                 if (isIn(mouseX, mouseY, sx, iconY, ICON_SIZE, ICON_SIZE)) {
-                    ctx.setTooltipForNextFrame(
+                    graphics.setTooltipForNextFrame(
                             this.font, List.of(dyeStack(source).getHoverName()), Optional.empty(), mouseX, mouseY);
                 }
             } else {
                 // Inactive source icon placeholder
                 int iconY = centerY - ICON_SIZE / 2;
-                ctx.blit(RenderPipelines.GUI_TEXTURED, DYE_OUTLINE_ICON, sx, iconY, 0f, 0f, 16, 16, 16, 16);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, DYE_OUTLINE_ICON, sx, iconY, 0f, 0f, 16, 16, 16, 16);
 
                 // Arrow (same icon as active slots, same centred position)
                 int gapTotal = 6 + ARROW_W + 6;
                 int arrowX = sx + ICON_SIZE + gapTotal / 2 - ARROW_W / 2;
-                ctx.blit(
+                graphics.blit(
                         RenderPipelines.GUI_TEXTURED,
                         REPLACE_COLOR_ICON,
                         arrowX,
@@ -256,10 +224,10 @@ public class BannerColorSwitchScreen extends Screen {
             }
         }
 
-        super.extractRenderState(ctx, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
 
         if (pickerOpenFor != null) {
-            drawPicker(ctx, mouseX, mouseY);
+            drawPicker(graphics, mouseX, mouseY);
         }
     }
 
@@ -282,7 +250,7 @@ public class BannerColorSwitchScreen extends Screen {
             boolean isSel = color == selected;
             boolean hover = isIn(mouseX, mouseY, cellX, cellY, PICKER_CELL, PICKER_CELL);
 
-            int bgCol = isSel ? 0xFF4477CC : (hover ? 0xFFAAAAAA : 0xFF888888);
+            int bgCol = getBgCol(isSel, hover);
             ctx.fill(cellX + 1, cellY + 1, cellX + PICKER_CELL - 1, cellY + PICKER_CELL - 1, bgCol);
             ctx.fakeItem(dyeStack(color), cellX + 2, cellY + 2);
 
@@ -291,6 +259,20 @@ public class BannerColorSwitchScreen extends Screen {
                         this.font, List.of(dyeStack(color).getHoverName()), Optional.empty(), mouseX, mouseY);
             }
         }
+    }
+
+    private static int getBgCol(boolean isSel, boolean hover) {
+        int bgCol;
+        if (isSel) {
+            bgCol = 0xFF4477CC;
+        } else {
+            if (hover) {
+                bgCol = 0xFFAAAAAA;
+            } else {
+                bgCol = 0xFF888888;
+            }
+        }
+        return bgCol;
     }
 
     private void drawPanel(GuiGraphicsExtractor ctx, int x, int y, int w, int h) {
@@ -361,8 +343,8 @@ public class BannerColorSwitchScreen extends Screen {
     // Helpers
     // -------------------------------------------------------------------------
 
-    // btnCenterX/Y is the pixel centre of the target button that was clicked.
-    private void openPicker(DyeColor source, int btnCenterX, int btnCenterY) {
+    // btnCenterX/Y is the pixel center of the target button that was clicked.
+    public void openPicker(DyeColor source, int btnCenterX, int btnCenterY) {
         pickerOpenFor = source;
         DyeColor selected = targets.getOrDefault(source, source);
         int selIdx = indexOf(pickerColors, selected);
@@ -370,8 +352,8 @@ public class BannerColorSwitchScreen extends Screen {
         int selRow = selIdx / PICKER_COLS;
         int gridOffX = PICKER_PAD + selCol * PICKER_CELL + PICKER_CELL / 2;
         int gridOffY = PICKER_PAD + selRow * PICKER_CELL + PICKER_CELL / 2;
-        pickerX = Math.max(4, Math.min(btnCenterX - gridOffX, this.width - PICKER_W - 4));
-        pickerY = Math.max(4, Math.min(btnCenterY - gridOffY, this.height - PICKER_H - 4));
+        pickerX = Math.clamp(btnCenterX - gridOffX, 4, this.width - PICKER_W - 4);
+        pickerY = Math.clamp(btnCenterY - gridOffY, 4, this.height - PICKER_H - 4);
     }
 
     private void applyAndClose() {
@@ -403,8 +385,8 @@ public class BannerColorSwitchScreen extends Screen {
         return panelY + TITLE_H + row * ROW_H;
     }
 
-    private static ItemStack dyeStack(DyeColor color) {
-        return new ItemStack((Item) BannerRecipe.getDyeItem(color));
+    public static ItemStack dyeStack(DyeColor color) {
+        return new ItemStack(BannerRecipe.getDyeItem(color));
     }
 
     private static boolean isIn(int mx, int my, int x, int y, int w, int h) {

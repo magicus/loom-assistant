@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.recipe.parsers;
+package se.icus.mag.loomassistant.parsers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import se.icus.mag.loomassistant.parsers.ParseBanner;
 
 class ParseBannerTest {
     @Test

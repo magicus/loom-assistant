@@ -86,9 +86,6 @@ public class SurvivalWeaver extends Weaver {
             case WAITING_FOR_OUTPUT -> waitForOutput();
             case TAKING_OUTPUT -> takeOutput();
             case LAYER_COMPLETE -> advanceLayer();
-            case IDLE, COMPLETE, ERROR -> {
-                // handled by early return
-            }
         }
     }
 
@@ -120,7 +117,9 @@ public class SurvivalWeaver extends Weaver {
         }
 
         this.state = AutoCraftState.CHECKING_MATERIALS;
-        LoomAssistantMod.LOGGER.info("Starting auto-craft for banner with {} layers", banner.getLayers().size());
+        LoomAssistantMod.LOGGER.info(
+                "Starting auto-craft for banner with {} layers",
+                banner.getLayers().size());
     }
 
     private void checkMaterials() {
@@ -235,7 +234,8 @@ public class SurvivalWeaver extends Weaver {
         Minecraft client = Minecraft.getInstance();
         if (client.gameMode != null && client.player != null) {
             if (currentLayerIndex + 1 < targetBanner.getLayers().size()) {
-                client.gameMode.handleContainerInput(handler.containerId, OUTPUT_SLOT, 0, ContainerInput.PICKUP, client.player);
+                client.gameMode.handleContainerInput(
+                        handler.containerId, OUTPUT_SLOT, 0, ContainerInput.PICKUP, client.player);
                 returnPatternItemsToInventory();
 
                 ItemStack bannerSlotStack = handler.getSlot(BANNER_SLOT).getItem();
@@ -243,7 +243,8 @@ public class SurvivalWeaver extends Weaver {
                     client.gameMode.handleContainerInput(
                             handler.containerId, BANNER_SLOT, 0, ContainerInput.QUICK_MOVE, client.player);
                 }
-                client.gameMode.handleContainerInput(handler.containerId, BANNER_SLOT, 0, ContainerInput.PICKUP, client.player);
+                client.gameMode.handleContainerInput(
+                        handler.containerId, BANNER_SLOT, 0, ContainerInput.PICKUP, client.player);
             } else {
                 client.gameMode.handleContainerInput(
                         handler.containerId, OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, client.player);
@@ -298,16 +299,19 @@ public class SurvivalWeaver extends Weaver {
             ItemStack sourceStack = handler.getSlot(fromSlot).getItem();
             if (sourceStack.isEmpty()) return;
 
-            client.gameMode.handleContainerInput(handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
+            client.gameMode.handleContainerInput(
+                    handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
             client.gameMode.handleContainerInput(handler.containerId, toSlot, 1, ContainerInput.PICKUP, client.player);
-            client.gameMode.handleContainerInput(handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
+            client.gameMode.handleContainerInput(
+                    handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
         }
     }
 
     private void quickMoveToInventory(int slot) {
         Minecraft client = Minecraft.getInstance();
         if (client.gameMode != null && client.player != null) {
-            client.gameMode.handleContainerInput(handler.containerId, slot, 0, ContainerInput.QUICK_MOVE, client.player);
+            client.gameMode.handleContainerInput(
+                    handler.containerId, slot, 0, ContainerInput.QUICK_MOVE, client.player);
         }
     }
 

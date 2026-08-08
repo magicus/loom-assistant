@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.BannerPack;
@@ -23,6 +24,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 
 public class BannerPackRepository {
     public static final String LOCAL_PACK_ID = "local";
+    private static final Pattern PATTERN = Pattern.compile("[^a-z0-9_\\-]");
 
     private final Path packsRoot;
     private final Map<String, BannerPack> packs = new LinkedHashMap<>();
@@ -65,7 +67,7 @@ public class BannerPackRepository {
                         LoomAssistantMod.LOGGER.info("Loaded bundled banner pack: {}", packId);
                     }
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LoomAssistantMod.LOGGER.debug("No bundled banner packs found or error loading them", e);
             }
         } catch (IOException e) {
@@ -112,7 +114,7 @@ public class BannerPackRepository {
         return null;
     }
 
-    public BannerPack createPack(String packId, String name) {
+    public void createPack(String packId, String name) {
         String normalizedId = normalizeId(packId);
         if (LOCAL_PACK_ID.equals(normalizedId)) {
             throw new IllegalArgumentException("local pack already exists and cannot be created manually");
@@ -126,7 +128,6 @@ public class BannerPackRepository {
             BannerPackMetadata metadata = new BannerPackMetadata(normalizedId, name);
             DirectoryBannerPack pack = BannerPack.createDirectoryPack(packDir, metadata);
             packs.put(normalizedId, pack);
-            return pack;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create pack " + normalizedId, e);
         }
@@ -209,9 +210,9 @@ public class BannerPackRepository {
         }
         writeCategoryLangFile(categoriesDir, "sv_se", new String[][] {
             {"flags", "Flaggor"},
-            {"letters", "Bokst\u00e4ver"},
+            {"letters", "Bokstäver"},
             {"logos", "Logotyper"},
-            {"misc", "\u00d6vrigt"},
+            {"misc", "Övrigt"},
             {"nature", "Natur"},
         });
     }
@@ -258,7 +259,7 @@ public class BannerPackRepository {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("pack id cannot be empty");
         }
-        return id.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_\\-]", "_");
+        return PATTERN.matcher(id.toLowerCase(Locale.ROOT)).replaceAll("_");
     }
 
     private static void deleteRecursively(Path directory) throws IOException {

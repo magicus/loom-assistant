@@ -28,7 +28,7 @@ public final class MinecraftParser {
                 return "Could not parse Minecraft banner data";
             }
             return null;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return e.getMessage() != null ? e.getMessage() : "Invalid Minecraft banner data";
         }
     }
@@ -41,7 +41,7 @@ public final class MinecraftParser {
 
         try {
             return parseInternal(input);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return null;
         }
     }

@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
@@ -23,13 +24,13 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 public final class NeedCoolershoesUrlParser extends UrlParser {
     private static final Pattern PAGE_LINK_PATTERN = Pattern.compile("/banners/\\d+/~\\w+$");
 
-    private final String url;
     private final URI uri;
 
     public NeedCoolershoesUrlParser(String url) {
-        this.url = url;
         try {
             this.uri = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid NeedCoolerShoes URL: " + url, e);
         }

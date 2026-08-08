@@ -42,7 +42,7 @@ public record BannerRecipe(
         List<BannerRecipeLayer> layers) {
     public static final String DEFAULT_DESCRIPTION = "Unnamed banner";
     public static final String DEFAULT_CATEGORY = "misc";
-    public static final Codec<BannerRecipe> CODEC;
+    private static final Codec<BannerRecipe> CODEC;
     private static final Gson GSON = new GsonBuilder().create();
 
     public BannerRecipe {
@@ -177,7 +177,8 @@ public record BannerRecipe(
         };
     }
 
-    static BannerRecipe fromBannerPatterns(String description, DyeColor baseColor, BannerPatternLayers patterns) {
+    private static BannerRecipe fromBannerPatterns(
+            String description, DyeColor baseColor, BannerPatternLayers patterns) {
         List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
         if (patterns != null) {
             for (BannerPatternLayers.Layer layer : patterns.layers()) {
@@ -216,7 +217,6 @@ public record BannerRecipe(
             return new CommandParseResult(null, "Invalid syntax", null);
         }
 
-        int prefixOffset = 0;
         int start = 0;
         int end = input.length();
         while (start < end && Character.isWhitespace(input.charAt(start))) {
@@ -227,7 +227,7 @@ public record BannerRecipe(
         }
 
         String working = input.substring(start, end);
-        prefixOffset = start;
+        int prefixOffset = start;
 
         if (working.startsWith("/")) {
             working = working.substring(1);
@@ -634,9 +634,7 @@ public record BannerRecipe(
     }
 
     private static final class CommandFormat {
-        private CommandFormat() {}
-
-        public static String buildCommand(BannerRecipe recipe) {
+        private static String buildCommand(BannerRecipe recipe) {
             String itemName = recipe.getBannerColorEnum().getName() + "_banner";
             StringBuilder builder = new StringBuilder("/give @p {id:").append(itemName);
 

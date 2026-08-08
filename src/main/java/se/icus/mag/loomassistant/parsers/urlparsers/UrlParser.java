@@ -22,7 +22,7 @@ public abstract class UrlParser {
      * @return the banner code, or null/empty if not found
      * @throws IllegalArgumentException if URL format is invalid
      */
-    protected abstract String extractBannerCode() throws IllegalArgumentException;
+    protected abstract String extractBannerCode();
 
     /**
      * Build a BannerRecipe from the banner code. Must be implemented by subclasses.
@@ -38,7 +38,7 @@ public abstract class UrlParser {
      *
      * @return null if valid, error message if invalid
      */
-    public String checkParse() {
+    private String checkParse() {
         try {
             String code = extractBannerCode();
             if (code == null || code.isBlank()) {
@@ -55,7 +55,7 @@ public abstract class UrlParser {
      *
      * @return a BannerRecipe, or null if validation failed
      */
-    public BannerRecipe parse() {
+    private BannerRecipe parse() {
         String error = checkParse();
         if (error != null) {
             return null;

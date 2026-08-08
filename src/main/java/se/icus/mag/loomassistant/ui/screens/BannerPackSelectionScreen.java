@@ -22,31 +22,27 @@ import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.MultiLineTextWidget;
-import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.gui.components.SelectableEntry;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentUtils;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.bannerpack.storage.ActivePacksConfig;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackListEntry;
+import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackListWidget;
+import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackModelEntry;
+import se.icus.mag.loomassistant.ui.screens.packselection.PackEntry;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackSelectionScreen extends Screen {
@@ -61,15 +57,9 @@ public class BannerPackSelectionScreen extends Screen {
     private static final int LIST_WIDTH = 200;
     private static final int HEADER_ELEMENT_SPACING = 4;
     private static final int SEARCH_BOX_HEIGHT = 15;
-    private static final int ICON_SIZE = 32;
-    private static final int ROW_HEIGHT = 36;
     private static final Identifier DEFAULT_ICON = Identifier.withDefaultNamespace("textures/misc/unknown_pack.png");
     private static final Identifier SELECT_SPRITE = Identifier.withDefaultNamespace("transferable_list/select");
-    private static final Identifier SELECT_HIGHLIGHTED_SPRITE =
-            Identifier.withDefaultNamespace("transferable_list/select_highlighted");
     private static final Identifier UNSELECT_SPRITE = Identifier.withDefaultNamespace("transferable_list/unselect");
-    private static final Identifier UNSELECT_HIGHLIGHTED_SPRITE =
-            Identifier.withDefaultNamespace("transferable_list/unselect_highlighted");
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this);
     private final BannerPackRepository repository;
@@ -108,7 +98,7 @@ public class BannerPackSelectionScreen extends Screen {
 
     @Override
     protected void init() {
-        this.layout.setHeaderHeight(4 + 9 + 4 + 9 + 4 + SEARCH_BOX_HEIGHT + 4);
+        this.layout.setHeaderHeight(SEARCH_BOX_HEIGHT + 34);
         LinearLayout header = this.layout.addToHeader(LinearLayout.vertical().spacing(HEADER_ELEMENT_SPACING));
         header.defaultCellSetting().alignHorizontallyCenter();
         header.addChild(new StringWidget(this.getTitle(), this.font));
@@ -130,7 +120,7 @@ public class BannerPackSelectionScreen extends Screen {
         this.doneButton = footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
                 .build());
 
-        this.layout.visitWidgets(widget -> this.addRenderableWidget(widget));
+        this.layout.visitWidgets(this::addRenderableWidget);
         this.repositionElements();
         this.reload();
     }
@@ -150,11 +140,11 @@ public class BannerPackSelectionScreen extends Screen {
         }
 
         String lowerCaseValue = value.toLowerCase(Locale.ROOT);
-        Stream<BannerPackModel.Entry> available = this.repository.getPacks().values().stream()
+        Stream<BannerPackModelEntry> available = this.repository.getPacks().values().stream()
                 .filter(pack -> !this.isPackActive(pack.getMetadata().id()))
                 .map(pack -> this.toEntry(pack, false))
                 .filter(entry -> this.matchesFilter(entry, value, lowerCaseValue));
-        Stream<BannerPackModel.Entry> active = this.repository.getPacks().values().stream()
+        Stream<BannerPackModelEntry> active = this.repository.getPacks().values().stream()
                 .filter(pack -> this.isPackActive(pack.getMetadata().id()))
                 .map(pack -> this.toEntry(pack, true))
                 .filter(entry -> this.matchesFilter(entry, value, lowerCaseValue));
@@ -163,16 +153,16 @@ public class BannerPackSelectionScreen extends Screen {
         this.activePackList.updateList(active);
     }
 
-    private boolean matchesFilter(BannerPackModel.Entry entry, String value, String lowerCaseValue) {
+    private boolean matchesFilter(BannerPackModelEntry entry, String value, String lowerCaseValue) {
         return value.isBlank()
-                || entry.getPackId().toLowerCase(Locale.ROOT).contains(lowerCaseValue)
+                || entry.packId().toLowerCase(Locale.ROOT).contains(lowerCaseValue)
                 || entry.getTitle().getString().toLowerCase(Locale.ROOT).contains(lowerCaseValue)
-                || entry.getDescription().getString().toLowerCase(Locale.ROOT).contains(lowerCaseValue);
+                || entry.description().getString().toLowerCase(Locale.ROOT).contains(lowerCaseValue);
     }
 
-    private BannerPackModel.Entry toEntry(BannerPack pack, boolean active) {
+    private BannerPackModelEntry toEntry(BannerPack pack, boolean active) {
         String packId = pack.getMetadata().id();
-        return new BannerPackModel.Entry(
+        return new BannerPackModelEntry(
                 packId, displayName(pack), description(pack), secondLine(pack), getPackIcon(pack), active);
     }
 
@@ -249,7 +239,7 @@ public class BannerPackSelectionScreen extends Screen {
         this.reload();
     }
 
-    void movePackToActive(String packId) {
+    public void movePackToActive(String packId) {
         if (!this.isPackActive(packId)) {
             List<String> active = new ArrayList<>(this.activeConfig.getActivePacks());
             active.add(packId);
@@ -258,7 +248,7 @@ public class BannerPackSelectionScreen extends Screen {
         }
     }
 
-    void movePackToAvailable(String packId) {
+    public void movePackToAvailable(String packId) {
         if (BannerPackRepository.LOCAL_PACK_ID.equals(packId)) {
             return;
         }
@@ -332,6 +322,7 @@ public class BannerPackSelectionScreen extends Screen {
         }
 
         String id = pack.getMetadata().id();
+        @SuppressWarnings("deprecation")
         Identifier location = Identifier.withDefaultNamespace("pack/"
                 + Util.sanitizeName(id, Identifier::validPathChar)
                 + "/"
@@ -342,256 +333,6 @@ public class BannerPackSelectionScreen extends Screen {
             TextureManager textureManager = this.minecraft.getTextureManager();
             textureManager.register(location, new DynamicTexture(location::toString, iconImage));
             return location;
-        }
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static class BannerPackListWidget extends ObjectSelectionList<BannerPackListEntry> {
-        private final Component title;
-        private final BannerPackSelectionScreen screen;
-        private final boolean active;
-
-        public BannerPackListWidget(
-                Minecraft minecraft,
-                BannerPackSelectionScreen screen,
-                int width,
-                int height,
-                Component title,
-                boolean active) {
-            super(minecraft, width, height, 33, ROW_HEIGHT);
-            this.screen = screen;
-            this.title = title;
-            this.active = active;
-            this.centerListVertically = false;
-        }
-
-        @Override
-        public int getRowWidth() {
-            return this.width - 4;
-        }
-
-        @Override
-        protected int scrollBarX() {
-            return this.getRight() - this.scrollbarWidth();
-        }
-
-        @Override
-        public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
-            BannerPackListEntry selected = this.getSelected();
-            return selected != null ? selected.keyPressed(event) : super.keyPressed(event);
-        }
-
-        public void updateList(Stream<BannerPackModel.Entry> entries) {
-            this.clearEntries();
-            Component header =
-                    Component.empty().append(this.title).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.BOLD);
-            this.addEntry(new HeaderEntry(this.minecraft.font, header), (int) (9.0F * 1.5F));
-            this.setSelected(null);
-            entries.forEach(
-                    entry -> this.addEntry(new PackEntry(this.minecraft, this.screen, this, entry, this.active)));
-            this.refreshScrollAmount();
-        }
-    }
-
-    @Environment(EnvType.CLIENT)
-    public abstract static class BannerPackListEntry extends ObjectSelectionList.Entry<BannerPackListEntry> {
-        public abstract String getPackId();
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static class HeaderEntry extends BannerPackListEntry {
-        private final net.minecraft.client.gui.Font font;
-        private final Component text;
-
-        public HeaderEntry(net.minecraft.client.gui.Font font, Component text) {
-            this.font = font;
-            this.text = text;
-        }
-
-        @Override
-        public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            graphics.centeredText(
-                    this.font,
-                    this.text,
-                    this.getContentX() + this.getWidth() / 2,
-                    this.getContentYMiddle() - 9 / 2,
-                    -1);
-        }
-
-        @Override
-        public Component getNarration() {
-            return this.text;
-        }
-
-        @Override
-        public String getPackId() {
-            return "";
-        }
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static class PackEntry extends BannerPackListEntry implements SelectableEntry {
-        private final BannerPackSelectionScreen screen;
-        private final BannerPackListWidget parent;
-        private final Minecraft minecraft;
-        private final BannerPackModel.Entry pack;
-        private final StringWidget nameWidget;
-        private final MultiLineTextWidget secondLineWidget;
-
-        public PackEntry(
-                Minecraft minecraft,
-                BannerPackSelectionScreen screen,
-                BannerPackListWidget parent,
-                BannerPackModel.Entry pack,
-                boolean active) {
-            this.minecraft = minecraft;
-            this.screen = screen;
-            this.parent = parent;
-            this.pack = pack.withActive(active);
-            this.nameWidget = new StringWidget(this.pack.getTitle(), minecraft.font);
-            this.secondLineWidget = new MultiLineTextWidget(
-                    ComponentUtils.mergeStyles(this.pack.getSecondLine(), Style.EMPTY.withColor(-8355712)),
-                    minecraft.font);
-            this.secondLineWidget.setMaxRows(2);
-        }
-
-        @Override
-        public Component getNarration() {
-            return Component.translatable("narrator.select", this.pack.getTitle());
-        }
-
-        @Override
-        public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            Identifier iconTexture = this.pack.getIconTexture();
-            int iconY = this.getContentY();
-            graphics.blit(RenderPipelines.GUI_TEXTURED, iconTexture, this.getContentX(), iconY, 0f, 0f, 32, 32, 32, 32);
-
-            if (this.showHoverOverlay() && hovered) {
-                Identifier actionSprite =
-                        this.pack.isActive() ? UNSELECT_HIGHLIGHTED_SPRITE : SELECT_HIGHLIGHTED_SPRITE;
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, actionSprite, this.getContentX(), iconY, 32, 32);
-            }
-
-            if (!this.nameWidget.getMessage().equals(this.pack.getTitle())) {
-                this.nameWidget.setMessage(this.pack.getTitle());
-            }
-            if (!this.secondLineWidget
-                    .getMessage()
-                    .getContents()
-                    .equals(this.pack.getSecondLine().getContents())) {
-                this.secondLineWidget.setMessage(
-                        ComponentUtils.mergeStyles(this.pack.getSecondLine(), Style.EMPTY.withColor(-8355712)));
-            }
-
-            int textX = this.getContentX() + ICON_SIZE + 2;
-            this.nameWidget.setMaxWidth(157);
-            this.nameWidget.setPosition(textX, this.getContentY() + 1);
-            this.nameWidget.extractRenderState(graphics, mouseX, mouseY, a);
-
-            this.secondLineWidget.setMaxWidth(157);
-            this.secondLineWidget.setPosition(textX, this.getContentY() + 12);
-            this.secondLineWidget.extractRenderState(graphics, mouseX, mouseY, a);
-        }
-
-        @Override
-        public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
-            if (this.showHoverOverlay() && this.mouseOverIcon((int) event.x(), (int) event.y())) {
-                this.togglePack();
-                return true;
-            }
-            return super.mouseClicked(event, doubleClick);
-        }
-
-        @Override
-        public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
-            if (event.isConfirmation() && this.showHoverOverlay()) {
-                this.togglePack();
-                return true;
-            }
-            return super.keyPressed(event);
-        }
-
-        private boolean showHoverOverlay() {
-            return !BannerPackRepository.LOCAL_PACK_ID.equals(this.pack.getPackId());
-        }
-
-        private boolean mouseOverIcon(int mouseX, int mouseY) {
-            int relX = mouseX - this.getContentX();
-            int relY = mouseY - this.getContentY();
-            return relX >= 0 && relX < ICON_SIZE && relY >= 0 && relY < ICON_SIZE;
-        }
-
-        private void togglePack() {
-            if (this.pack.isActive()) {
-                this.screen.movePackToAvailable(this.pack.getPackId());
-            } else {
-                this.screen.movePackToActive(this.pack.getPackId());
-            }
-        }
-
-        @Override
-        public String getPackId() {
-            return this.pack.getPackId();
-        }
-
-        @Override
-        public boolean shouldTakeFocusAfterInteraction() {
-            return this.parent.children().stream()
-                    .anyMatch(entry -> entry.getPackId().equals(this.getPackId()));
-        }
-    }
-
-    private static final class BannerPackModel {
-        private static final class Entry {
-            private final String packId;
-            private final String title;
-            private final Component description;
-            private final Component secondLine;
-            private final Identifier iconTexture;
-            private final boolean active;
-
-            private Entry(
-                    String packId,
-                    String title,
-                    Component description,
-                    Component secondLine,
-                    Identifier iconTexture,
-                    boolean active) {
-                this.packId = packId;
-                this.title = title;
-                this.description = description;
-                this.secondLine = secondLine;
-                this.iconTexture = iconTexture;
-                this.active = active;
-            }
-
-            private Entry withActive(boolean active) {
-                return new Entry(this.packId, this.title, this.description, this.secondLine, this.iconTexture, active);
-            }
-
-            private String getPackId() {
-                return this.packId;
-            }
-
-            private Component getTitle() {
-                return Component.literal(this.title);
-            }
-
-            private Component getDescription() {
-                return this.description;
-            }
-
-            private Component getSecondLine() {
-                return this.secondLine;
-            }
-
-            private Identifier getIconTexture() {
-                return this.iconTexture;
-            }
-
-            private boolean isActive() {
-                return this.active;
-            }
         }
     }
 }

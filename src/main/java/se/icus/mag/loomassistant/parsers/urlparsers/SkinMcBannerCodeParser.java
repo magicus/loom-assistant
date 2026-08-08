@@ -74,7 +74,7 @@ public final class SkinMcBannerCodeParser {
             throw new IllegalArgumentException("Banner code produced no layers");
         }
 
-        DecodedPair base = decoded.get(0);
+        DecodedPair base = decoded.getFirst();
         String bannerColor = base.colorName();
 
         List<BannerRecipeLayer> layers = new ArrayList<>();
