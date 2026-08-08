@@ -29,11 +29,12 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
+import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 
-public class LoomScreenLeftBar extends ScreenExtensionWidget {
+public class LoomScreenLeftBar implements ScreenExtension {
     private static final int BG_LEFT_PADDING = 19;
     private static final int LEFT_STRIP_BUTTON_X = 3;
     private static final int LEFT_STRIP_RECIPE_Y = 5;
@@ -86,7 +87,7 @@ public class LoomScreenLeftBar extends ScreenExtensionWidget {
         this.panelVisibilityChangedCallback = panelVisibilityChangedCallback;
     }
 
-    public void onInit() {
+    public void init() {
         this.recipeBookButton = screen.addRenderableWidget(new ImageButton(
                 getLeftStripButtonX(),
                 screen.topPos + LEFT_STRIP_RECIPE_Y,

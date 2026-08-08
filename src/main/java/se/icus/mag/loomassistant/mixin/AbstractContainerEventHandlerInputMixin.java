@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.ScreenExtension;
 
 @Mixin(ContainerEventHandler.class)
 public interface AbstractContainerEventHandlerInputMixin {
@@ -21,7 +21,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
+        ScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         if (extension.charTyped(event)) {
@@ -33,7 +33,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
+        ScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         if (extension.mouseDragged(event, dx, dy)) {

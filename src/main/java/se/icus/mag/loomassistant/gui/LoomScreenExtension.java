@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.gui.extensions;
+package se.icus.mag.loomassistant.gui;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import java.util.ArrayList;
@@ -15,8 +15,11 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
+import se.icus.mag.loomassistant.gui.extensions.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenLeftBar;
+import se.icus.mag.loomassistant.gui.extensions.WeavingGuide;
 
-public class LoomScreenExtension {
+public class LoomScreenExtension implements ScreenExtension {
     private static final int CONTENT_X_SHIFT = 3;
     private static final int BG_LEFT_PADDING = 19;
     private static final int PANEL_TAB_LEFT_OVERHANG = 32;
@@ -32,7 +35,7 @@ public class LoomScreenExtension {
     private LoomScreenLeftBar leftBar;
     private LoomRecipePanel panel;
     private WeavingGuide weavingGuide;
-    private List<ScreenExtensionWidget> widgets;
+    private List<ScreenExtension> widgets;
 
     public LoomScreenExtension(LoomScreen screen) {
         this.screen = screen;
@@ -44,34 +47,36 @@ public class LoomScreenExtension {
         return panel;
     }
 
-    public void onInit() {
+    public void init() {
         manager.onLoomScreenOpened(screen.menu);
         this.screen.leftPos = manager.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
         this.weavingGuide = new WeavingGuide(screen, manager);
         this.leftBar = new LoomScreenLeftBar(screen, manager, this::onPanelVisibilityChanged);
         refreshPanel();
+
         rebuildWidgetList();
-        for (ScreenExtensionWidget widget : widgets) {
-            widget.onInit();
+
+        for (ScreenExtension widget : widgets) {
+            widget.init();
         }
     }
 
-    public void onRemoved() {
-        for (ScreenExtensionWidget widget : widgets) {
-            widget.onRemoved();
+    public void removed() {
+        for (ScreenExtension widget : widgets) {
+            widget.removed();
         }
         manager.onLoomScreenClosed();
     }
 
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         manager.tick();
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             widget.extractBackground(context, mouseX, mouseY, delta);
         }
     }
 
     public boolean mouseClicked(MouseButtonEvent mouseButtonEvent) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.mouseClicked(mouseButtonEvent)) {
                 return true;
             }
@@ -80,7 +85,7 @@ public class LoomScreenExtension {
     }
 
     public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.mouseReleased(mouseButtonEvent)) {
                 return true;
             }
@@ -89,7 +94,7 @@ public class LoomScreenExtension {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
                 return true;
             }
@@ -98,7 +103,7 @@ public class LoomScreenExtension {
     }
 
     public boolean keyPressed(KeyEvent event) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.keyPressed(event)) {
                 return true;
             }
@@ -107,7 +112,7 @@ public class LoomScreenExtension {
     }
 
     public boolean charTyped(CharacterEvent event) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.charTyped(event)) {
                 return true;
             }
@@ -116,7 +121,7 @@ public class LoomScreenExtension {
     }
 
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        for (ScreenExtensionWidget widget : widgets) {
+        for (ScreenExtension widget : widgets) {
             if (widget.mouseDragged(event, dx, dy)) {
                 return true;
             }
@@ -190,7 +195,7 @@ public class LoomScreenExtension {
     }
 
     private void rebuildWidgetList() {
-        List<ScreenExtensionWidget> updated = new ArrayList<>(3);
+        List<ScreenExtension> updated = new ArrayList<>(3);
         if (panel != null) {
             updated.add(panel);
         }

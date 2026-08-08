@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.component.DataComponents;
@@ -33,7 +34,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
@@ -62,12 +64,16 @@ public class LoomScreenStateManager {
         this.persistedStates = loadPersistedStates();
     }
 
-    public LoomScreenExtension getExtension() {
+    public ScreenExtension getExtension() {
         return loomExtension;
     }
 
     public void setExtension(LoomScreenExtension extension) {
         this.loomExtension = extension;
+    }
+
+    public void createExtension(LoomScreen s) {
+        setExtension(new LoomScreenExtension(s));
     }
 
     // ── Screen lifecycle ──────────────────────────────────────────────────────

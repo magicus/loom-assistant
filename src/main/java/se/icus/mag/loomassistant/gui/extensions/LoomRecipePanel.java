@@ -48,6 +48,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
@@ -56,7 +57,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
-public class LoomRecipePanel extends ScreenExtensionWidget {
+public class LoomRecipePanel implements ScreenExtension {
     public static final int PANEL_WIDTH = 147;
     private static final int PANEL_HEIGHT = 166;
     private static final int GRID_COLUMNS = 5;
