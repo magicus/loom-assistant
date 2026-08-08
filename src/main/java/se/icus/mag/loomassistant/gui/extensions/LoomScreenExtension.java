@@ -5,6 +5,8 @@
 package se.icus.mag.loomassistant.gui.extensions;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.CharacterEvent;
@@ -30,10 +32,12 @@ public class LoomScreenExtension {
     private LoomScreenLeftBar leftBar;
     private LoomRecipePanel panel;
     private WeavingGuide weavingGuide;
+    private List<ScreenExtensionWidget> widgets;
 
     public LoomScreenExtension(LoomScreen screen) {
         this.screen = screen;
         this.manager = LoomAssistantMod.getLoomManager();
+        this.widgets = List.of();
     }
 
     public LoomRecipePanel getPanel() {
@@ -45,66 +49,77 @@ public class LoomScreenExtension {
         this.screen.leftPos = manager.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();
         this.weavingGuide = new WeavingGuide(screen, manager);
         this.leftBar = new LoomScreenLeftBar(screen, manager, this::onPanelVisibilityChanged);
-        this.leftBar.onInit();
         refreshPanel();
+        rebuildWidgetList();
+        for (ScreenExtensionWidget widget : widgets) {
+            widget.onInit();
+        }
     }
 
     public void onRemoved() {
+        for (ScreenExtensionWidget widget : widgets) {
+            widget.onRemoved();
+        }
         manager.onLoomScreenClosed();
     }
 
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         manager.tick();
-        if (panel != null) {
-            panel.extractBackground(context, mouseX, mouseY, delta);
+        for (ScreenExtensionWidget widget : widgets) {
+            widget.extractBackground(context, mouseX, mouseY, delta);
         }
-        weavingGuide.extractBackground(context, mouseX, mouseY, delta);
-        leftBar.extractBackground(context, mouseX, mouseY, delta);
     }
 
     public boolean mouseClicked(MouseButtonEvent mouseButtonEvent) {
-        if (leftBar != null && leftBar.mouseClicked(mouseButtonEvent)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.mouseClicked(mouseButtonEvent)) {
+                return true;
+            }
         }
-
-        if (panel != null && panel.mouseClicked(mouseButtonEvent)) {
-            return true;
-        }
-
         return false;
     }
 
     public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
-        if (leftBar != null && leftBar.mouseReleased(mouseButtonEvent)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.mouseReleased(mouseButtonEvent)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (panel != null && panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean keyPressed(KeyEvent event) {
-        if (panel != null && panel.keyPressed(event)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.keyPressed(event)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean charTyped(CharacterEvent event) {
-        if (panel != null && panel.charTyped(event)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.charTyped(event)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (panel != null && panel.mouseDragged(event, dx, dy)) {
-            return true;
+        for (ScreenExtensionWidget widget : widgets) {
+            if (widget.mouseDragged(event, dx, dy)) {
+                return true;
+            }
         }
         return false;
     }
@@ -171,5 +186,20 @@ public class LoomScreenExtension {
         this.panel = manager.isPanelOpen()
                 ? new LoomRecipePanel(manager, screen, screen.menu, getPanelX(), screen.topPos)
                 : null;
+        rebuildWidgetList();
+    }
+
+    private void rebuildWidgetList() {
+        List<ScreenExtensionWidget> updated = new ArrayList<>(3);
+        if (panel != null) {
+            updated.add(panel);
+        }
+        if (weavingGuide != null) {
+            updated.add(weavingGuide);
+        }
+        if (leftBar != null) {
+            updated.add(leftBar);
+        }
+        widgets = List.copyOf(updated);
     }
 }
