@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.gui.screens.colorswitch;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -350,7 +351,7 @@ public class BannerColorSwitchScreen extends Screen {
     public void openPicker(DyeColor source, int btnCenterX, int btnCenterY) {
         pickerOpenFor = source;
         DyeColor selected = targets.getOrDefault(source, source);
-        int selIdx = MathUtils.indexOf(pickerColors, selected);
+        int selIdx = Arrays.asList(pickerColors).indexOf(selected);
         int selCol = selIdx % PICKER_COLS;
         int selRow = selIdx / PICKER_COLS;
         int gridOffX = PICKER_PAD + selCol * PICKER_CELL + PICKER_CELL / 2;
