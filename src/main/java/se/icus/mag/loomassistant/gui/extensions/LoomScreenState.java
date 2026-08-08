@@ -4,18 +4,19 @@
  */
 package se.icus.mag.loomassistant.gui.extensions;
 
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 public class LoomScreenState {
     private boolean panelOpen;
-    private BannerRecipe activeBanner;
-    private String selectedBannerId;
-    private BannerRecipe activeBannerSource;
+    private transient BannerRecipe activeBanner;
+    private transient String selectedBannerId;
+    private transient BannerRecipe activeBannerSource;
     private String activeBannerSourceId;
     private String selectedCategoryId;
-    private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
+    private Map<DyeColor, DyeColor> persistentDyeReplacementMap = new HashMap<>();
     private boolean persistentDyeSwitchEnabled;
 
     public boolean isPanelOpen() {
@@ -74,7 +75,15 @@ public class LoomScreenState {
         this.persistentDyeSwitchEnabled = persistentDyeSwitchEnabled;
     }
 
-    public EnumMap<DyeColor, DyeColor> getPersistentDyeReplacementMap() {
+    public Map<DyeColor, DyeColor> getPersistentDyeReplacementMap() {
+        if (persistentDyeReplacementMap == null) {
+            persistentDyeReplacementMap = new HashMap<>();
+        }
         return persistentDyeReplacementMap;
+    }
+
+    public void setPersistentDyeReplacementMap(Map<DyeColor, DyeColor> persistentDyeReplacementMap) {
+        this.persistentDyeReplacementMap =
+                persistentDyeReplacementMap != null ? new HashMap<>(persistentDyeReplacementMap) : new HashMap<>();
     }
 }

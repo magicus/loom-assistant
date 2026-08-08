@@ -4,13 +4,23 @@
  */
 package se.icus.mag.loomassistant.gui.extensions;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.server.IntegratedServer;
@@ -24,34 +34,29 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.support.LoomPersistedState;
-import se.icus.mag.loomassistant.gui.support.LoomStatePersistence;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
-import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomScreenStateManager {
     private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Type PERSISTED_STATE_MAP_TYPE =
+            new TypeToken<LinkedHashMap<String, LoomScreenState>>() {}.getType();
+    private static final Path PERSISTENCE_FILE_PATH =
+            FabricLoader.getInstance().getConfigDir().resolve("loom-assistant").resolve("loom-state.json");
 
     private final LoomScreenState state;
-    private final BannerRecipeJsonConverter recipeConverter = new BannerRecipeJsonConverter();
-    private final LoomStatePersistence persistence;
-    private final LoomPersistedState persistedState;
+    private final Map<String, LoomScreenState> persistedStates;
 
     private LoomMenu currentMenu;
     private Weaver currentWeaver;
     private String loadedWorldKey;
 
     public LoomScreenStateManager(LoomScreenState state) {
-        this(state, new LoomStatePersistence());
-    }
-
-    LoomScreenStateManager(LoomScreenState state, LoomStatePersistence persistence) {
         this.state = state;
-        this.persistence = persistence;
-        this.persistedState = persistence.load();
+        this.persistedStates = loadPersistedStates();
     }
 
     public LoomScreenState getState() {
@@ -452,76 +457,32 @@ public class LoomScreenStateManager {
 
     // ── Persistence ───────────────────────────────────────────────────────────
 
-    private void loadPersistedState(String worldKey) {
-        resetStateFromPersistence();
-
-        LoomPersistedState.WorldState persistedWorldState = persistedState.getWorld(worldKey);
-        if (persistedWorldState == null) {
-            return;
+    private Map<String, LoomScreenState> loadPersistedStates() {
+        if (!Files.exists(PERSISTENCE_FILE_PATH)) {
+            return new LinkedHashMap<>();
         }
 
-        state.setPanelOpen(persistedWorldState.isPanelOpen());
-        state.setSelectedCategoryId(blankToNull(persistedWorldState.getSelectedCategoryId()));
-
-        if (persistedWorldState.isPersistentDyeSwitchEnabled()) {
-            for (Map.Entry<String, String> entry :
-                    persistedWorldState.getPersistentDyeReplacements().entrySet()) {
-                DyeColor src = DyeColor.byName(entry.getKey(), null);
-                DyeColor dst = DyeColor.byName(entry.getValue(), null);
-                if (src != null && dst != null && src != dst) {
-                    state.getPersistentDyeReplacementMap().put(src, dst);
-                }
-            }
-            state.setPersistentDyeSwitchEnabled(
-                    !state.getPersistentDyeReplacementMap().isEmpty());
-        }
-
-        String recipeJson = blankToNull(persistedWorldState.getActiveBannerJson());
-        if (recipeJson != null && !recipeJson.isBlank()) {
-            try {
-                BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
-                if (recipe != null) {
-                    setActiveBannerFromSource(recipe, null, false);
-                }
-            } catch (RuntimeException e) {
-                LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
-            }
+        try (Reader reader = Files.newBufferedReader(PERSISTENCE_FILE_PATH)) {
+            Map<String, LoomScreenState> persistedStates = GSON.fromJson(reader, PERSISTED_STATE_MAP_TYPE);
+            return persistedStates != null ? persistedStates : new LinkedHashMap<>();
+        } catch (JsonSyntaxException e) {
+            LoomAssistantMod.LOGGER.warn("Invalid loom state file: {}", PERSISTENCE_FILE_PATH, e);
+            return new LinkedHashMap<>();
+        } catch (IOException e) {
+            LoomAssistantMod.LOGGER.warn("Failed to read loom state file: {}", PERSISTENCE_FILE_PATH, e);
+            return new LinkedHashMap<>();
         }
     }
 
-    private void persistCurrentWorldState() {
-        String worldKey = currentWorldKey();
-        LoomPersistedState.WorldState persistedWorldState = persistedState.getOrCreateWorld(worldKey);
-
-        persistedWorldState.setPanelOpen(state.isPanelOpen());
-        persistedWorldState.setActiveBannerJson(blankToNull(serializePersistedActiveBanner()));
-        persistedWorldState.setSelectedCategoryId(blankToNull(state.getSelectedCategoryId()));
-
-        boolean persistentDyeEnabled = state.isPersistentDyeSwitchEnabled()
-                && !state.getPersistentDyeReplacementMap().isEmpty();
-        persistedWorldState.setPersistentDyeSwitchEnabled(persistentDyeEnabled);
-
-        Map<String, String> replacements = new LinkedHashMap<>();
-        for (Map.Entry<DyeColor, DyeColor> entry :
-                state.getPersistentDyeReplacementMap().entrySet()) {
-            replacements.put(entry.getKey().getName(), entry.getValue().getName());
+    private void savePersistedStates() {
+        try {
+            Files.createDirectories(PERSISTENCE_FILE_PATH.getParent());
+            try (Writer writer = Files.newBufferedWriter(PERSISTENCE_FILE_PATH)) {
+                GSON.toJson(persistedStates, writer);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save loom state file: " + PERSISTENCE_FILE_PATH, e);
         }
-        persistedWorldState.setPersistentDyeReplacements(replacements);
-
-        if (persistedWorldState.isEmpty()) {
-            persistedState.getWorlds().remove(worldKey);
-        }
-
-        persistence.save(persistedState);
-    }
-
-    private String serializePersistedActiveBanner() {
-        BannerRecipe banner = state.getActiveBanner();
-        if (banner == null) return null;
-        BannerRecipe toPersist = state.isPersistentDyeSwitchEnabled() && state.getActiveBannerSource() != null
-                ? state.getActiveBannerSource()
-                : banner;
-        return recipeConverter.fromRecipe(toPersist);
     }
 
     private void resetStateFromPersistence() {
@@ -533,6 +494,85 @@ public class LoomScreenStateManager {
         state.setSelectedCategoryId(null);
         state.setPersistentDyeSwitchEnabled(false);
         state.getPersistentDyeReplacementMap().clear();
+    }
+
+    private void loadPersistedState(String worldKey) {
+        resetStateFromPersistence();
+
+        LoomScreenState persistedWorldState = persistedStates.get(worldKey);
+        if (persistedWorldState == null) {
+            return;
+        }
+
+        state.setPanelOpen(persistedWorldState.isPanelOpen());
+        state.setActiveBannerSourceId(blankToNull(persistedWorldState.getActiveBannerSourceId()));
+        state.setSelectedCategoryId(blankToNull(persistedWorldState.getSelectedCategoryId()));
+        state.setPersistentDyeReplacementMap(persistedWorldState.getPersistentDyeReplacementMap());
+        state.setPersistentDyeSwitchEnabled(state.getActiveBannerSourceId() != null
+                && persistedWorldState.isPersistentDyeSwitchEnabled()
+                && !state.getPersistentDyeReplacementMap().isEmpty());
+        if (!state.isPersistentDyeSwitchEnabled()) {
+            state.getPersistentDyeReplacementMap().clear();
+        }
+
+        restoreActiveBannerFromPersistedState();
+    }
+
+    private void persistCurrentWorldState() {
+        if (loadedWorldKey == null) {
+            LoomAssistantMod.LOGGER.warn("Cannot persist loom state before a world has been loaded");
+            return;
+        }
+
+        LoomScreenState snapshot = snapshotPersistedState();
+        if (snapshot.isPanelOpen()
+                || blankToNull(snapshot.getSelectedCategoryId()) != null
+                || blankToNull(snapshot.getActiveBannerSourceId()) != null
+                || snapshot.isPersistentDyeSwitchEnabled()
+                || !snapshot.getPersistentDyeReplacementMap().isEmpty()) {
+            persistedStates.put(loadedWorldKey, snapshot);
+        } else {
+            persistedStates.remove(loadedWorldKey);
+        }
+
+        savePersistedStates();
+    }
+
+    private LoomScreenState snapshotPersistedState() {
+        LoomScreenState snapshot = new LoomScreenState();
+        snapshot.setPanelOpen(state.isPanelOpen());
+        snapshot.setSelectedCategoryId(blankToNull(state.getSelectedCategoryId()));
+        snapshot.setActiveBannerSourceId(blankToNull(state.getActiveBannerSourceId()));
+
+        boolean persistableBanner = snapshot.getActiveBannerSourceId() != null;
+        boolean persistentDyeEnabled = persistableBanner
+                && state.isPersistentDyeSwitchEnabled()
+                && !state.getPersistentDyeReplacementMap().isEmpty();
+        snapshot.setPersistentDyeSwitchEnabled(persistentDyeEnabled);
+        if (persistentDyeEnabled) {
+            snapshot.setPersistentDyeReplacementMap(state.getPersistentDyeReplacementMap());
+        }
+        return snapshot;
+    }
+
+    private void restoreActiveBannerFromPersistedState() {
+        String sourceId = blankToNull(state.getActiveBannerSourceId());
+        if (sourceId == null) {
+            state.setActiveBanner(null);
+            state.setActiveBannerSource(null);
+            state.setSelectedBannerId(null);
+            return;
+        }
+
+        BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
+        if (source == null) {
+            state.setActiveBanner(null);
+            state.setActiveBannerSource(null);
+            state.setSelectedBannerId(null);
+            return;
+        }
+
+        setActiveBannerFromSource(source, sourceId, false);
     }
 
     // ── Static helpers ────────────────────────────────────────────────────────
@@ -548,7 +588,7 @@ public class LoomScreenStateManager {
     }
 
     private static Map<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
-        EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
+        Map<DyeColor, DyeColor> normalized = new LinkedHashMap<>();
         if (replacements == null) return normalized;
         for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
             DyeColor src = entry.getKey();
