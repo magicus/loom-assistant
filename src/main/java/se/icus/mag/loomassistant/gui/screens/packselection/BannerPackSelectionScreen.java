@@ -76,7 +76,8 @@ public class BannerPackSelectionScreen extends Screen {
         this(repository, activeConfig, null);
     }
 
-    public BannerPackSelectionScreen(BannerPackRepository repository, ActivePacksConfig activeConfig, Screen parentScreen) {
+    public BannerPackSelectionScreen(
+            BannerPackRepository repository, ActivePacksConfig activeConfig, Screen parentScreen) {
         super(Component.literal("Select Banner Packs"));
         this.repository = repository;
         this.activeConfig = activeConfig;
@@ -120,9 +121,9 @@ public class BannerPackSelectionScreen extends Screen {
 
         LinearLayout footer = this.layout.addToFooter(LinearLayout.horizontal().spacing(8));
         footer.addChild(Button.builder(
-                Component.translatable("loom-assistant.screen.pack_download.title"),
-                button -> this.minecraft.gui.setScreen(new BannerPackDownloadManagementScreen(this)))
-            .build());
+                        Component.translatable("loom-assistant.screen.pack_download.title"),
+                        button -> this.minecraft.gui.setScreen(new BannerPackDownloadManagementScreen(this)))
+                .build());
         footer.addChild(Button.builder(
                         OPEN_PACK_DIR_TITLE, button -> Util.getPlatform().openPath(this.repository.getPacksRoot()))
                 .tooltip(Tooltip.create(PACK_FOLDER_TOOLTIP))

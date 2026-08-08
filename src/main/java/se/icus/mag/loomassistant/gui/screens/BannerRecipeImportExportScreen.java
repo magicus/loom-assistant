@@ -317,7 +317,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private String buildExportCommand() {
-		BannerRecipe recipe = manager.getActiveBannerRecipe();
+        BannerRecipe recipe = manager.getActiveBannerRecipe();
         if (recipe == null) return "";
 
         BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();

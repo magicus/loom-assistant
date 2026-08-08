@@ -55,16 +55,16 @@
   "loom-assistant.tooltip.replace_colors": "Replace Colors",
   "loom-assistant.tooltip.weave": "Weave",
   "subtitles.loom-assistant.ui.active_slot_set": "Banner recipe selected",
-  "text.autoconfig.loom-assistant.title": "Loom Assistant Settings",
+  "text.autoconfig.loom-assistant.category.general": "General",
   "text.autoconfig.loom-assistant.option.autoInstallPackIds": "Auto-install packs",
   "text.autoconfig.loom-assistant.option.autoInstallPackIds.@Tooltip[0]": "Comma-separated pack IDs, e.g. numbers, letters",
   "text.autoconfig.loom-assistant.option.bannerPackRepo": "Banner Pack Database",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds": "Auto-install packs",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds.@Tooltip[0]": "Comma-separated pack IDs, e.g. numbers, letters",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Banner Pack Database URL",
-  "text.autoconfig.loom-assistant.category.general": "General",
   "text.autoconfig.loom-assistant.option.colorSortOrder": "Color Sort Order",
   "text.autoconfig.loom-assistant.option.colorSortOrder.RAINBOW": "Rainbow",
   "text.autoconfig.loom-assistant.option.colorSortOrder.VANILLA": "Vanilla",
-  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Banner Pack Database URL"
+  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Banner Pack Database URL",
+  "text.autoconfig.loom-assistant.title": "Loom Assistant Settings"
 }

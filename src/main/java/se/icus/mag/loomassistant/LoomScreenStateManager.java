@@ -37,6 +37,7 @@ import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomScreenStateManager {
@@ -122,7 +123,10 @@ public class LoomScreenStateManager {
 
     public ItemStack getActiveBannerStack() {
         BannerRecipe banner = state.getActiveBanner();
-        return banner == null ? ItemStack.EMPTY : BannerRecipe.toItem(Minecraft.getInstance(), banner);
+        if (banner == null) return ItemStack.EMPTY;
+
+        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
+        return converter.fromRecipe(banner);
     }
 
     public String getActiveBannerDisplayName() {
@@ -149,8 +153,10 @@ public class LoomScreenStateManager {
     // ── Active banner mutations ───────────────────────────────────────────────
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        BannerRecipe banner = BannerRecipe.fromItem(stack);
+        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
+        BannerRecipe banner = converter.toRecipe(stack);
         if (banner == null) return false;
+
         setActiveBannerFromSource(banner, null, true);
         return true;
     }
