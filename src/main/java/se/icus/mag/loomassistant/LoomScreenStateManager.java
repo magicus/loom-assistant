@@ -47,8 +47,10 @@ public class LoomScreenStateManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Type PERSISTED_STATE_MAP_TYPE =
             new TypeToken<LinkedHashMap<String, LoomScreenState>>() {}.getType();
+    private static final Path PERSISTENCE_DIR =
+            FabricLoader.getInstance().getConfigDir().resolve("loom-assistant");
     private static final Path PERSISTENCE_FILE_PATH =
-            FabricLoader.getInstance().getConfigDir().resolve("loom-assistant").resolve("loom-state.json");
+            PERSISTENCE_DIR.resolve("states.json");
 
     private final LoomScreenState state;
     private final Map<String, LoomScreenState> persistedStates;

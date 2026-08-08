@@ -40,8 +40,6 @@ public final class BannerStorage {
 
     private BannerStorage() {
         this.packRootPath = FabricLoader.getInstance().getGameDir().resolve("bannerpacks");
-        // Config dir used for the global categories.json
-        Path configDir = FabricLoader.getInstance().getConfigDir().resolve(LoomAssistantMod.MOD_ID);
     }
 
     public static BannerStorage getInstance() {
@@ -54,7 +52,11 @@ public final class BannerStorage {
     public void load() {
         repository = new BannerPackRepository(packRootPath);
         repository.load();
-        activePacksConfig = new ActivePacksConfig(packRootPath);
+        Path bannerpacksConfigFile = FabricLoader.getInstance()
+                .getConfigDir()
+                .resolve(LoomAssistantMod.MOD_ID)
+                .resolve("bannerpacks.json");
+        activePacksConfig = new ActivePacksConfig(bannerpacksConfigFile);
         refreshBannerCache();
         rebuildCategoryRegistry();
         LoomAssistantMod.LOGGER.info(

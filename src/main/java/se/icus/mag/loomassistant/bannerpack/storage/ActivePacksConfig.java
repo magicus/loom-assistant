@@ -17,18 +17,17 @@ import se.icus.mag.loomassistant.LoomAssistantMod;
 /**
  * Manages which banner packs are currently active/enabled.
  *
- * <p>Configuration is stored as JSON in the bannerpacks directory as
- * "active_packs.json". The local pack is always implicitly active.
+ * <p>Configuration is stored as JSON in the config directory as
+ * "bannerpacks.json". The local pack is always implicitly active.
  */
 public class ActivePacksConfig {
-    private static final String CONFIG_FILE_NAME = "active_packs.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final Path configFile;
     private List<String> activePacks;
 
-    public ActivePacksConfig(Path packsRoot) {
-        this.configFile = packsRoot.resolve(CONFIG_FILE_NAME);
+    public ActivePacksConfig(Path configFile) {
+        this.configFile = configFile;
         this.activePacks = new ArrayList<>();
         load();
     }
