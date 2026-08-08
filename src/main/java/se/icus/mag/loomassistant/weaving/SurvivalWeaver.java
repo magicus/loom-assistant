@@ -13,13 +13,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 /**
  * Weaver for survival mode: drives the loom UI by simulating slot clicks.
  */
-public class FakeWeaver extends Weaver {
+public class SurvivalWeaver extends Weaver {
     private static final int TICK_DELAY = 3;
     private static final int BANNER_SLOT = 0;
     private static final int DYE_SLOT = 1;
@@ -50,7 +50,7 @@ public class FakeWeaver extends Weaver {
         ERROR
     }
 
-    public FakeWeaver(LoomMenu menu) {
+    public SurvivalWeaver(LoomMenu menu) {
         this.handler = menu;
         this.craftabilityModel = new BannerCraftabilityModel(menu);
     }

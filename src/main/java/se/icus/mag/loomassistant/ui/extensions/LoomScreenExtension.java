@@ -37,7 +37,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.ui.screens.BannerRecipeImportExportScreen;

@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.types.bannerpack;
+package se.icus.mag.loomassistant.bannerpack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,8 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";

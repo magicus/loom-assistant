@@ -17,8 +17,8 @@ import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 /**
  * Renders banner preview thumbnails in the side panel.

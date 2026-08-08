@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.storage;
+package se.icus.mag.loomassistant.bannerpack.storage;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,10 +18,10 @@ import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategories;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 
 /**
  * Compatibility wrapper around the new types-based banner pack backend.

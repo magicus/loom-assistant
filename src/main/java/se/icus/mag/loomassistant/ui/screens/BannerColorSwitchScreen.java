@@ -19,7 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 

@@ -4,7 +4,7 @@
  */
 package se.icus.mag.loomassistant.parsers;
 
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 /**
  * Parser for Minecraft /give commands and NBT data.

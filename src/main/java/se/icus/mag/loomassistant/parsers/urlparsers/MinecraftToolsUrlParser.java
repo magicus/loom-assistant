@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.parsers;
+package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.net.URI;
 import java.net.URLDecoder;
@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.parsers.LegacyBannerPatterns;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 /**
  * Parser for minecraft.tools banner URLs.
@@ -139,7 +140,7 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             }
 
             DyeColor dyeColor = DyeColor.byName(getInvertedColorName(colorId), DyeColor.WHITE);
-            String patternId = BannerPatterns.getPatternId(patternCode);
+            String patternId = LegacyBannerPatterns.getPatternId(patternCode);
 
             net.minecraft.resources.Identifier identifier = net.minecraft.resources.Identifier.tryParse(patternId);
             if (identifier == null) {

@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.storage;
+package se.icus.mag.loomassistant.bannerpack.storage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import java.util.List;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.bannerpack.BannerPack;
 
 /**
  * Loader for banner packs bundled with the mod JAR.

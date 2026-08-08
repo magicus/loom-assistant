@@ -2,13 +2,14 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.parsers;
+package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.types.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.parsers.LegacyBannerPatterns;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 /**
  * Shared utility for parsing SkinMC-format banner codes.
@@ -79,7 +80,7 @@ public final class SkinMcBannerCodeParser {
         List<BannerRecipeLayer> layers = new ArrayList<>();
         for (int i = 1; i < decoded.size(); i++) {
             DecodedPair layer = decoded.get(i);
-            String patternId = BannerPatterns.getPatternId(layer.pattern());
+            String patternId = LegacyBannerPatterns.getPatternId(layer.pattern());
             DyeColor color = DyeColor.byName(layer.colorName(), DyeColor.WHITE);
             layers.add(new BannerRecipeLayer(net.minecraft.resources.Identifier.tryParse(patternId), color));
         }

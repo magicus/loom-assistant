@@ -11,7 +11,7 @@ import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.storage.BannerStorage;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.ui.LoomRecipePanel;
 import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
 

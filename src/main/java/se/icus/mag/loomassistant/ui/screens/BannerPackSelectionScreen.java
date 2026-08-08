@@ -43,10 +43,10 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.storage.ActivePacksConfig;
-import se.icus.mag.loomassistant.storage.BannerPackRepository;
-import se.icus.mag.loomassistant.storage.BannerStorage;
-import se.icus.mag.loomassistant.types.bannerpack.BannerPack;
+import se.icus.mag.loomassistant.bannerpack.storage.ActivePacksConfig;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.bannerpack.BannerPack;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackSelectionScreen extends Screen {

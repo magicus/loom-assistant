@@ -4,7 +4,6 @@
  */
 package se.icus.mag.loomassistant.parsers;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,10 +11,10 @@ import java.util.Map;
  * Shared banner pattern mappings used across all banner parsers.
  * Maps between different provider-specific pattern codes and Minecraft pattern IDs.
  */
-public final class BannerPatterns {
-    private static final Map<String, String> PATTERN_IDS = buildPatternIds();
+public final class LegacyBannerPatterns {
+    private static final Map<String, String> LEGACY_PATTERN_IDS = buildLegacyPatternMap();
 
-    private BannerPatterns() {}
+    private LegacyBannerPatterns() {}
 
     /**
      * Get the Minecraft pattern ID for a given provider-specific pattern code.
@@ -24,19 +23,10 @@ public final class BannerPatterns {
      * @return the Minecraft pattern ID (e.g., "minecraft:stripe_downright")
      */
     public static String getPatternId(String patternCode) {
-        return PATTERN_IDS.getOrDefault(patternCode, "minecraft:" + patternCode);
+        return LEGACY_PATTERN_IDS.getOrDefault(patternCode, "minecraft:" + patternCode);
     }
 
-    /**
-     * Get an unmodifiable map of all pattern mappings.
-     *
-     * @return a map from pattern codes to Minecraft IDs
-     */
-    public static Map<String, String> getPatternMap() {
-        return Collections.unmodifiableMap(PATTERN_IDS);
-    }
-
-    private static Map<String, String> buildPatternIds() {
+    private static Map<String, String> buildLegacyPatternMap() {
         Map<String, String> map = new HashMap<>();
         map.put("bs", "minecraft:stripe_bottom");
         map.put("ts", "minecraft:stripe_top");

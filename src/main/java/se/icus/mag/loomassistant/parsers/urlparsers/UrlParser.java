@@ -2,9 +2,9 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.parsers;
+package se.icus.mag.loomassistant.parsers.urlparsers;
 
-import se.icus.mag.loomassistant.types.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 /**
  * Abstract base class for URL-based banner parsers.
