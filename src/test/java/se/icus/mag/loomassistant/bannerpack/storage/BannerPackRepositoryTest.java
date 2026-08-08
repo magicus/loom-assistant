@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
@@ -126,7 +127,9 @@ class BannerPackRepositoryTest {
         String complexBanner = "{id:light_blue_banner,components:{banner_patterns:[{pattern:cross,color:white},"
                 + "{pattern:minecraft:curly_border,color:black},"
                 + "{pattern:triangle_top,color:yellow}],custom_name:\"Letter C\"},count:16}";
-        BannerRecipe fromGive = BannerRecipe.fromCommand("/give @p " + complexBanner);
+        BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
+        BannerRecipe fromGive = converter.toRecipe("/give @p " + complexBanner);
+        ;
         assertNotNull(fromGive);
         assertEquals("Letter C", fromGive.description());
         assertEquals("light_blue", fromGive.bannerColor());
@@ -140,21 +143,21 @@ class BannerPackRepositoryTest {
                 "minecraft:triangle_top", fromGive.layers().get(2).pattern().toString());
         assertEquals(DyeColor.YELLOW, fromGive.layers().get(2).color());
 
-        BannerRecipe fromBareItem = BannerRecipe.fromCommand("light_blue_banner");
+        BannerRecipe fromBareItem = converter.toRecipe("light_blue_banner");
         assertNotNull(fromBareItem);
         assertEquals("light_blue", fromBareItem.bannerColor());
 
-        BannerRecipe fromNamespacedItem = BannerRecipe.fromCommand(
+        BannerRecipe fromNamespacedItem = converter.toRecipe(
                 "/give @p {id:minecraft:light_blue_banner,components:{banner_patterns:[{pattern:cross,color:white},{pattern:minecraft:curly_border,color:black},{pattern:triangle_top,color:yellow}],custom_name:\"Letter C\"},count:16}");
         assertNotNull(fromNamespacedItem);
         assertEquals("Letter C", fromNamespacedItem.description());
         assertEquals("light_blue", fromNamespacedItem.bannerColor());
         assertEquals(3, fromNamespacedItem.layers().size());
 
-        BannerRecipe fromInvalidItem = BannerRecipe.fromCommand("minecraft:dirt");
+        BannerRecipe fromInvalidItem = converter.toRecipe("minecraft:dirt");
         assertNull(fromInvalidItem);
 
-        String give = fromGive.toCommand();
+        String give = converter.fromRecipe(fromGive);
         assertTrue(give.startsWith("/give @p {id:light_blue_banner"));
         assertTrue(give.contains("custom_name:\"Letter C\""));
         assertTrue(give.contains("banner_patterns:["));
@@ -162,7 +165,7 @@ class BannerPackRepositoryTest {
         assertTrue(give.contains("pattern:curly_border"));
         assertTrue(give.contains("pattern:triangle_top"));
 
-        BannerRecipe roundTripped = BannerRecipe.fromCommand(give);
+        BannerRecipe roundTripped = converter.toRecipe(give);
         assertNotNull(roundTripped);
         assertEquals(fromGive.bannerColor(), roundTripped.bannerColor());
         assertEquals(fromGive.layers(), roundTripped.layers());

@@ -15,6 +15,7 @@ import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
 
 /**
@@ -50,8 +51,8 @@ public class BannerRecipeImportExportScreen extends Screen {
     private EditBox importBox;
     private Button importButton;
 
-    private BannerRecipe.CommandParseResult importParseResult =
-            new BannerRecipe.CommandParseResult(null, "Invalid syntax", null);
+    private BannerRecipeCommandConverter.CommandParseResult importParseResult =
+            new BannerRecipeCommandConverter.CommandParseResult(null, "Invalid syntax", null);
     private boolean copiedFeedback;
 
     public BannerRecipeImportExportScreen(Screen previousScreen, LoomScreenStateManager manager) {
@@ -255,7 +256,7 @@ public class BannerRecipeImportExportScreen extends Screen {
 
     private void onImportTextChanged(String text) {
         copiedFeedback = false;
-        importParseResult = BannerRecipe.parseCommandDetailed(text);
+        importParseResult = BannerRecipeCommandConverter.parseCommandDetailed(text);
         importButton.active = importParseResult.recipe() != null;
     }
 
@@ -306,8 +307,11 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private String buildExportCommand() {
-        BannerRecipe recipe = manager.getActiveBannerRecipe();
-        return recipe == null ? "" : recipe.toCommand();
+		BannerRecipe recipe = manager.getActiveBannerRecipe();
+        if (recipe == null) return "";
+
+        BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
+        return converter.fromRecipe(recipe);
     }
 
     private void copyToClipboard() {

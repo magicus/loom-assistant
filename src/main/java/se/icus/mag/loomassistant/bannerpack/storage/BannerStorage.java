@@ -22,6 +22,7 @@ import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 
 /**
@@ -203,7 +204,8 @@ public final class BannerStorage {
         BannerRecipe recipe = repository.getBannerRecipeById(bannerId);
         if (recipe == null) return null;
 
-        return recipe.toCommand();
+        BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
+        return converter.fromRecipe(recipe);
     }
 
     private BannerRecipe importBannerFromJson(String input) {
@@ -212,7 +214,8 @@ public final class BannerStorage {
 
         String trimmed = input.trim();
 
-        BannerRecipe fromGive = BannerRecipe.fromCommand(trimmed);
+        BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
+        BannerRecipe fromGive = converter.toRecipe(trimmed);
         if (fromGive != null) {
             BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
             try {
@@ -229,8 +232,8 @@ public final class BannerStorage {
         }
 
         try {
-            BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
-            BannerRecipe fromTypesJson = converter.toRecipe(trimmed);
+            BannerRecipeJsonConverter jsonConverter = new BannerRecipeJsonConverter();
+            BannerRecipe fromTypesJson = jsonConverter.toRecipe(trimmed);
             if (fromTypesJson != null) {
                 BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
                 try {
