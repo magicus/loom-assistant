@@ -26,7 +26,6 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -36,7 +35,6 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -346,20 +344,24 @@ public class LoomScreenExtension {
         }
 
         if (panel != null) {
-            var mc = screen.minecraft;
-            boolean survivalNotWeavable =
-                    !panel.isActiveBannerWeavable() && mc.player != null && !mc.player.hasInfiniteMaterials();
-            if (!survivalNotWeavable) {
-                int progress = panel.detectCraftingProgress();
-                if (progress >= 0) {
-                    if (screen.menu.getResultSlot().getItem().isEmpty()) {
-                        renderNextStepHint(context, progress);
-                    }
-                    renderOutputSlotBorder(context, progress);
+            extractGuideRender(context);
+        }
+    }
+
+    public  void extractGuideRender(GuiGraphicsExtractor context) {
+        var mc = screen.minecraft;
+        boolean survivalNotWeavable =
+                !panel.isActiveBannerWeavable() && mc.player != null && !mc.player.hasInfiniteMaterials();
+        if (!survivalNotWeavable) {
+            int progress = panel.detectCraftingProgress();
+            if (progress >= 0) {
+                if (screen.menu.getResultSlot().getItem().isEmpty()) {
+                    renderNextStepHint(context, progress);
                 }
-            } else if (screen.menu.getResultSlot().getItem().isEmpty()) {
-                renderUncraftablePreview(context);
+                renderOutputSlotBorder(context, progress);
             }
+        } else if (screen.menu.getResultSlot().getItem().isEmpty()) {
+            renderUncraftablePreview(context);
         }
     }
 
@@ -498,7 +500,7 @@ public class LoomScreenExtension {
     }
 
     private void refreshPanel() {
-        this.panel = panelOpen ? new LoomRecipePanel(screen, screen.menu, getPanelX(), screen.topPos) : null;
+        this.panel = panelOpen ? new LoomRecipePanel(this, screen, screen.menu, getPanelX(), screen.topPos) : null;
         if (this.panel != null) {
             this.panel.restorePersistentDyeSwitchState(persistentDyeSwitchEnabled, Map.copyOf(persistentDyeMap));
         }
@@ -605,38 +607,12 @@ public class LoomScreenExtension {
         ItemStack result = screen.menu.getResultSlot().getItem();
         if (result.isEmpty()) return;
 
-        boolean correct = resultMatchesExpected(result, progress);
+        boolean correct = WeavingGuide.resultMatchesExpected(activeBannerStack, result, progress);
         int color = correct ? 0xFF44FF44 : 0xFFFF4444;
         context.fill(rx - 1, ry - 1, rx + 17, ry, color);
         context.fill(rx - 1, ry + 16, rx + 17, ry + 17, color);
         context.fill(rx - 1, ry, rx, ry + 16, color);
         context.fill(rx + 16, ry, rx + 17, ry + 16, color);
-    }
-
-    private boolean resultMatchesExpected(ItemStack result, int nextLayerIndex) {
-        if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
-        BannerRecipe recipe = BannerRecipe.fromItem(activeBannerStack);
-        if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;
-        if (bannerItem.getColor() != recipe.getBannerColorEnum()) return false;
-
-        BannerPatternLayers layers = result.get(DataComponents.BANNER_PATTERNS);
-        if (layers == null) return false;
-        int expected = nextLayerIndex + 1;
-        if (layers.layers().size() != expected) return false;
-
-        for (int i = 0; i < expected; i++) {
-            var cur = layers.layers().get(i);
-            var exp = recipe.getLayers().get(i);
-            if (cur.color() != exp.getDyeColorEnum()) return false;
-            String curId = cur.pattern()
-                    .unwrapKey()
-                    .map(k -> k.identifier().toString())
-                    .orElse(null);
-            if (curId == null) return false;
-            String expId = exp.patternId().contains(":") ? exp.patternId() : "minecraft:" + exp.patternId();
-            if (!curId.equals(expId)) return false;
-        }
-        return true;
     }
 
     // ── sound & misc ──────────────────────────────────────────────────────────

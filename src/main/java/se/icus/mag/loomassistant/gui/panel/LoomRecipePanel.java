@@ -28,7 +28,6 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -40,9 +39,10 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
@@ -114,7 +114,8 @@ public class LoomRecipePanel {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
-    private final LoomMenu handler;
+	private final LoomScreenExtension extension;
+	private final LoomMenu handler;
     private int x;
     private int y;
     private final Weaver weaver;
@@ -134,8 +135,9 @@ public class LoomRecipePanel {
     private final ImageButton pageForwardButton;
     private final ImageButton pageBackButton;
 
-    public LoomRecipePanel(LoomScreen screen, LoomMenu handler, int x, int y) {
-        this.handler = handler;
+    public LoomRecipePanel(LoomScreenExtension extension, LoomScreen screen, LoomMenu handler, int x, int y) {
+	    this.extension = extension;
+		this.handler = handler;
         this.x = x;
         this.y = y;
         this.weaver = Weaver.getWeaver(handler);
@@ -360,7 +362,7 @@ public class LoomRecipePanel {
             return Optional.empty();
         }
 
-        ItemStack previewStack = PreviewExtension.createBannerWithPatterns(banner);
+        ItemStack previewStack = LoomAssistantMod.createBannerWithPatterns(banner);
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
@@ -384,43 +386,12 @@ public class LoomRecipePanel {
                 rows.add(BannerRecipeTooltipComponent.Row.withPattern(dyeStack, patternId, stepText));
             } else {
                 ItemStack patternIcon = getPatternItem(layer.patternId());
-                if (patternIcon.isEmpty()) patternIcon = createLayerPreviewStack(layer);
+                if (patternIcon.isEmpty()) patternIcon = LoomAssistantMod.createLayerPreviewStack(layer);
                 rows.add(BannerRecipeTooltipComponent.Row.pair(dyeStack, patternIcon, stepText));
             }
             idx++;
         }
         return rows;
-    }
-
-    private static ItemStack createLayerPreviewStack(BannerRecipeLayer layer) {
-        ItemStack stack = new ItemStack(Items.BANNER.white());
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) {
-            return stack;
-        }
-
-        try {
-            var patternRegistry = mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
-            if (patternRegistry.isEmpty()) {
-                return stack;
-            }
-            Identifier id = Identifier.tryParse(layer.patternId());
-            if (id == null) {
-                return stack;
-            }
-
-            var entry = patternRegistry.get().get(id);
-            if (entry.isEmpty()) {
-                return stack;
-            }
-
-            BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
-            builder.add(entry.get(), layer.getDyeColorEnum());
-            stack.set(DataComponents.BANNER_PATTERNS, builder.build());
-        } catch (RuntimeException ignored) {
-        }
-
-        return stack;
     }
 
     private static ItemStack getPatternItem(String patternId) {
@@ -827,7 +798,7 @@ public class LoomRecipePanel {
         if (selectedBanner == null) {
             return ItemStack.EMPTY;
         }
-        return PreviewExtension.createBannerWithPatterns(selectedBanner);
+        return LoomAssistantMod.createBannerWithPatterns(selectedBanner);
     }
 
     public BannerRecipe getActiveBannerRecipe() {

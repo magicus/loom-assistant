@@ -9,8 +9,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
 
 /** Weaver for creative mode: instantly adds the result to the player's inventory. */
 public class CreativeWeaver extends Weaver {
@@ -21,7 +21,7 @@ public class CreativeWeaver extends Weaver {
             return;
         }
 
-        ItemStack result = PreviewExtension.createBannerWithPatterns(banner);
+        ItemStack result = LoomAssistantMod.createBannerWithPatterns(banner);
 
         // Apply recipe name as custom name if it's not the unnamed placeholder.
         if (banner.description() != null
