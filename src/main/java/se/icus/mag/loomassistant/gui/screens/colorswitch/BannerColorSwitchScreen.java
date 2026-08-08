@@ -20,8 +20,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.util.DyeColorSorting;
 import se.icus.mag.loomassistant.util.MathUtils;
@@ -77,7 +76,7 @@ public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
 
     private final Screen previousScreen;
-    private final LoomRecipePanel panel;
+    private final LoomScreenState state;
     public final List<DyeColor> sourceColors;
     public final EnumMap<DyeColor, DyeColor> targets = new EnumMap<>(DyeColor.class);
 
@@ -89,11 +88,11 @@ public class BannerColorSwitchScreen extends Screen {
     // Construction
     // -------------------------------------------------------------------------
 
-    public BannerColorSwitchScreen(Screen previousScreen, LoomRecipePanel panel) {
+    public BannerColorSwitchScreen(Screen previousScreen, LoomScreenState state) {
         super(Component.translatable("loom-assistant.screen.color_switch.title"));
         this.previousScreen = previousScreen;
-        this.panel = panel;
-        this.sourceColors = panel.getActiveBannerUsedColors();
+        this.state = state;
+        this.sourceColors = state.getActiveBannerUsedColors();
     }
 
     // -------------------------------------------------------------------------
@@ -104,7 +103,7 @@ public class BannerColorSwitchScreen extends Screen {
     protected void init() {
         pickerColors = DyeColorSorting.sorted(LoomAssistantMod.getConfig().getColorSortOrder());
 
-        Map<DyeColor, DyeColor> initialTargets = panel.getInitialDyeReplacementTargets(sourceColors);
+        Map<DyeColor, DyeColor> initialTargets = state.getInitialDyeReplacementTargets(sourceColors);
         for (DyeColor source : sourceColors) {
             targets.put(source, initialTargets.getOrDefault(source, source));
         }
@@ -361,15 +360,7 @@ public class BannerColorSwitchScreen extends Screen {
     }
 
     private void applyAndClose() {
-        boolean changed = panel.applyDyeSwitch(targets, true);
-        LoomScreenExtension ext = LoomAssistantMod.getExtension(previousScreen);
-        if (ext != null) {
-            if (changed) {
-                ext.setPendingActiveBannerStack(panel.getActiveBannerStack());
-            }
-            ext.setPersistentDyeSwitchState(
-                    panel.isPersistentDyeSwitchEnabled(), panel.getPersistentDyeReplacementMapCopy());
-        }
+        state.applyDyeSwitch(targets, true);
         this.minecraft.gui.setScreen(previousScreen);
     }
 

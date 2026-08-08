@@ -7,8 +7,6 @@ package se.icus.mag.loomassistant.gui.panel;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -39,7 +37,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -50,8 +47,8 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
+import se.icus.mag.loomassistant.gui.extensions.WeavingGuide;
 import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -96,7 +93,6 @@ public class LoomRecipePanel {
     private static final Component ONLY_CRAFTABLES_TOOLTIP =
             Component.translatable("loom-assistant.panel.show_weavable");
     private static final Component WEAVING_LABEL = Component.translatable("loom-assistant.panel.weaving");
-    private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
     private static final Component NO_BANNERS_LABEL = Component.translatable("loom-assistant.panel.no_banners");
     private static final Component CATEGORY_SCROLL_UP_TOOLTIP = Component.literal("Scroll tabs up");
     private static final Component CATEGORY_SCROLL_DOWN_TOOLTIP = Component.literal("Scroll tabs down");
@@ -122,11 +118,10 @@ public class LoomRecipePanel {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
-    private final LoomScreenExtension extension;
+    private final LoomScreenState state;
     private final LoomMenu handler;
     private int x;
     private int y;
-    private final Weaver weaver;
     private final EditBox searchBox;
     private final List<BannerRecipeCategory> categoryTabs;
     private List<TabDescriptor> tabs;
@@ -134,21 +129,14 @@ public class LoomRecipePanel {
     private int tabScrollOffset = 0;
     private boolean craftableOnly = false;
     private int page = 0;
-    private String selectedBannerId = null;
-    private BannerRecipe activeBanner = null;
-    private BannerRecipe activeBannerSource = null;
-    private String activeBannerSourceId = null;
-    private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
-    private boolean persistentDyeSwitchEnabled = false;
     private final ImageButton pageForwardButton;
     private final ImageButton pageBackButton;
 
-    public LoomRecipePanel(LoomScreenExtension extension, LoomScreen screen, LoomMenu handler, int x, int y) {
-        this.extension = extension;
+    public LoomRecipePanel(LoomScreenState state, LoomScreen screen, LoomMenu handler, int x, int y) {
+        this.state = state;
         this.handler = handler;
         this.x = x;
         this.y = y;
-        this.weaver = Weaver.getWeaver(handler);
         this.searchBox = new EditBox(
                 Minecraft.getInstance().font,
                 x + SEARCH_X,
@@ -208,7 +196,7 @@ public class LoomRecipePanel {
         renderFilterButton(ctx, mouseX, mouseY);
         renderBannerGrid(ctx, font, mouseX, mouseY);
 
-        if (weaver.isActive()) {
+        if (state.isWeavingActive()) {
             ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
         }
     }
@@ -337,7 +325,7 @@ public class LoomRecipePanel {
 
             Identifier sprite = isCraftableNow(banner) ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE;
             ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx - 1, by - 1, 25, 25);
-            PreviewExtension.render(ctx, banner, handler, bx + 4, by + 4, 16);
+            WeavingGuide.renderBannerPreview(ctx, banner, bx + 4, by + 4);
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(CursorTypes.POINTING_HAND);
@@ -643,7 +631,7 @@ public class LoomRecipePanel {
             int by = y + GRID_START_Y + row * GRID_CELL;
             if (isIn(mx, my, bx, by, 16, 16)) {
                 BannerRecipe banner = items.get(i);
-                setActiveBannerFromSource(banner, banner.getId());
+                state.setActiveBannerFromRecipe(banner, banner.getId());
                 playUiClickSound();
                 if (isShiftPressed) {
                     craftSelectedBanner();
@@ -705,7 +693,7 @@ public class LoomRecipePanel {
     }
 
     public void tick() {
-        weaver.tick();
+        state.tick();
     }
 
     public void setPosition(int x, int y) {
@@ -746,56 +734,23 @@ public class LoomRecipePanel {
      * or -1 if the slot is empty, wrong color, or layers don't match the recipe so far.
      */
     public int getActiveBannerLayerCount() {
-        BannerRecipe recipe = getSelectedBanner();
-        return recipe != null ? recipe.getLayers().size() : 0;
+        return state.getActiveBannerLayerCount();
     }
 
     public int detectCraftingProgress() {
-        BannerRecipe recipe = getSelectedBanner();
-        if (recipe == null) return -1;
-
-        ItemStack bannerInSlot = handler.getBannerSlot().getItem();
-        if (bannerInSlot.isEmpty()) return -1;
-        if (!(bannerInSlot.getItem() instanceof BannerItem bannerItem)) return -1;
-        if (bannerItem.getColor() != recipe.getBannerColorEnum()) return -1;
-
-        BannerPatternLayers patterns = bannerInSlot.get(DataComponents.BANNER_PATTERNS);
-        List<BannerPatternLayers.Layer> currentLayers = patterns != null ? patterns.layers() : List.of();
-        List<BannerRecipeLayer> recipeLayers = recipe.getLayers();
-
-        int k = currentLayers.size();
-        if (k >= recipeLayers.size()) return -1;
-
-        for (int i = 0; i < k; i++) {
-            BannerPatternLayers.Layer cur = currentLayers.get(i);
-            BannerRecipeLayer exp = recipeLayers.get(i);
-            if (cur.color() != exp.getDyeColorEnum()) return -1;
-
-            String curId = cur.pattern()
-                    .unwrapKey()
-                    .map(key -> key.identifier().toString())
-                    .orElse(null);
-            if (curId == null) return -1;
-
-            String expId = exp.patternId().contains(":") ? exp.patternId() : "minecraft:" + exp.patternId();
-            if (!curId.equals(expId)) return -1;
-        }
-        return k;
+        return state.detectCraftingProgress();
     }
 
     private BannerRecipe getSelectedBanner() {
-        return activeBanner;
+        return state.getActiveBannerRecipe();
     }
 
     public ItemStack getActiveBannerStack() {
-        BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) return ItemStack.EMPTY;
-
-        return BannerRecipe.toItem(Minecraft.getInstance(), selectedBanner);
+        return state.getActiveBannerStack();
     }
 
     public BannerRecipe getActiveBannerRecipe() {
-        return activeBanner;
+        return state.getActiveBannerRecipe();
     }
 
     public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
@@ -806,366 +761,112 @@ public class LoomRecipePanel {
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
         int progress = detectCraftingProgress();
         int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        Optional<TooltipComponent> image = buildTooltipImage(selectedBanner, currentRowIndex);
-        ctx.setTooltipForNextFrame(
-                Minecraft.getInstance().font, List.of(Component.literal(effectiveActiveName())), image, mouseX, mouseY);
+        setBannerTooltip(ctx, state.getActiveBannerDisplayName(), selectedBanner, currentRowIndex, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
-        Optional<TooltipComponent> image = buildTooltipImage(banner, -1);
+        setBannerTooltip(ctx, banner.getDisplayName(), banner, -1, mouseX, mouseY);
+    }
+
+    public static void setBannerTooltip(
+            GuiGraphicsExtractor ctx, String title, BannerRecipe banner, int currentRowIndex, int mouseX, int mouseY) {
+        Optional<TooltipComponent> image = buildTooltipImage(banner, currentRowIndex);
         ctx.setTooltipForNextFrame(
-                Minecraft.getInstance().font,
-                List.of(Component.literal(banner.getDisplayName())),
-                image,
-                mouseX,
-                mouseY);
+                Minecraft.getInstance().font, List.of(Component.literal(title)), image, mouseX, mouseY);
     }
 
     public void craftSelectedBanner() {
-        BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner != null) {
-            // Apply modified name to the woven item so it persists in the result.
-            BannerRecipe toWeave = selectedBanner.withDescription(effectiveActiveName());
-            Weaver.getWeaver(handler).weave(toWeave);
-        }
+        state.craftActiveBanner();
     }
 
     public boolean isActiveBannerCraftable() {
-        BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) return false;
-
-        return Weaver.getWeaver(handler).canWeave(selectedBanner);
+        return state.isActiveBannerCraftable();
     }
 
     public String getActiveBannerMissingMaterialMessage() {
-        BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) {
-            return Component.translatable("loom-assistant.active.select_banner").getString();
-        }
-        boolean survivalTooManySteps = !selectedBanner.isWeavable() && isInSurvivalMode();
-        List<String> missingMaterials = Weaver.getWeaver(handler).getMissingMaterialDescriptions(selectedBanner);
-        if (missingMaterials.isEmpty() && !survivalTooManySteps) return null;
-
-        StringBuilder msg = new StringBuilder();
-        if (survivalTooManySteps) {
-            msg.append(Component.translatable("loom-assistant.active.too_many_steps")
-                    .getString());
-        }
-        if (!missingMaterials.isEmpty()) {
-            if (!msg.isEmpty()) {
-                msg.append("\n");
-            }
-            msg.append(Component.translatable("loom-assistant.active.missing_header")
-                            .getString())
-                    .append("\n")
-                    .append(String.join("\n", missingMaterials));
-        }
-        return msg.toString();
+        return state.getActiveBannerMissingMaterialMessage();
     }
 
     public boolean isActiveBannerWeavable() {
-        BannerRecipe banner = getSelectedBanner();
-        return banner == null || banner.isWeavable();
-    }
-
-    private static boolean isInSurvivalMode() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc != null && mc.player != null && !mc.player.hasInfiniteMaterials();
+        return state.isActiveBannerWeavable();
     }
 
     public void clearSelectedBanner() {
-        selectedBannerId = null;
-        activeBanner = null;
-        activeBannerSource = null;
-        activeBannerSourceId = null;
+        state.clearActiveBanner();
     }
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        BannerRecipe banner = BannerRecipe.fromItem(stack);
-        if (banner == null) return false;
-
-        setActiveBannerFromSource(banner, null);
-        return true;
+        return state.setActiveBannerFromItemStack(stack);
     }
 
     public boolean hasActiveBanner() {
-        return activeBanner != null;
-    }
-
-    private boolean isActiveBannerFromWritableSource() {
-        return activeBannerSourceId != null && !BannerStorage.getInstance().isRecipeReadOnly(activeBannerSourceId);
+        return state.hasActiveBanner();
     }
 
     public boolean isActiveBannerSavable() {
-        return !isActiveBannerFromWritableSource();
+        return state.isActiveBannerSavable();
     }
 
     public boolean isActiveBannerAlreadySaved() {
-        return isActiveBannerFromWritableSource();
+        return state.isActiveBannerAlreadySaved();
     }
 
     public boolean isActiveBannerFromReadOnlySource() {
-        return activeBannerSourceId != null && BannerStorage.getInstance().isRecipeReadOnly(activeBannerSourceId);
+        return state.isActiveBannerFromReadOnlySource();
     }
 
     public String getActiveBannerDialogName(boolean editMode) {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) return BannerRecipe.getUnnamedBanner();
-
-        if (editMode && isActiveBannerFromWritableSource()) {
-            BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
-            if (source != null) {
-                String existingName = source.getName();
-                if (existingName == null || existingName.isBlank()) return BannerRecipe.getUnnamedBanner();
-
-                return existingName;
-            }
-        }
-
-        // For new saves, pre-fill with the banner's own name if it has one.
-        return effectiveActiveName();
-    }
-
-    // Returns the display name for the active banner, appending MODIFIED_SUFFIX when color replacement is active.
-    private String effectiveActiveName() {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) return BannerRecipe.getUnnamedBanner();
-
-        String base = selected.getName();
-        if (base == null || base.isBlank() || base.equals(BannerRecipe.DEFAULT_DESCRIPTION))
-            return BannerRecipe.getUnnamedBanner();
-
-        if (persistentDyeSwitchEnabled) {
-            return base + Component.translatable(MODIFIED_SUFFIX_KEY).getString();
-        }
-        return base;
+        return state.getActiveBannerDialogName(editMode);
     }
 
     public String getActiveBannerDialogCategory(boolean editMode) {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) return defaultSaveCategory();
-
-        if (editMode && isActiveBannerFromWritableSource()) {
-            BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
-            if (source != null) {
-                return source.getCategory();
-            }
-        }
-
-        return defaultSaveCategory();
-    }
-
-    // Returns the currently open tab's category, falling back to MISC for the all-categories tab.
-    private String defaultSaveCategory() {
-        return selectedCategoryId != null ? selectedCategoryId : BannerRecipeCategories.MISC.id();
+        return state.getActiveBannerDialogCategory(editMode);
     }
 
     public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null) return;
-
-        String name = nameInput == null || nameInput.isBlank() ? BannerRecipe.getUnnamedBanner() : nameInput.trim();
-        String category =
-                (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
-
-        if (isActiveBannerFromWritableSource()) {
-            BannerStorage.getInstance().updateBannerMetadata(activeBannerSourceId, name, category);
-            BannerRecipe updated = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
-            if (updated != null) {
-                setActiveBannerFromSource(updated, updated.getId());
-            }
-            return;
-        }
-
-        BannerRecipe toSave = cloneBannerForSave(selected).withDescription(name).withCategory(category);
-        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
-        if (created != null) {
-            setActiveBannerFromSource(created, created.getId());
-        }
+        state.applyActiveBannerMetadata(nameInput, categoryInput);
     }
 
     public boolean saveActiveBanner() {
-        BannerRecipe selected = getSelectedBanner();
-        if (selected == null || !isActiveBannerSavable()) return false;
-
-        BannerRecipe toSave = cloneBannerForSave(selected);
-        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
-        if (created != null) {
-            activeBanner = created;
-            selectedBannerId = created.getId();
-        }
-        return true;
+        if (!state.hasActiveBanner() || !state.isActiveBannerSavable()) return false;
+        state.applyActiveBannerMetadata(state.getActiveBannerDisplayName(), getActiveBannerDialogCategory(false));
+        return state.isActiveBannerAlreadySaved();
     }
 
     public void loadImportedBanner(BannerRecipe imported) {
-        setActiveBannerFromSource(imported, null);
-    }
-
-    private BannerRecipe cloneBannerForSave(BannerRecipe source) {
-        return new BannerRecipe(source.getName(), source.getBaseColorEnum(), new ArrayList<>(source.getLayers()))
-                .withCategory(source.getCategory());
+        state.loadImportedBanner(imported);
     }
 
     public boolean isPersistentDyeSwitchEnabled() {
-        return persistentDyeSwitchEnabled;
+        return state.isPersistentDyeSwitchEnabled();
     }
 
     public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
-        return Map.copyOf(persistentDyeReplacementMap);
+        return state.getPersistentDyeReplacementMapCopy();
     }
 
     public void restorePersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
-        persistentDyeReplacementMap.clear();
-        if (replacements != null) {
-            persistentDyeReplacementMap.putAll(normalizeReplacementMap(replacements));
+        if (!enabled) {
+            state.disablePersistentDyeSwitchAndReload();
+            return;
         }
-        persistentDyeSwitchEnabled = enabled && !persistentDyeReplacementMap.isEmpty();
-        if (activeBannerSource != null) {
-            setActiveBannerFromSource(activeBannerSource, activeBannerSourceId);
-        }
+        state.applyDyeSwitch(replacements, true);
     }
 
     public List<DyeColor> getActiveBannerUsedColors() {
-        if (activeBanner == null) return List.of();
-
-        Set<DyeColor> colors = new LinkedHashSet<>();
-        colors.add(activeBanner.getBaseColorEnum());
-        for (BannerRecipeLayer layer : activeBanner.getLayers()) {
-            colors.add(layer.getDyeColorEnum());
-        }
-        return List.copyOf(colors);
+        return state.getActiveBannerUsedColors();
     }
 
     public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
-        Map<DyeColor, DyeColor> out = new LinkedHashMap<>();
-        for (DyeColor source : sourceColors) {
-            out.put(source, persistentDyeReplacementMap.getOrDefault(source, source));
-        }
-        return out;
+        return state.getInitialDyeReplacementTargets(sourceColors);
     }
 
     public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
-        if (activeBanner == null) return false;
-
-        BannerRecipe sourceForTransform;
-        if (persistent) {
-            sourceForTransform = cloneBannerForSave(activeBannerSource != null ? activeBannerSource : activeBanner);
-            activeBannerSource = cloneBannerForSave(sourceForTransform);
-            activeBannerSourceId = selectedBannerId;
-        } else {
-            sourceForTransform = cloneBannerForSave(activeBanner);
-            persistentDyeSwitchEnabled = false;
-            persistentDyeReplacementMap.clear();
-        }
-
-        Map<DyeColor, DyeColor> normalized = normalizeReplacementMap(replacements);
-        if (persistent) {
-            persistentDyeReplacementMap.clear();
-            persistentDyeReplacementMap.putAll(normalized);
-            persistentDyeSwitchEnabled = !persistentDyeReplacementMap.isEmpty();
-        }
-
-        if (normalized.isEmpty()) return false;
-
-        BannerRecipe transformed = applyDyeReplacementMap(sourceForTransform, normalized);
-        if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) return false;
-
-        activeBanner = transformed;
-        selectedBannerId = null;
-        return true;
+        return state.applyDyeSwitch(replacements, persistent);
     }
 
     public void disablePersistentDyeSwitchAndReload() {
-        if (!persistentDyeSwitchEnabled) return;
-
-        persistentDyeSwitchEnabled = false;
-        persistentDyeReplacementMap.clear();
-
-        if (activeBannerSource != null) {
-            activeBanner = cloneBannerForSave(activeBannerSource);
-            selectedBannerId = activeBannerSourceId;
-        }
-    }
-
-    private void setActiveBannerFromSource(BannerRecipe sourceBanner, String sourceId) {
-        if (sourceBanner == null) {
-            activeBanner = null;
-            selectedBannerId = null;
-            activeBannerSource = null;
-            activeBannerSourceId = null;
-            return;
-        }
-
-        activeBannerSource = cloneBannerForSave(sourceBanner);
-        activeBannerSourceId = sourceId;
-        selectedBannerId = sourceId;
-
-        if (persistentDyeSwitchEnabled && !persistentDyeReplacementMap.isEmpty()) {
-            BannerRecipe transformed = applyDyeReplacementMap(activeBannerSource, persistentDyeReplacementMap);
-            if (transformed != null && !bannersEquivalent(activeBannerSource, transformed)) {
-                activeBanner = transformed;
-                selectedBannerId = null;
-                return;
-            }
-        }
-
-        activeBanner = cloneBannerForSave(sourceBanner);
-    }
-
-    private static Map<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
-        EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
-        if (replacements == null) return normalized;
-
-        for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
-            DyeColor src = entry.getKey();
-            DyeColor dst = entry.getValue();
-            if (src != null && dst != null && src != dst) {
-                normalized.put(src, dst);
-            }
-        }
-        return normalized;
-    }
-
-    private BannerRecipe applyDyeReplacementMap(BannerRecipe source, Map<DyeColor, DyeColor> replacements) {
-        if (source == null) return null;
-
-        BannerRecipe copy = cloneBannerForSave(source);
-        DyeColor newBase = replacements.getOrDefault(copy.getBaseColorEnum(), copy.getBaseColorEnum());
-        copy = copy.withBannerColor(newBase.getName());
-
-        List<BannerRecipeLayer> replacedLayers = new ArrayList<>();
-        for (BannerRecipeLayer layer : copy.getLayers()) {
-            DyeColor current = layer.getDyeColorEnum();
-            DyeColor target = replacements.getOrDefault(current, current);
-            replacedLayers.add(BannerRecipeLayer.of(layer.patternId(), target.getName()));
-        }
-        return copy.withLayers(replacedLayers);
-    }
-
-    private BannerRecipe findMatchingSavedBanner(BannerRecipe needle) {
-        for (BannerRecipe existing : BannerStorage.getInstance().getBanners()) {
-            if (bannersEquivalent(existing, needle)) {
-                return existing;
-            }
-        }
-        return null;
-    }
-
-    private boolean bannersEquivalent(BannerRecipe a, BannerRecipe b) {
-        if (a.getBaseColorEnum() != b.getBaseColorEnum()) {
-            return false;
-        }
-        List<BannerRecipeLayer> la = a.getLayers();
-        List<BannerRecipeLayer> lb = b.getLayers();
-        if (la.size() != lb.size()) {
-            return false;
-        }
-        for (int i = 0; i < la.size(); i++) {
-            if (!la.get(i).equals(lb.get(i))) {
-                return false;
-            }
-        }
-        return true;
+        state.disablePersistentDyeSwitchAndReload();
     }
 
     private static String getPatternDisplayName(BannerRecipeLayer layer) {
