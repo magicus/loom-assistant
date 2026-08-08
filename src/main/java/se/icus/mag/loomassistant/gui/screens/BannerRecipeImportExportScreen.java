@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens;
+package se.icus.mag.loomassistant.gui.screens;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -12,8 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 
 /**
  * Combined import/export screen for /give commands.

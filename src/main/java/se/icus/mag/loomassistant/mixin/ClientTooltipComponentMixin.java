@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
-import se.icus.mag.loomassistant.ui.tooltip.ClientBannerRecipeTooltipComponent;
+import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
+import se.icus.mag.loomassistant.gui.tooltip.ClientBannerRecipeTooltipComponent;
 
 @Mixin(ClientTooltipComponent.class)
 public interface ClientTooltipComponentMixin {

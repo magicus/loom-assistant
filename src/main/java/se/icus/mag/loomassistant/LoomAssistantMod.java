@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 
 public class LoomAssistantMod implements ModInitializer {
     public static final String MOD_ID = "loom-assistant";

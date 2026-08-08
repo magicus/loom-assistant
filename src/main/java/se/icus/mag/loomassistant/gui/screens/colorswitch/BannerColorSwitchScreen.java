@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens;
+package se.icus.mag.loomassistant.gui.screens.colorswitch;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -19,11 +19,10 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.ui.screens.colorswitch.ColorSelectButton;
-import se.icus.mag.loomassistant.ui.screens.colorswitch.DisabledColorSelectButton;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.util.DyeColorSorting;
+import se.icus.mag.loomassistant.util.MathUtils;
 
 public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
@@ -197,7 +196,7 @@ public class BannerColorSwitchScreen extends Screen {
                         ARROW_W,
                         ARROW_H);
 
-                if (isIn(mouseX, mouseY, sx, iconY, ICON_SIZE, ICON_SIZE)) {
+                if (MathUtils.isIn(mouseX, mouseY, sx, iconY, ICON_SIZE, ICON_SIZE)) {
                     graphics.setTooltipForNextFrame(
                             this.font, List.of(dyeStack(source).getHoverName()), Optional.empty(), mouseX, mouseY);
                 }
@@ -247,21 +246,21 @@ public class BannerColorSwitchScreen extends Screen {
             int cellX = gridX + col * PICKER_CELL;
             int cellY = gridY + row * PICKER_CELL;
 
-            boolean isSel = color == selected;
-            boolean hover = isIn(mouseX, mouseY, cellX, cellY, PICKER_CELL, PICKER_CELL);
+            boolean isSelected = (color == selected);
+            boolean isHover = MathUtils.isIn(mouseX, mouseY, cellX, cellY, PICKER_CELL, PICKER_CELL);
 
-            int bgCol = getBgCol(isSel, hover);
-            ctx.fill(cellX + 1, cellY + 1, cellX + PICKER_CELL - 1, cellY + PICKER_CELL - 1, bgCol);
+            int backgroundColor = getBackgroundColor(isSelected, isHover);
+            ctx.fill(cellX + 1, cellY + 1, cellX + PICKER_CELL - 1, cellY + PICKER_CELL - 1, backgroundColor);
             ctx.fakeItem(dyeStack(color), cellX + 2, cellY + 2);
 
-            if (hover) {
+            if (isHover) {
                 ctx.setTooltipForNextFrame(
                         this.font, List.of(dyeStack(color).getHoverName()), Optional.empty(), mouseX, mouseY);
             }
         }
     }
 
-    private static int getBgCol(boolean isSel, boolean hover) {
+    private static int getBackgroundColor(boolean isSel, boolean hover) {
         int bgCol;
         if (isSel) {
             bgCol = 0xFF4477CC;
@@ -292,24 +291,26 @@ public class BannerColorSwitchScreen extends Screen {
         int mx = (int) event.x();
         int my = (int) event.y();
 
-        if (pickerOpenFor != null) {
-            if (handlePickerClick(mx, my)) return true;
-            pickerOpenFor = null;
-            return true;
-        }
+		if (pickerOpenFor == null) return super.mouseClicked(event, doubleClick);
 
-        return super.mouseClicked(event, doubleClick);
-    }
+		if (!handlePickerClick(mx, my)) {
+			pickerOpenFor = null;
+		}
+	    return true;
+
+	}
 
     private boolean handlePickerClick(int mx, int my) {
         int gridX = pickerX + PICKER_PAD;
         int gridY = pickerY + PICKER_PAD;
+
         for (int i = 0; i < pickerColors.length; i++) {
             int col = i % PICKER_COLS;
             int row = i / PICKER_COLS;
             int cellX = gridX + col * PICKER_CELL;
             int cellY = gridY + row * PICKER_CELL;
-            if (isIn(mx, my, cellX, cellY, PICKER_CELL, PICKER_CELL)) {
+
+            if (MathUtils.isIn(mx, my, cellX, cellY, PICKER_CELL, PICKER_CELL)) {
                 targets.put(pickerOpenFor, pickerColors[i]);
                 pickerOpenFor = null;
                 return true;
@@ -325,17 +326,19 @@ public class BannerColorSwitchScreen extends Screen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
-            if (pickerOpenFor != null) {
-                pickerOpenFor = null;
-                return true;
-            }
-            this.onClose();
-            return true;
-        }
+			if (pickerOpenFor == null) {
+				this.onClose();
+			} else {
+				pickerOpenFor = null;
+			}
+	        return true;
+		}
+
         if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
             applyAndClose();
             return true;
-        }
+         }
+
         return super.keyPressed(event);
     }
 
@@ -347,7 +350,7 @@ public class BannerColorSwitchScreen extends Screen {
     public void openPicker(DyeColor source, int btnCenterX, int btnCenterY) {
         pickerOpenFor = source;
         DyeColor selected = targets.getOrDefault(source, source);
-        int selIdx = indexOf(pickerColors, selected);
+        int selIdx = MathUtils.indexOf(pickerColors, selected);
         int selCol = selIdx % PICKER_COLS;
         int selRow = selIdx / PICKER_COLS;
         int gridOffX = PICKER_PAD + selCol * PICKER_CELL + PICKER_CELL / 2;
@@ -387,15 +390,6 @@ public class BannerColorSwitchScreen extends Screen {
 
     public static ItemStack dyeStack(DyeColor color) {
         return new ItemStack(BannerRecipe.getDyeItem(color));
-    }
-
-    private static boolean isIn(int mx, int my, int x, int y, int w, int h) {
-        return mx >= x && mx < x + w && my >= y && my < y + h;
-    }
-
-    private static int indexOf(DyeColor[] arr, DyeColor color) {
-        for (int i = 0; i < arr.length; i++) if (arr[i] == color) return i;
-        return 0;
     }
 
     @Override

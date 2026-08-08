@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens;
+package se.icus.mag.loomassistant.gui.screens.packselection;
 
 import com.google.common.hash.Hashing;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -37,12 +37,9 @@ import net.minecraft.util.Util;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.bannerpack.storage.ActivePacksConfig;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackListEntry;
-import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackListWidget;
-import se.icus.mag.loomassistant.ui.screens.packselection.BannerPackModelEntry;
-import se.icus.mag.loomassistant.ui.screens.packselection.PackEntry;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackSelectionScreen extends Screen {

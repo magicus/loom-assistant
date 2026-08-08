@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui;
+package se.icus.mag.loomassistant.gui.panel;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
@@ -47,9 +47,9 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
-import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
-import se.icus.mag.loomassistant.ui.support.LoomUiStateStore;
-import se.icus.mag.loomassistant.ui.tooltip.BannerRecipeTooltipComponent;
+import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
+import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomRecipePanel {
@@ -919,7 +919,7 @@ public class LoomRecipePanel {
     }
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        BannerRecipe banner = PreviewExtension.extractBannerData(stack);
+        BannerRecipe banner = BannerRecipe.fromItem(stack);
         if (banner == null) {
             return false;
         }
@@ -1290,7 +1290,7 @@ public class LoomRecipePanel {
         if (dyeStack.isEmpty() && patternStack.isEmpty()) {
             var bannerStack = handler.getSlot(0).getItem();
             if (bannerStack.isEmpty()) return false;
-            BannerRecipe banner = PreviewExtension.extractBannerData(bannerStack);
+            BannerRecipe banner = BannerRecipe.fromItem(bannerStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;
@@ -1298,7 +1298,7 @@ public class LoomRecipePanel {
         } else {
             var outputStack = handler.getSlot(3).getItem();
             if (outputStack.isEmpty()) return false;
-            BannerRecipe banner = PreviewExtension.extractBannerData(outputStack);
+            BannerRecipe banner = BannerRecipe.fromItem(outputStack);
             if (banner != null) {
                 BannerStorage.getInstance().addBanner(banner);
                 return true;

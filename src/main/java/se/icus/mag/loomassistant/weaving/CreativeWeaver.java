@@ -10,7 +10,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
 
 /** Weaver for creative mode: instantly adds the result to the player's inventory. */
 public class CreativeWeaver extends Weaver {

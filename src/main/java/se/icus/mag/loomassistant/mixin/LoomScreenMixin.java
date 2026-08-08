@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.ui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 
 @Mixin(LoomScreen.class)
 public abstract class LoomScreenMixin {

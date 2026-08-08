@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens;
+package se.icus.mag.loomassistant.gui.screens;
 
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 /**
  * Simple modal for naming a banner and selecting category before save/edit.

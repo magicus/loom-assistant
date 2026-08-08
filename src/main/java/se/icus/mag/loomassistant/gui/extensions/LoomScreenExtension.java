@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.extensions;
+package se.icus.mag.loomassistant.gui.extensions;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -40,11 +40,11 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
-import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
-import se.icus.mag.loomassistant.ui.screens.BannerRecipeImportExportScreen;
-import se.icus.mag.loomassistant.ui.screens.BannerSaveEditScreen;
-import se.icus.mag.loomassistant.ui.support.LoomUiStateStore;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
+import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
+import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;
+import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
 /** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
@@ -271,7 +271,7 @@ public class LoomScreenExtension {
                     canCraftActiveBanner = true;
                     craftDisabledMessage = null;
                 } else {
-                    BannerRecipe activeBanner = PreviewExtension.extractBannerData(activeBannerStack);
+                    BannerRecipe activeBanner = BannerRecipe.fromItem(activeBannerStack);
                     if (activeBanner != null) {
                         canCraftActiveBanner = craftabilityProbe.canCraft(activeBanner);
                         if (!canCraftActiveBanner) {
@@ -339,7 +339,7 @@ public class LoomScreenExtension {
                 if (panel != null) {
                     panel.setActiveBannerTooltip(context, mouseX, mouseY);
                 } else {
-                    BannerRecipe activeBanner = PreviewExtension.extractBannerData(activeBannerStack);
+                    BannerRecipe activeBanner = BannerRecipe.fromItem(activeBannerStack);
                     LoomRecipePanel.setBannerTooltip(context, activeBanner, mouseX, mouseY);
                 }
             }
@@ -563,7 +563,7 @@ public class LoomScreenExtension {
 
     private void renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
         if (panel == null) return;
-        BannerRecipe recipe = PreviewExtension.extractBannerData(activeBannerStack);
+        BannerRecipe recipe = BannerRecipe.fromItem(activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
         var layer = recipe.getLayers().get(nextLayerIndex);
@@ -615,7 +615,7 @@ public class LoomScreenExtension {
 
     private boolean resultMatchesExpected(ItemStack result, int nextLayerIndex) {
         if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
-        BannerRecipe recipe = PreviewExtension.extractBannerData(activeBannerStack);
+        BannerRecipe recipe = BannerRecipe.fromItem(activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;
         if (bannerItem.getColor() != recipe.getBannerColorEnum()) return false;
 

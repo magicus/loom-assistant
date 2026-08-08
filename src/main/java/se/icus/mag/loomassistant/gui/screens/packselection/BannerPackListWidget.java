@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens.packselection;
+package se.icus.mag.loomassistant.gui.screens.packselection;
 
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
@@ -11,7 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
-import se.icus.mag.loomassistant.ui.screens.BannerPackSelectionScreen;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackListWidget extends ObjectSelectionList<BannerPackListEntry> {

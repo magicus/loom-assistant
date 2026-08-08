@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.support;
+package se.icus.mag.loomassistant.gui.support;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -27,7 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.ui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
 
 public final class LoomUiStateStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

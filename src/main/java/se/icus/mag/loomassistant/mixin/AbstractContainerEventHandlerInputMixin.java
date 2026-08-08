@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.ui.LoomRecipePanel;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 @Mixin(ContainerEventHandler.class)
 public interface AbstractContainerEventHandlerInputMixin {

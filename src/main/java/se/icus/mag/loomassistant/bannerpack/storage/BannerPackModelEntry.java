@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens.packselection;
+package se.icus.mag.loomassistant.bannerpack.storage;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;

@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens.packselection;
+package se.icus.mag.loomassistant.gui.screens.packselection;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,8 +16,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
-import se.icus.mag.loomassistant.ui.screens.BannerPackSelectionScreen;
 
 @Environment(EnvType.CLIENT)
 public class PackEntry extends BannerPackListEntry implements SelectableEntry {

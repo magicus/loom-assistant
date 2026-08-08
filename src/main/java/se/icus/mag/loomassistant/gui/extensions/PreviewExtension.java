@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.extensions;
+package se.icus.mag.loomassistant.gui.extensions;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,7 +79,6 @@ public final class PreviewExtension {
         return stack;
     }
 
-    // @SuppressWarnings("unchecked")
     private static Registry<BannerPattern> getBannerPatternRegistry() {
         Minecraft client = Minecraft.getInstance();
         if (client.level != null) {
@@ -94,9 +93,5 @@ public final class PreviewExtension {
             }
         }
         return null;
-    }
-
-    public static BannerRecipe extractBannerData(ItemStack stack) {
-        return BannerRecipe.fromItem(stack);
     }
 }

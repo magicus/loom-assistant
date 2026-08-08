@@ -2,14 +2,13 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens.colorswitch;
+package se.icus.mag.loomassistant.gui.screens.colorswitch;
 
 import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
 
 public class DisabledColorSelectButton extends Button.Plain {
     public DisabledColorSelectButton(int btnX, int btnY) {

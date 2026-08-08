@@ -2,14 +2,13 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.ui.screens.colorswitch;
+package se.icus.mag.loomassistant.gui.screens.colorswitch;
 
 import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.ui.screens.BannerColorSwitchScreen;
 
 public class ColorSelectButton extends Button.Plain {
     private final BannerColorSwitchScreen bannerColorSwitchScreen;
