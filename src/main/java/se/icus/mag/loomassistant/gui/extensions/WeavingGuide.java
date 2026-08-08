@@ -21,6 +21,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 

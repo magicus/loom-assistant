@@ -22,7 +22,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
         if (panel == null) return;
 
@@ -35,7 +35,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
         if (panel == null) return;
 

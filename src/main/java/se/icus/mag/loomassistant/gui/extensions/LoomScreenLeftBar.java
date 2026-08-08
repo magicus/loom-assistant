@@ -28,6 +28,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;

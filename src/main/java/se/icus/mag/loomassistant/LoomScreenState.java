@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.gui.extensions;
+package se.icus.mag.loomassistant;
 
 import java.util.HashMap;
 import java.util.Map;

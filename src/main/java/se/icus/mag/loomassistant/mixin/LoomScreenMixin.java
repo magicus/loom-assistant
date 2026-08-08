@@ -23,17 +23,17 @@ public abstract class LoomScreenMixin {
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
         LoomScreenExtension extension = new LoomScreenExtension((LoomScreen) (Object) this);
-        LoomAssistantMod.setLoomExtension(extension);
+        LoomAssistantMod.getLoomManager().setExtension(extension);
         extension.onInit();
     }
 
     @Inject(method = "removed", at = @At("HEAD"))
     private void onRemoved(CallbackInfo ci) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension != null) {
             extension.onRemoved();
         }
-        LoomAssistantMod.setLoomExtension(null);
+        LoomAssistantMod.getLoomManager().setExtension(null);
     }
 
     @Redirect(
@@ -55,7 +55,7 @@ public abstract class LoomScreenMixin {
             int height,
             int textureWidth,
             int textureHeight) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         extension.drawCustomBackground(
@@ -65,7 +65,7 @@ public abstract class LoomScreenMixin {
     @Inject(method = "extractBackground", at = @At("TAIL"))
     private void onExtractBackground(
             GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         extension.onExtractBackground(graphics, mouseX, mouseY, delta);
@@ -74,7 +74,7 @@ public abstract class LoomScreenMixin {
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void onMouseClicked(
             MouseButtonEvent mouseButtonEvent, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         extension.onMouseClicked(mouseButtonEvent, cir);
@@ -82,7 +82,7 @@ public abstract class LoomScreenMixin {
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     private void onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         extension.onMouseReleased(mouseButtonEvent, cir);
@@ -91,7 +91,7 @@ public abstract class LoomScreenMixin {
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     private void onMouseScrolled(
             double mouseX, double mouseY, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
         extension.onMouseScrolled(mouseX, mouseY, scrollX, scrollY, cir);

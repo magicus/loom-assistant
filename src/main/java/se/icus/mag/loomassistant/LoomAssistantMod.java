@@ -15,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 
 public class LoomAssistantMod implements ModInitializer {
     public static final String MOD_ID = "loom-assistant";
@@ -26,22 +23,9 @@ public class LoomAssistantMod implements ModInitializer {
 
     private static final LoomScreenState LOOM_STATE = new LoomScreenState();
     private static final LoomScreenStateManager LOOM_MANAGER = new LoomScreenStateManager(LOOM_STATE);
-    private static LoomScreenExtension loomExtension;
-
-    public static LoomScreenState getLoomState() {
-        return LOOM_STATE;
-    }
 
     public static LoomScreenStateManager getLoomManager() {
         return LOOM_MANAGER;
-    }
-
-    public static LoomScreenExtension getLoomExtension() {
-        return loomExtension;
-    }
-
-    public static void setLoomExtension(LoomScreenExtension extension) {
-        loomExtension = extension;
     }
 
     public static LoomAssistantConfig getConfig() {

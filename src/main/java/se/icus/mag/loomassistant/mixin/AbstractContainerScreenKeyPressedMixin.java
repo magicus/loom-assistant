@@ -21,7 +21,7 @@ public abstract class AbstractContainerScreenKeyPressedMixin {
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomExtension();
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
         if (panel == null) return;
 

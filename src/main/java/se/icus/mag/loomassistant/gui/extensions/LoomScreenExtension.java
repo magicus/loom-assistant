@@ -11,6 +11,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 public class LoomScreenExtension {

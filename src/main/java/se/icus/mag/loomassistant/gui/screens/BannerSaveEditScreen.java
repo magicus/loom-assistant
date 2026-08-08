@@ -13,7 +13,7 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;

@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.gui.extensions;
+package se.icus.mag.loomassistant;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,8 +32,8 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.storage.LevelResource;
-import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
@@ -50,6 +50,8 @@ public class LoomScreenStateManager {
     private final LoomScreenState state;
     private final Map<String, LoomScreenState> persistedStates;
 
+    private LoomScreenExtension loomExtension;
+
     private LoomMenu currentMenu;
     private Weaver currentWeaver;
     private String loadedWorldKey;
@@ -59,8 +61,12 @@ public class LoomScreenStateManager {
         this.persistedStates = loadPersistedStates();
     }
 
-    public LoomScreenState getState() {
-        return state;
+    public LoomScreenExtension getExtension() {
+        return loomExtension;
+    }
+
+    public void setExtension(LoomScreenExtension extension) {
+        this.loomExtension = extension;
     }
 
     // ── Screen lifecycle ──────────────────────────────────────────────────────

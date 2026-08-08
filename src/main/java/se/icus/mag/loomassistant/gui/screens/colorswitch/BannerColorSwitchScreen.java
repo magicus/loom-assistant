@@ -21,7 +21,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.util.DyeColorSorting;
 import se.icus.mag.loomassistant.util.MathUtils;

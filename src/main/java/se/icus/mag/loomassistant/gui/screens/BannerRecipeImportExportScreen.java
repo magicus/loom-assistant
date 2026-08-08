@@ -11,8 +11,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
