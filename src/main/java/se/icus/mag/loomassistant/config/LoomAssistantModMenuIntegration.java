@@ -6,50 +6,65 @@ package se.icus.mag.loomassistant.config;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.lang.reflect.Field;
+import java.util.List;
 import me.shedaniel.autoconfig.AutoConfigClient;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
+import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 
 public class LoomAssistantModMenuIntegration implements ModMenuApi {
-    private static final int MANAGE_PACKS_BUTTON_WIDTH = 200;
-    private static final int MANAGE_PACKS_BUTTON_HEIGHT = 20;
-    private static final Map<Screen, Boolean> PENDING_MANAGE_PACKS_BUTTON =
-            Collections.synchronizedMap(new WeakHashMap<>());
-
-    static {
-        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (!PENDING_MANAGE_PACKS_BUTTON.containsKey(screen)) return;
-            PENDING_MANAGE_PACKS_BUTTON.remove(screen);
-
-            int x = (scaledWidth - MANAGE_PACKS_BUTTON_WIDTH) / 2;
-            int y = Math.max(6, scaledHeight - 54);
-            screen.addRenderableWidget(Button.builder(
-                            Component.translatable("loom-assistant.config.manage_packs"),
-                            button -> {
-                                BannerStorage storage = BannerStorage.getInstance();
-                                storage.load();
-                                client.gui.setScreen(new BannerPackSelectionScreen(
-                                        storage.getRepository(), storage.getActivePacksConfig(), screen));
-                            })
-                    .bounds(x, y, MANAGE_PACKS_BUTTON_WIDTH, MANAGE_PACKS_BUTTON_HEIGHT)
-                    .build());
-        });
-    }
+    private static boolean providerRegistered;
 
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return parent -> {
-            Screen configScreen = AutoConfigClient.getConfigScreen(LoomAssistantConfig.class, parent)
+            ensureProviderRegistered();
+            return AutoConfigClient.getConfigScreen(LoomAssistantConfig.class, parent)
                     .get();
-            PENDING_MANAGE_PACKS_BUTTON.put(configScreen, Boolean.TRUE);
-            return configScreen;
         };
+    }
+
+    private static void ensureProviderRegistered() {
+        if (providerRegistered) return;
+
+        AutoConfigClient.getGuiRegistry(LoomAssistantConfig.class)
+                .registerPredicateProvider(
+                        LoomAssistantModMenuIntegration::buildManagePacksActionEntry,
+                        LoomAssistantModMenuIntegration::isManagePacksActionField);
+        providerRegistered = true;
+    }
+
+    private static boolean isManagePacksActionField(Field field) {
+        return field.getDeclaringClass() == LoomAssistantConfig.BannerPackRepoSettings.class
+                && "managePacksAction".equals(field.getName());
+    }
+
+    private static List<AbstractConfigListEntry> buildManagePacksActionEntry(
+            String i18n,
+            Field field,
+            Object config,
+            Object defaults,
+            me.shedaniel.autoconfig.gui.registry.api.GuiRegistryAccess registry) {
+        ActionButtonListEntry entry = new ActionButtonListEntry(
+                Component.translatable("loom-assistant.config.manage_packs.row"),
+                Component.translatable("loom-assistant.config.manage_packs"),
+                configScreen -> {
+                    LoomAssistantMod.LOGGER.info("[Config] Manage Banner Packs button clicked");
+                    try {
+                        BannerStorage storage = BannerStorage.getInstance();
+                        storage.load();
+                        Minecraft.getInstance()
+                                .gui
+                                .setScreen(new BannerPackSelectionScreen(
+                                        storage.getRepository(), storage.getActivePacksConfig(), configScreen));
+                    } catch (RuntimeException e) {
+                        LoomAssistantMod.LOGGER.error("[Config] Failed to open Banner Pack Selection screen", e);
+                    }
+                });
+        return List.of(entry);
     }
 }
