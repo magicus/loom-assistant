@@ -54,11 +54,11 @@
   "loom-assistant.tooltip.weave": "Väv",
   "subtitles.loom-assistant.ui.active_slot_set": "Recept på fana valt",
   "text.autoconfig.loom-assistant.option.autoInstallPackIds": "Auto-installera (kommaseparerade)",
-  "text.autoconfig.loom-assistant.option.bannerPackRepo": "Fanapaketsrepository",
+  "text.autoconfig.loom-assistant.option.bannerPackRepo": "Banner Pack-databas",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds": "Auto-installera (kommaseparerade)",
-  "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Repository-index-URL",
+  "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Banner Pack-databas-URL",
   "text.autoconfig.loom-assistant.option.colorSortOrder": "Färgsortering",
   "text.autoconfig.loom-assistant.option.colorSortOrder.RAINBOW": "Regnbåge",
   "text.autoconfig.loom-assistant.option.colorSortOrder.VANILLA": "Vanilla",
-  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Repository-index-URL"
+  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Banner Pack-databas-URL"
 }

@@ -54,11 +54,11 @@
   "loom-assistant.tooltip.weave": "Weave",
   "subtitles.loom-assistant.ui.active_slot_set": "Banner recipe selected",
   "text.autoconfig.loom-assistant.option.autoInstallPackIds": "Auto-install packs (comma-separated)",
-  "text.autoconfig.loom-assistant.option.bannerPackRepo": "Banner Pack Repository",
+  "text.autoconfig.loom-assistant.option.bannerPackRepo": "Banner Pack Database",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds": "Auto-install packs (comma-separated)",
-  "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Repository index URL",
+  "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Banner Pack Database URL",
   "text.autoconfig.loom-assistant.option.colorSortOrder": "Color Sort Order",
   "text.autoconfig.loom-assistant.option.colorSortOrder.RAINBOW": "Rainbow",
   "text.autoconfig.loom-assistant.option.colorSortOrder.VANILLA": "Vanilla",
-  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Repository index URL"
+  "text.autoconfig.loom-assistant.option.repoIndexUrl": "Banner Pack Database URL"
 }
