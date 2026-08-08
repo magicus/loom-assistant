@@ -56,8 +56,8 @@ public class LoomScreenStateManager {
     private Weaver currentWeaver;
     private String loadedWorldKey;
 
-    public LoomScreenStateManager(LoomScreenState state) {
-        this.state = state;
+    public LoomScreenStateManager() {
+        this.state = new LoomScreenState();
         this.persistedStates = loadPersistedStates();
     }
 

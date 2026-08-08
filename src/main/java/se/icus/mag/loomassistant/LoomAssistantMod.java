@@ -21,8 +21,7 @@ public class LoomAssistantMod implements ModInitializer {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private static final LoomScreenState LOOM_STATE = new LoomScreenState();
-    private static final LoomScreenStateManager LOOM_MANAGER = new LoomScreenStateManager(LOOM_STATE);
+    private static final LoomScreenStateManager LOOM_MANAGER = new LoomScreenStateManager();
 
     public static LoomScreenStateManager getLoomManager() {
         return LOOM_MANAGER;
