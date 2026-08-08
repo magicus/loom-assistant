@@ -6,13 +6,39 @@ package se.icus.mag.loomassistant.recipe;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.Optional;
 
 public class BannerRecipeJsonConverter extends BannerRecipeConverter<String> {
+    public static final Codec<BannerRecipe> CODEC;
+
+    static {
+        CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                        Codec.STRING.fieldOf("description").forGetter(BannerRecipe::description),
+                        Codec.STRING.optionalFieldOf("author").forGetter(d -> Optional.ofNullable(d.author())),
+                        Codec.STRING.optionalFieldOf("url").forGetter(d -> Optional.ofNullable(d.url())),
+                        Codec.STRING
+                                .optionalFieldOf("category", BannerRecipe.DEFAULT_CATEGORY)
+                                .forGetter(BannerRecipe::category),
+                        Codec.STRING.fieldOf("banner_color").forGetter(BannerRecipe::bannerColor),
+                        BannerRecipeLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerRecipe::layers))
+                .apply(
+                        instance,
+                        (description, author, url, category, bannerColor, layers) -> new BannerRecipe(
+                                null,
+                                description,
+                                author.orElse(null),
+                                url.orElse(null),
+                                category,
+                                bannerColor,
+                                layers)));
+    }
+
     @Override
     public String fromRecipe(BannerRecipe recipe) {
-        JsonElement element = BannerRecipe.CODEC
-                .encodeStart(JsonOps.INSTANCE, recipe)
+        JsonElement element = CODEC.encodeStart(JsonOps.INSTANCE, recipe)
                 .getOrThrow(msg -> new IllegalStateException("Failed to encode BannerRecipe: " + msg));
         return BannerRecipe.GSON.toJson(element);
     }
@@ -20,8 +46,7 @@ public class BannerRecipeJsonConverter extends BannerRecipeConverter<String> {
     @Override
     public BannerRecipe toRecipe(String source) {
         JsonElement element = JsonParser.parseString(source);
-        return BannerRecipe.CODEC
-                .parse(JsonOps.INSTANCE, element)
+        return CODEC.parse(JsonOps.INSTANCE, element)
                 .getOrThrow(msg -> new IllegalStateException("Failed to parse BannerRecipe: " + msg));
     }
 }

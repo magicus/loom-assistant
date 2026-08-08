@@ -6,10 +6,7 @@ package se.icus.mag.loomassistant.recipe;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
-import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -25,7 +22,6 @@ public record BannerRecipe(
         List<BannerRecipeLayer> layers) {
     public static final String DEFAULT_DESCRIPTION = "Unnamed banner";
     public static final String DEFAULT_CATEGORY = "misc";
-    public static final Codec<BannerRecipe> CODEC;
     public static final Gson GSON = new GsonBuilder().create();
 
     public BannerRecipe {
@@ -167,27 +163,5 @@ public record BannerRecipe(
 
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value;
-    }
-
-    static {
-        CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                        Codec.STRING.fieldOf("description").forGetter(BannerRecipe::description),
-                        Codec.STRING.optionalFieldOf("author").forGetter(d -> Optional.ofNullable(d.author())),
-                        Codec.STRING.optionalFieldOf("url").forGetter(d -> Optional.ofNullable(d.url())),
-                        Codec.STRING
-                                .optionalFieldOf("category", DEFAULT_CATEGORY)
-                                .forGetter(BannerRecipe::category),
-                        Codec.STRING.fieldOf("banner_color").forGetter(BannerRecipe::bannerColor),
-                        BannerRecipeLayer.CODEC.listOf().fieldOf("layers").forGetter(BannerRecipe::layers))
-                .apply(
-                        instance,
-                        (description, author, url, category, bannerColor, layers) -> new BannerRecipe(
-                                null,
-                                description,
-                                author.orElse(null),
-                                url.orElse(null),
-                                category,
-                                bannerColor,
-                                layers)));
     }
 }
