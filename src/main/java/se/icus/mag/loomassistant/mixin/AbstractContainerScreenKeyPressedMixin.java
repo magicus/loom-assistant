@@ -10,12 +10,24 @@ import net.minecraft.client.input.KeyEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenKeyPressedMixin {
+    @Inject(method = "removed", at = @At("HEAD"))
+    private void onRemoved(CallbackInfo ci) {
+        if (!((Object) this instanceof LoomScreen)) return;
+
+        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
+        if (extension != null) {
+            extension.onRemoved();
+        }
+        LoomAssistantMod.getLoomManager().setExtension(null);
+    }
+
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof LoomScreen)) return;

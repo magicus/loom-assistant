@@ -27,15 +27,6 @@ public abstract class LoomScreenMixin {
         extension.onInit();
     }
 
-    @Inject(method = "removed", at = @At("HEAD"))
-    private void onRemoved(CallbackInfo ci) {
-        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
-        if (extension != null) {
-            extension.onRemoved();
-        }
-        LoomAssistantMod.getLoomManager().setExtension(null);
-    }
-
     @Redirect(
             method = "extractBackground",
             at =
