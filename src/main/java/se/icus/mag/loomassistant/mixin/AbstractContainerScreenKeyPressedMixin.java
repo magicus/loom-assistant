@@ -22,10 +22,10 @@ public abstract class AbstractContainerScreenKeyPressedMixin {
         if (!((Object) this instanceof LoomScreen)) return;
 
         ScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
-        if (extension != null) {
-            extension.removed();
-        }
-        LoomAssistantMod.getLoomManager().setExtension(null);
+        if (extension == null) return;
+
+        extension.removed();
+        LoomAssistantMod.getLoomManager().removeExtension();
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)

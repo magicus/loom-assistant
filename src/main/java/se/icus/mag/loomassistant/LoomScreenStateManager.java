@@ -68,12 +68,12 @@ public class LoomScreenStateManager {
         return loomExtension;
     }
 
-    public void setExtension(LoomScreenExtension extension) {
-        this.loomExtension = extension;
+    public void createExtension(LoomScreen s) {
+        this.loomExtension = new LoomScreenExtension(s);
     }
 
-    public void createExtension(LoomScreen s) {
-        setExtension(new LoomScreenExtension(s));
+    public void removeExtension() {
+        this.loomExtension = null;
     }
 
     // ── Screen lifecycle ──────────────────────────────────────────────────────
