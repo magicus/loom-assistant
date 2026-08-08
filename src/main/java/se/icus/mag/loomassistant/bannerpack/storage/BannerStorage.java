@@ -22,6 +22,7 @@ import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 
 /**
  * Compatibility wrapper around the new types-based banner pack backend.
@@ -204,7 +205,8 @@ public final class BannerStorage {
         if (recipe == null) {
             return null;
         }
-        return recipe.toJson();
+        BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+        return converter.fromRecipe(recipe);
     }
 
     public String exportBannerToGiveCommand(String bannerId) {

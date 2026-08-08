@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 
 public class DirectoryBannerPack extends BannerPack {
     public DirectoryBannerPack(BannerPackMetadata metadata, Path path) {
@@ -83,7 +84,8 @@ public class DirectoryBannerPack extends BannerPack {
         Path designFile = getRecipeFile(recipe.id());
         Files.createDirectories(designFile.getParent());
         try (Writer writer = Files.newBufferedWriter(designFile)) {
-            writer.write(recipe.toJson());
+            BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+            writer.write(converter.fromRecipe(recipe));
         }
         includeRecipe(recipe);
     }

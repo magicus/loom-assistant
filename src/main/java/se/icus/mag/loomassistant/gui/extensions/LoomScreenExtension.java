@@ -37,12 +37,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
-import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;
+import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
 /** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
@@ -137,7 +138,11 @@ public class LoomScreenExtension {
         this.activeBannerStack = this.pendingActiveBannerStack.copy();
         LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, this.activeBannerStack);
         BannerRecipe recipe = BannerRecipe.fromItem(this.activeBannerStack);
-        this.lastPersistedActiveBannerJson = recipe == null ? null : recipe.toJson();
+        if (recipe == null) this.lastPersistedActiveBannerJson = null;
+        else {
+            BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+            this.lastPersistedActiveBannerJson = converter.fromRecipe(recipe);
+        }
     }
 
     public void setPersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
@@ -192,7 +197,11 @@ public class LoomScreenExtension {
         } else {
             this.activeBannerStack = this.pendingActiveBannerStack.copy();
             BannerRecipe persistedRecipe = BannerRecipe.fromItem(this.activeBannerStack);
-            this.lastPersistedActiveBannerJson = persistedRecipe == null ? null : persistedRecipe.toJson();
+            if (persistedRecipe == null) this.lastPersistedActiveBannerJson = null;
+            else {
+                BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+                this.lastPersistedActiveBannerJson = converter.fromRecipe(persistedRecipe);
+            }
         }
 
         this.recipeBookButton = screen.addRenderableWidget(new ImageButton(
@@ -348,7 +357,7 @@ public class LoomScreenExtension {
         }
     }
 
-    public  void extractGuideRender(GuiGraphicsExtractor context) {
+    public void extractGuideRender(GuiGraphicsExtractor context) {
         var mc = screen.minecraft;
         boolean survivalNotWeavable =
                 !panel.isActiveBannerWeavable() && mc.player != null && !mc.player.hasInfiniteMaterials();
@@ -619,7 +628,12 @@ public class LoomScreenExtension {
 
     private void syncPerWorldUiState() {
         BannerRecipe activeRecipe = BannerRecipe.fromItem(this.activeBannerStack);
-        String currentActiveJson = activeRecipe == null ? null : activeRecipe.toJson();
+        String currentActiveJson;
+        if (activeRecipe == null) currentActiveJson = null;
+        else {
+            BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+            currentActiveJson = converter.fromRecipe(activeRecipe);
+        }
         boolean activeChanged = !Objects.equals(currentActiveJson, this.lastPersistedActiveBannerJson);
         if (activeChanged) {
             LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, this.activeBannerStack);

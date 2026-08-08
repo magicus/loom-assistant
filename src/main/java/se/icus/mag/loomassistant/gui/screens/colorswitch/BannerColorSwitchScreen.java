@@ -18,9 +18,9 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.util.DyeColorSorting;
 import se.icus.mag.loomassistant.util.MathUtils;
 
@@ -291,14 +291,13 @@ public class BannerColorSwitchScreen extends Screen {
         int mx = (int) event.x();
         int my = (int) event.y();
 
-		if (pickerOpenFor == null) return super.mouseClicked(event, doubleClick);
+        if (pickerOpenFor == null) return super.mouseClicked(event, doubleClick);
 
-		if (!handlePickerClick(mx, my)) {
-			pickerOpenFor = null;
-		}
-	    return true;
-
-	}
+        if (!handlePickerClick(mx, my)) {
+            pickerOpenFor = null;
+        }
+        return true;
+    }
 
     private boolean handlePickerClick(int mx, int my) {
         int gridX = pickerX + PICKER_PAD;
@@ -326,18 +325,18 @@ public class BannerColorSwitchScreen extends Screen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
-			if (pickerOpenFor == null) {
-				this.onClose();
-			} else {
-				pickerOpenFor = null;
-			}
-	        return true;
-		}
+            if (pickerOpenFor == null) {
+                this.onClose();
+            } else {
+                pickerOpenFor = null;
+            }
+            return true;
+        }
 
         if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
             applyAndClose();
             return true;
-         }
+        }
 
         return super.keyPressed(event);
     }

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 class BannerPackRepositoryTest {
@@ -57,7 +58,8 @@ class BannerPackRepositoryTest {
                 DyeColor.LIGHT_BLUE,
                 List.of(BannerRecipeLayer.of("minecraft:small_stripes", DyeColor.BLUE.getName())));
 
-        String json = recipe.toJson();
+        BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
+        String json = converter.fromRecipe(recipe);
         BannerRecipe parsed = BannerRecipe.fromJson(json);
 
         assertTrue(json.contains("\"color\":\"blue\""));
@@ -73,7 +75,7 @@ class BannerPackRepositoryTest {
                 "minecraft:small_stripes", parsed.layers().getFirst().pattern().toString());
 
         BannerRecipe whiteDesign = new BannerRecipe("Test", DyeColor.WHITE, List.of());
-        String whiteJson = whiteDesign.toJson();
+        String whiteJson = converter.fromRecipe(whiteDesign);
         assertTrue(whiteJson.contains("\"banner_color\":\"white\""));
         BannerRecipe whiteParsed = BannerRecipe.fromJson(whiteJson);
         assertEquals("white", whiteParsed.bannerColor());

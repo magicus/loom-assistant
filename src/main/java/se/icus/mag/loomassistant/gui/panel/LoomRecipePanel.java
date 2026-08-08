@@ -43,13 +43,13 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
+import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
+import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
+import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
-import se.icus.mag.loomassistant.gui.extensions.PreviewExtension;
-import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
-import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomRecipePanel {
@@ -114,8 +114,8 @@ public class LoomRecipePanel {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
-	private final LoomScreenExtension extension;
-	private final LoomMenu handler;
+    private final LoomScreenExtension extension;
+    private final LoomMenu handler;
     private int x;
     private int y;
     private final Weaver weaver;
@@ -136,8 +136,8 @@ public class LoomRecipePanel {
     private final ImageButton pageBackButton;
 
     public LoomRecipePanel(LoomScreenExtension extension, LoomScreen screen, LoomMenu handler, int x, int y) {
-	    this.extension = extension;
-		this.handler = handler;
+        this.extension = extension;
+        this.handler = handler;
         this.x = x;
         this.y = y;
         this.weaver = Weaver.getWeaver(handler);
@@ -362,8 +362,7 @@ public class LoomRecipePanel {
             return Optional.empty();
         }
 
-        ItemStack previewStack = LoomAssistantMod.createBannerStack(
-                banner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), banner.getLayers());
+        ItemStack previewStack = BannerRecipe.toItem(Minecraft.getInstance(), banner);
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
@@ -388,12 +387,9 @@ public class LoomRecipePanel {
             } else {
                 ItemStack patternIcon = getPatternItem(layer.patternId());
                 if (patternIcon.isEmpty()) {
-                    Minecraft mc = Minecraft.getInstance();
-                    patternIcon = LoomAssistantMod.createBannerStack(
+                    patternIcon = BannerRecipe.toItem(
+                            LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()),
                             Items.BANNER.white(),
-                            mc.level == null
-                                    ? null
-                                    : mc.level.registryAccess().lookup(Registries.BANNER_PATTERN).orElse(null),
                             List.of(layer));
                 }
                 rows.add(BannerRecipeTooltipComponent.Row.pair(dyeStack, patternIcon, stepText));
@@ -807,8 +803,7 @@ public class LoomRecipePanel {
         if (selectedBanner == null) {
             return ItemStack.EMPTY;
         }
-        return LoomAssistantMod.createBannerStack(
-                selectedBanner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), selectedBanner.getLayers());
+        return BannerRecipe.toItem(Minecraft.getInstance(), selectedBanner);
     }
 
     public BannerRecipe getActiveBannerRecipe() {

@@ -13,10 +13,10 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
+import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 /**
  * Simple modal for naming a banner and selecting category before save/edit.
