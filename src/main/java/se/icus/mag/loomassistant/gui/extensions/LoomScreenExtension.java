@@ -9,7 +9,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 
@@ -61,32 +60,34 @@ public class LoomScreenExtension {
         leftBar.extractBackground(context, mouseX, mouseY, delta);
     }
 
-    public void onMouseClicked(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
+    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent) {
         if (leftBar != null && leftBar.mouseClicked(mouseButtonEvent)) {
-            cir.setReturnValue(true);
-            return;
+            return true;
         }
 
         if (panel != null && panel.mouseClicked(mouseButtonEvent)) {
-            cir.setReturnValue(true);
+            return true;
         }
+
+        return false;
     }
 
-    public void onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
+    public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
         if (leftBar != null && leftBar.mouseReleased(mouseButtonEvent)) {
-            cir.setReturnValue(true);
+            return true;
         }
+        return false;
     }
 
-    public void onMouseScrolled(
+    public boolean mouseScrolled(
             double mouseX,
             double mouseY,
             double horizontalAmount,
-            double verticalAmount,
-            CallbackInfoReturnable<Boolean> cir) {
+            double verticalAmount) {
         if (panel != null && panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            cir.setReturnValue(true);
+            return true;
         }
+        return false;
     }
 
     public void drawCustomBackground(

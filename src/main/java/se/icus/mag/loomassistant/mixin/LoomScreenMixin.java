@@ -77,7 +77,9 @@ public abstract class LoomScreenMixin {
         LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
-        extension.onMouseClicked(mouseButtonEvent, cir);
+        if (extension.mouseClicked(mouseButtonEvent)) {
+            cir.setReturnValue(true);
+        }
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
@@ -85,7 +87,9 @@ public abstract class LoomScreenMixin {
         LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
-        extension.onMouseReleased(mouseButtonEvent, cir);
+        if (extension.mouseReleased(mouseButtonEvent)) {
+            cir.setReturnValue(true);
+        }
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
@@ -94,6 +98,8 @@ public abstract class LoomScreenMixin {
         LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
-        extension.onMouseScrolled(mouseX, mouseY, scrollX, scrollY, cir);
+        if (extension.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+            cir.setReturnValue(true);
+        }
     }
 }
