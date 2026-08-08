@@ -4,6 +4,8 @@
  */
 package se.icus.mag.loomassistant.gui.extensions;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.LoomMenu;
@@ -19,25 +23,37 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import net.minecraft.world.level.storage.LevelResource;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
+import se.icus.mag.loomassistant.gui.support.LoomStatePersistence;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
+import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomScreenState {
     private static final String MODIFIED_SUFFIX_KEY = "loom-assistant.banner.modified_suffix";
+    private static final String PANEL_OPEN_BY_WORLD_KEY = "panelOpenByWorld";
+    private static final String ACTIVE_BANNER_BY_WORLD_KEY = "activeBannerByWorld";
+    private static final String PERSISTENT_DYE_BY_WORLD_KEY = "persistentDyeByWorld";
+    private static final String SELECTED_CATEGORY_BY_WORLD_KEY = "selectedCategoryByWorld";
+    private static final String DYE_ENABLED_KEY = "enabled";
+    private static final String DYE_REPLACEMENTS_KEY = "replacements";
 
     private final Minecraft minecraft;
     private final LoomMenu handler;
     private final Weaver weaver;
+    private final String worldKey;
+    private final BannerRecipeJsonConverter recipeConverter = new BannerRecipeJsonConverter();
 
     private boolean panelOpen;
     private BannerRecipe activeBanner;
     private String selectedBannerId;
     private BannerRecipe activeBannerSource;
     private String activeBannerSourceId;
+    private String selectedCategoryId;
     private final EnumMap<DyeColor, DyeColor> persistentDyeReplacementMap = new EnumMap<>(DyeColor.class);
     private boolean persistentDyeSwitchEnabled;
 
@@ -45,6 +61,7 @@ public class LoomScreenState {
         this.minecraft = minecraft;
         this.handler = handler;
         this.weaver = Weaver.getWeaver(handler);
+        this.worldKey = getWorldKey(minecraft);
         loadPersistedState();
     }
 
@@ -54,7 +71,7 @@ public class LoomScreenState {
 
     public void setPanelOpen(boolean panelOpen) {
         this.panelOpen = panelOpen;
-        LoomUiStateStore.setLoomPanelOpen(minecraft, panelOpen);
+        persistCurrentWorldState();
     }
 
     public boolean togglePanelOpen() {
@@ -197,6 +214,19 @@ public class LoomScreenState {
         return Map.copyOf(persistentDyeReplacementMap);
     }
 
+    public String getSelectedCategoryId() {
+        return selectedCategoryId;
+    }
+
+    public void setSelectedCategoryId(String categoryId) {
+        if ((selectedCategoryId == null && categoryId == null)
+                || (selectedCategoryId != null && selectedCategoryId.equals(categoryId))) {
+            return;
+        }
+        selectedCategoryId = categoryId;
+        persistCurrentWorldState();
+    }
+
     public List<DyeColor> getActiveBannerUsedColors() {
         if (activeBanner == null) return List.of();
 
@@ -328,19 +358,44 @@ public class LoomScreenState {
     }
 
     private void loadPersistedState() {
-        this.panelOpen = LoomUiStateStore.isLoomPanelOpen(minecraft);
+        JsonObject root = LoomStatePersistence.load();
+        JsonObject panelOpenByWorld = asObject(root.get(PANEL_OPEN_BY_WORLD_KEY));
+        JsonObject activeBannerByWorld = asObject(root.get(ACTIVE_BANNER_BY_WORLD_KEY));
+        JsonObject persistentDyeByWorld = asObject(root.get(PERSISTENT_DYE_BY_WORLD_KEY));
+        JsonObject selectedCategoryByWorld = asObject(root.get(SELECTED_CATEGORY_BY_WORLD_KEY));
 
-        LoomUiStateStore.PersistentDyeState persistentDyeState = LoomUiStateStore.getPersistentDyeState(minecraft);
-        this.persistentDyeSwitchEnabled = persistentDyeState.enabled();
+        this.panelOpen = getBoolean(panelOpenByWorld.get(worldKey), false);
+        this.selectedCategoryId = getString(selectedCategoryByWorld.get(worldKey));
+
+        this.persistentDyeSwitchEnabled = false;
         this.persistentDyeReplacementMap.clear();
-        this.persistentDyeReplacementMap.putAll(persistentDyeState.replacements());
+        JsonObject persistentDyeState = asObject(persistentDyeByWorld.get(worldKey));
+        if (getBoolean(persistentDyeState.get(DYE_ENABLED_KEY), false)) {
+            JsonObject replacements = asObject(persistentDyeState.get(DYE_REPLACEMENTS_KEY));
+            for (Map.Entry<String, JsonElement> entry : replacements.entrySet()) {
+                DyeColor src = DyeColor.byName(entry.getKey(), null);
+                DyeColor dst = entry.getValue().isJsonPrimitive()
+                        ? DyeColor.byName(entry.getValue().getAsString(), null)
+                        : null;
+                if (src != null && dst != null && src != dst) {
+                    persistentDyeReplacementMap.put(src, dst);
+                }
+            }
+            persistentDyeSwitchEnabled = !persistentDyeReplacementMap.isEmpty();
+        }
 
-        ItemStack persistedBanner = LoomUiStateStore.getPersistedActiveBannerStack(minecraft);
-        if (!persistedBanner.isEmpty()) {
-            BannerRecipe recipe = BannerRecipe.fromItem(persistedBanner);
+        String recipeJson = getString(activeBannerByWorld.get(worldKey));
+        if (recipeJson == null || recipeJson.isBlank()) {
+            return;
+        }
+
+        try {
+            BannerRecipe recipe = BannerRecipe.fromJson(recipeJson);
             if (recipe != null) {
                 setActiveBannerFromSource(recipe, null, false);
             }
+        } catch (RuntimeException e) {
+            LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
         }
     }
 
@@ -379,18 +434,11 @@ public class LoomScreenState {
     }
 
     private void persistActiveBanner() {
-        if (activeBanner == null) {
-            LoomUiStateStore.setPersistedActiveBannerStack(minecraft, ItemStack.EMPTY);
-            return;
-        }
-
-        BannerRecipe recipeToPersist =
-                persistentDyeSwitchEnabled && activeBannerSource != null ? activeBannerSource : activeBanner;
-        LoomUiStateStore.setPersistedActiveBannerStack(minecraft, BannerRecipe.toItem(minecraft, recipeToPersist));
+        persistCurrentWorldState();
     }
 
     private void persistPersistentDyeState() {
-        LoomUiStateStore.setPersistentDyeState(minecraft, persistentDyeSwitchEnabled, persistentDyeReplacementMap);
+        persistCurrentWorldState();
     }
 
     private boolean isActiveBannerFromWritableSource() {
@@ -412,8 +460,56 @@ public class LoomScreenState {
     }
 
     private String defaultSaveCategory() {
-        String selectedCategoryId = LoomUiStateStore.getSelectedCategoryId(minecraft);
         return selectedCategoryId != null ? selectedCategoryId : BannerRecipeCategories.MISC.id();
+    }
+
+    private void persistCurrentWorldState() {
+        JsonObject root = LoomStatePersistence.load();
+
+        JsonObject panelOpenByWorld = getOrCreateObject(root, PANEL_OPEN_BY_WORLD_KEY);
+        panelOpenByWorld.addProperty(worldKey, panelOpen);
+
+        JsonObject activeBannerByWorld = getOrCreateObject(root, ACTIVE_BANNER_BY_WORLD_KEY);
+        String recipeJson = serializePersistedActiveBanner();
+        if (recipeJson == null || recipeJson.isBlank()) {
+            activeBannerByWorld.remove(worldKey);
+        } else {
+            activeBannerByWorld.addProperty(worldKey, recipeJson);
+        }
+
+        JsonObject persistentDyeByWorld = getOrCreateObject(root, PERSISTENT_DYE_BY_WORLD_KEY);
+        if (!persistentDyeSwitchEnabled || persistentDyeReplacementMap.isEmpty()) {
+            persistentDyeByWorld.remove(worldKey);
+        } else {
+            JsonObject dyeState = new JsonObject();
+            dyeState.addProperty(DYE_ENABLED_KEY, true);
+            JsonObject replacements = new JsonObject();
+            for (Map.Entry<DyeColor, DyeColor> entry : persistentDyeReplacementMap.entrySet()) {
+                replacements.addProperty(
+                        entry.getKey().getName(), entry.getValue().getName());
+            }
+            dyeState.add(DYE_REPLACEMENTS_KEY, replacements);
+            persistentDyeByWorld.add(worldKey, dyeState);
+        }
+
+        JsonObject selectedCategoryByWorld = getOrCreateObject(root, SELECTED_CATEGORY_BY_WORLD_KEY);
+        if (selectedCategoryId == null || selectedCategoryId.isBlank()) {
+            selectedCategoryByWorld.remove(worldKey);
+        } else {
+            selectedCategoryByWorld.addProperty(worldKey, selectedCategoryId);
+        }
+
+        LoomStatePersistence.save(root);
+    }
+
+    private String serializePersistedActiveBanner() {
+        if (activeBanner == null) {
+            return null;
+        }
+
+        BannerRecipe recipeToPersist =
+                persistentDyeSwitchEnabled && activeBannerSource != null ? activeBannerSource : activeBanner;
+        return recipeConverter.fromRecipe(recipeToPersist);
     }
 
     private static boolean isInSurvivalMode() {
@@ -471,5 +567,47 @@ public class LoomScreenState {
             }
         }
         return true;
+    }
+
+    private static JsonObject asObject(JsonElement element) {
+        return element != null && element.isJsonObject() ? element.getAsJsonObject() : new JsonObject();
+    }
+
+    private static JsonObject getOrCreateObject(JsonObject root, String key) {
+        JsonElement existing = root.get(key);
+        if (existing != null && existing.isJsonObject()) {
+            return existing.getAsJsonObject();
+        }
+        JsonObject created = new JsonObject();
+        root.add(key, created);
+        return created;
+    }
+
+    private static boolean getBoolean(JsonElement element, boolean fallback) {
+        return element != null && element.isJsonPrimitive() ? element.getAsBoolean() : fallback;
+    }
+
+    private static String getString(JsonElement element) {
+        return element != null && element.isJsonPrimitive() ? element.getAsString() : null;
+    }
+
+    private static String getWorldKey(Minecraft minecraft) {
+        if (minecraft == null) return "unknown";
+
+        IntegratedServer singleplayerServer = minecraft.getSingleplayerServer();
+        if (singleplayerServer != null) {
+            return "sp:"
+                    + singleplayerServer
+                            .getWorldPath(LevelResource.ROOT)
+                            .toAbsolutePath()
+                            .normalize();
+        }
+
+        ServerData currentServer = minecraft.getCurrentServer();
+        if (currentServer != null && currentServer.ip != null && !currentServer.ip.isBlank()) {
+            return "mp:" + currentServer.ip.toLowerCase();
+        }
+
+        return "unknown";
     }
 }

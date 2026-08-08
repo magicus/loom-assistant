@@ -49,7 +49,6 @@ import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenState;
 import se.icus.mag.loomassistant.gui.extensions.WeavingGuide;
-import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
@@ -151,7 +150,7 @@ public class LoomRecipePanel {
                 Component.translatable("gui.recipebook.search_hint").withStyle(EditBox.SEARCH_HINT_STYLE));
         this.categoryTabs = BannerRecipeCategories.getCategories();
         this.tabs = List.of();
-        this.selectedCategoryId = LoomUiStateStore.getSelectedCategoryId(Minecraft.getInstance());
+        this.selectedCategoryId = state.getSelectedCategoryId();
         refreshVisibleTabs();
 
         pageForwardButton = new ImageButton(
@@ -612,7 +611,7 @@ public class LoomRecipePanel {
 
     private void setSelectedCategoryId(String categoryId) {
         this.selectedCategoryId = categoryId;
-        LoomUiStateStore.setSelectedCategoryId(Minecraft.getInstance(), categoryId);
+        state.setSelectedCategoryId(categoryId);
     }
 
     private boolean clickBannerGrid(int mx, int my) {
