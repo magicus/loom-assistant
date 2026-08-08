@@ -41,9 +41,9 @@ public class DirectoryBannerPack extends BannerPack {
 
     @Override
     public void updateBannerRecipe(BannerRecipe recipe) throws IOException {
-        if (recipe.id() == null || recipe.id().isBlank()) {
+        if (recipe.id() == null || recipe.id().isBlank())
             throw new IllegalArgumentException("recipe id is required for update");
-        }
+
         addBannerRecipe(recipe);
     }
 
@@ -57,13 +57,11 @@ public class DirectoryBannerPack extends BannerPack {
     }
 
     public BannerRecipe moveRecipeTo(BannerPack target, String recipeId) throws IOException {
-        if (target.isReadOnly()) {
-            throw new IllegalArgumentException("cannot move to read-only pack");
-        }
+        if (target.isReadOnly()) throw new IllegalArgumentException("cannot move to read-only pack");
+
         BannerRecipe recipe = getDesign(recipeId);
-        if (recipe == null) {
-            throw new IllegalArgumentException("recipe not found: " + recipeId);
-        }
+        if (recipe == null) throw new IllegalArgumentException("recipe not found: " + recipeId);
+
         BannerRecipe moved = target.addBannerRecipe(recipe.withId(null));
         removeBannerRecipe(recipeId);
         return moved;
@@ -99,9 +97,8 @@ public class DirectoryBannerPack extends BannerPack {
 
     private Path getRecipeFile(String recipeId) {
         int colon = recipeId.indexOf(':');
-        if (colon < 0) {
-            throw new IllegalArgumentException("recipe id must be in namespace:name format: " + recipeId);
-        }
+        if (colon < 0) throw new IllegalArgumentException("recipe id must be in namespace:name format: " + recipeId);
+
         String namespace = recipeId.substring(0, colon);
         String name = recipeId.substring(colon + 1);
         return getPath().resolve(BANNERS_DIR).resolve(namespace).resolve(name + ".json");

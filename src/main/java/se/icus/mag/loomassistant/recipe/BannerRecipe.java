@@ -53,16 +53,15 @@ public record BannerRecipe(
 
     public BannerRecipe {
         description = blankToNull(description);
-        if (description == null) {
-            throw new IllegalArgumentException("description is required");
-        }
+        if (description == null) throw new IllegalArgumentException("description is required");
+
         author = blankToNull(author);
         url = blankToNull(url);
         category = (category == null || category.isBlank()) ? DEFAULT_CATEGORY : category;
         bannerColor = (bannerColor == null || bannerColor.isBlank()) ? DyeColor.WHITE.getName() : bannerColor;
-        if (DyeColor.byName(bannerColor, null) == null) {
+        if (DyeColor.byName(bannerColor, null) == null)
             throw new IllegalArgumentException("Invalid banner color: " + bannerColor);
-        }
+
         layers = List.copyOf(layers == null ? List.of() : layers);
     }
 

@@ -6,6 +6,7 @@ package se.icus.mag.loomassistant.parsers.urlparsers;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.parsers.LegacyBannerPatterns;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -54,15 +55,13 @@ public final class SkinMcBannerCodeParser {
      * @throws IllegalArgumentException if the code is invalid or empty
      */
     public static BannerRecipe parseBannerCode(String bannerCode) {
-        if (bannerCode == null || bannerCode.trim().isEmpty()) {
+        if (bannerCode == null || bannerCode.trim().isEmpty())
             throw new IllegalArgumentException("Banner code cannot be empty");
-        }
 
         String normalized = bannerCode.trim();
-        if (normalized.length() % 2 != 0) {
+        if (normalized.length() % 2 != 0)
             throw new IllegalArgumentException(
                     "Banner code must have even number of characters, got: " + normalized.length());
-        }
 
         List<DecodedPair> decoded = new ArrayList<>();
         for (int i = 0; i < normalized.length(); i += 2) {
@@ -70,9 +69,7 @@ public final class SkinMcBannerCodeParser {
             decoded.add(decodePair(pair));
         }
 
-        if (decoded.isEmpty()) {
-            throw new IllegalArgumentException("Banner code produced no layers");
-        }
+        if (decoded.isEmpty()) throw new IllegalArgumentException("Banner code produced no layers");
 
         DecodedPair base = decoded.getFirst();
         String bannerColor = base.colorName();
@@ -82,30 +79,27 @@ public final class SkinMcBannerCodeParser {
             DecodedPair layer = decoded.get(i);
             String patternId = LegacyBannerPatterns.getPatternId(layer.pattern());
             DyeColor color = DyeColor.byName(layer.colorName(), DyeColor.WHITE);
-            layers.add(new BannerRecipeLayer(net.minecraft.resources.Identifier.tryParse(patternId), color));
+            layers.add(new BannerRecipeLayer(Identifier.tryParse(patternId), color));
         }
 
         return new BannerRecipe("skinmc_import", "Imported from SkinMC", null, null, bannerColor, layers);
     }
 
     private static DecodedPair decodePair(String pair) {
-        if (pair == null || pair.length() != 2) {
+        if (pair == null || pair.length() != 2)
             throw new IllegalArgumentException("Pair must be exactly 2 characters, got: " + pair);
-        }
 
         int e = BASE64_DICT.indexOf(pair.charAt(0));
         int a = BASE64_DICT.indexOf(pair.charAt(1));
 
-        if (e < 0 || a < 0) {
+        if (e < 0 || a < 0)
             throw new IllegalArgumentException("Invalid character in pair: " + pair + " (not in base64 alphabet)");
-        }
 
         int colorIndex = e & 15;
         int patternIndex = (e >> 4) << 6 | a;
 
-        if (patternIndex >= PATTERNS.length) {
+        if (patternIndex >= PATTERNS.length)
             throw new IllegalArgumentException("Invalid pattern index: " + patternIndex + " for pair: " + pair);
-        }
 
         String pattern = PATTERNS[patternIndex];
         String colorName = colorIndex < DYE_COLORS.length ? DYE_COLORS[colorIndex] : "white";

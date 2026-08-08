@@ -33,11 +33,8 @@ public final class SkinMcUrlParser extends UrlParser {
     protected String extractBannerCode() {
         String path = uri.getPath();
 
-        if (path != null && !"/banner/editor".equals(path)) {
-            if (path.matches("^/banner/[^/]+$")) {
-                throw new IllegalArgumentException("Please Use Edit design link");
-            }
-        }
+        if (path != null && !"/banner/editor".equals(path) && path.matches("^/banner/[^/]+$"))
+            throw new IllegalArgumentException("Please Use Edit design link");
 
         String query = uri.getQuery();
         if (query == null || query.isBlank()) return "";

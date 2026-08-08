@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.parsers;
 
+import java.util.List;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 /**
@@ -57,9 +58,7 @@ public final class MinecraftParser {
 
     private static BannerRecipe parseGiveCommand(String command) {
         int braceIndex = command.indexOf('{');
-        if (braceIndex < 0) {
-            throw new IllegalArgumentException("No NBT data in /give command");
-        }
+        if (braceIndex < 0) throw new IllegalArgumentException("No NBT data in /give command");
 
         String nbtPart = command.substring(braceIndex);
         return parseNbtData(nbtPart);
@@ -68,11 +67,8 @@ public final class MinecraftParser {
     private static BannerRecipe parseNbtData(String nbtData) {
         String trimmed = nbtData.trim();
 
-        if (!trimmed.startsWith("{")) {
-            throw new IllegalArgumentException("Invalid NBT format");
-        }
+        if (!trimmed.startsWith("{")) throw new IllegalArgumentException("Invalid NBT format");
 
-        return new BannerRecipe(
-                "minecraft_import", "Imported from Minecraft", null, null, "white", java.util.List.of());
+        return new BannerRecipe("minecraft_import", "Imported from Minecraft", null, null, "white", List.of());
     }
 }

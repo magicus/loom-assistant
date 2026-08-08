@@ -73,13 +73,11 @@ public abstract class BannerPack {
     }
 
     public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
-        if (target.isReadOnly()) {
-            throw new IllegalArgumentException("cannot copy to read-only pack");
-        }
+        if (target.isReadOnly()) throw new IllegalArgumentException("cannot copy to read-only pack");
+
         BannerRecipe recipe = getDesign(recipeId);
-        if (recipe == null) {
-            throw new IllegalArgumentException("recipe not found: " + recipeId);
-        }
+        if (recipe == null) throw new IllegalArgumentException("recipe not found: " + recipeId);
+
         return target.addBannerRecipe(recipe.withId(null));
     }
 
@@ -143,16 +141,16 @@ public abstract class BannerPack {
             if (root == null || !root.has("pack")) return null;
 
             JsonObject packObj = root.getAsJsonObject("pack");
-            if (!packObj.has("pack_format")) {
+            if (!packObj.has("pack_format"))
                 throw new IllegalStateException("Missing required pack.pack_format in " + path);
-            }
+
             int packFormat = packObj.get("pack_format").getAsInt();
-            if (packFormat != 1) {
+            if (packFormat != 1)
                 throw new IllegalStateException("Unsupported bannerpack format version " + packFormat + " in " + path);
-            }
-            if (!packObj.has("description")) {
+
+            if (!packObj.has("description"))
                 throw new IllegalStateException("Missing required pack.description in " + path);
-            }
+
             String description = packObj.get("description").getAsString();
 
             String author = null;

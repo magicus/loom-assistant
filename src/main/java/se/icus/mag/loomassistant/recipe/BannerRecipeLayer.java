@@ -16,23 +16,17 @@ public record BannerRecipeLayer(Identifier pattern, DyeColor color) {
             .apply(instance, BannerRecipeLayer::new));
 
     public BannerRecipeLayer {
-        if (pattern == null) {
-            throw new IllegalArgumentException("pattern identifier cannot be null");
-        }
-        if (color == null) {
-            throw new IllegalArgumentException("color cannot be null");
-        }
+        if (pattern == null) throw new IllegalArgumentException("pattern identifier cannot be null");
+        if (color == null) throw new IllegalArgumentException("color cannot be null");
     }
 
     public static BannerRecipeLayer of(String pattern, String color) {
         Identifier parsed = Identifier.tryParse(pattern);
-        if (parsed == null) {
-            throw new IllegalArgumentException("Invalid pattern identifier: " + pattern);
-        }
+        if (parsed == null) throw new IllegalArgumentException("Invalid pattern identifier: " + pattern);
+
         DyeColor parsedColor = DyeColor.byName(color, null);
-        if (parsedColor == null) {
-            throw new IllegalArgumentException("Invalid color: " + color);
-        }
+        if (parsedColor == null) throw new IllegalArgumentException("Invalid color: " + color);
+
         return new BannerRecipeLayer(parsed, parsedColor);
     }
 

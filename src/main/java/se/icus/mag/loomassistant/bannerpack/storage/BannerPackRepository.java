@@ -116,12 +116,10 @@ public class BannerPackRepository {
 
     public void createPack(String packId, String name) {
         String normalizedId = normalizeId(packId);
-        if (LOCAL_PACK_ID.equals(normalizedId)) {
+        if (LOCAL_PACK_ID.equals(normalizedId))
             throw new IllegalArgumentException("local pack already exists and cannot be created manually");
-        }
-        if (packs.containsKey(normalizedId)) {
-            throw new IllegalArgumentException("pack already exists: " + normalizedId);
-        }
+
+        if (packs.containsKey(normalizedId)) throw new IllegalArgumentException("pack already exists: " + normalizedId);
 
         Path packDir = packsRoot.resolve(normalizedId);
         try {
@@ -135,14 +133,11 @@ public class BannerPackRepository {
 
     public void deletePack(String packId) {
         String normalizedId = normalizeId(packId);
-        if (LOCAL_PACK_ID.equals(normalizedId)) {
-            throw new IllegalArgumentException("local pack cannot be deleted");
-        }
+        if (LOCAL_PACK_ID.equals(normalizedId)) throw new IllegalArgumentException("local pack cannot be deleted");
 
         BannerPack pack = requirePack(normalizedId);
-        if (pack.isReadOnly()) {
+        if (pack.isReadOnly())
             throw new IllegalArgumentException("zip packs are read-only and cannot be deleted through repository");
-        }
 
         try {
             deleteRecursively(pack.getPath());
@@ -157,9 +152,9 @@ public class BannerPackRepository {
         String targetId = normalizeId(targetPackId);
         BannerPack sourcePack = requirePack(sourceId);
         BannerPack targetPack = requirePack(targetId);
-        if (!(sourcePack instanceof DirectoryBannerPack dirSource)) {
+        if (!(sourcePack instanceof DirectoryBannerPack dirSource))
             throw new IllegalArgumentException("cannot move from read-only pack; copy instead");
-        }
+
         try {
             return dirSource.moveRecipeTo(targetPack, recipeId);
         } catch (IOException e) {
@@ -232,9 +227,8 @@ public class BannerPackRepository {
 
     private BannerPack requirePack(String packId) {
         BannerPack pack = packs.get(packId);
-        if (pack == null) {
-            throw new IllegalArgumentException("pack not found: " + packId);
-        }
+        if (pack == null) throw new IllegalArgumentException("pack not found: " + packId);
+
         return pack;
     }
 
@@ -256,9 +250,8 @@ public class BannerPackRepository {
     }
 
     private static String normalizeId(String id) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("pack id cannot be empty");
-        }
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("pack id cannot be empty");
+
         return PATTERN.matcher(id.toLowerCase(Locale.ROOT)).replaceAll("_");
     }
 

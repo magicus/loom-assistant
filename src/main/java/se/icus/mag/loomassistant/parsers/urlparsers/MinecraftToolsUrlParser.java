@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.parsers.LegacyBannerPatterns;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -76,30 +77,22 @@ public final class MinecraftToolsUrlParser extends UrlParser {
 
     @Override
     protected BannerRecipe getBannerFromCode(String code) {
-        if (!code.startsWith("minecraft-tools:")) {
-            throw new IllegalArgumentException("Invalid minecraft.tools code");
-        }
+        if (!code.startsWith("minecraft-tools:")) throw new IllegalArgumentException("Invalid minecraft.tools code");
 
         Map<String, Integer> params = parseParams(code.substring("minecraft-tools:".length()));
         return parseParameters(params);
     }
 
     private static BannerRecipe parseParameters(Map<String, Integer> params) {
-        if (params == null || params.isEmpty()) {
-            throw new IllegalArgumentException("No parameters provided");
-        }
+        if (params == null || params.isEmpty()) throw new IllegalArgumentException("No parameters provided");
 
         Integer baseColorId = params.get("color_id_0");
-        if (baseColorId == null) {
-            throw new IllegalArgumentException("Missing required parameter: color_id_0");
-        }
+        if (baseColorId == null) throw new IllegalArgumentException("Missing required parameter: color_id_0");
 
-        if (baseColorId < 0 || baseColorId > 15) {
+        if (baseColorId < 0 || baseColorId > 15)
             throw new IllegalArgumentException("Invalid base color index: " + baseColorId + " (must be 0-15)");
-        }
 
         String bannerColor = getInvertedColorName(baseColorId);
-
         List<BannerRecipeLayer> layers = new ArrayList<>();
         int layerIndex = 1;
 
@@ -107,15 +100,11 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             Integer shapeId = params.get("shape_id_" + layerIndex);
             Integer colorId = params.get("color_id_" + layerIndex);
 
-            if (shapeId == null) {
-                throw new IllegalArgumentException("Missing shape_id_" + layerIndex);
-            }
+            if (shapeId == null) throw new IllegalArgumentException("Missing shape_id_" + layerIndex);
 
-            if (colorId == null) {
-                throw new IllegalArgumentException("Missing color_id_" + layerIndex);
-            }
+            if (colorId == null) throw new IllegalArgumentException("Missing color_id_" + layerIndex);
 
-            if (shapeId < 0 || shapeId >= NUM_PATTERNS) {
+            if (shapeId < 0 || shapeId >= NUM_PATTERNS)
                 throw new IllegalArgumentException("Invalid pattern index at layer "
                         + layerIndex
                         + ": "
@@ -123,12 +112,10 @@ public final class MinecraftToolsUrlParser extends UrlParser {
                         + " (must be 0-"
                         + (NUM_PATTERNS - 1)
                         + ")");
-            }
 
-            if (colorId < 0 || colorId > 15) {
+            if (colorId < 0 || colorId > 15)
                 throw new IllegalArgumentException(
                         "Invalid color index at layer " + layerIndex + ": " + colorId + " (must be 0-15)");
-            }
 
             String patternCode = MINECRAFT_PATTERNS[shapeId];
             if (patternCode == null) {
@@ -139,10 +126,8 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             DyeColor dyeColor = DyeColor.byName(getInvertedColorName(colorId), DyeColor.WHITE);
             String patternId = LegacyBannerPatterns.getPatternId(patternCode);
 
-            net.minecraft.resources.Identifier identifier = net.minecraft.resources.Identifier.tryParse(patternId);
-            if (identifier == null) {
-                throw new IllegalArgumentException("Invalid pattern identifier: " + patternId);
-            }
+            Identifier identifier = Identifier.tryParse(patternId);
+            if (identifier == null) throw new IllegalArgumentException("Invalid pattern identifier: " + patternId);
 
             layers.add(new BannerRecipeLayer(identifier, dyeColor));
             layerIndex++;

@@ -92,14 +92,12 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
     protected String extractBannerCode() {
         String path = uri.getPath();
 
-        if (path != null && path.startsWith("/banner/") && !path.equals("/banner/")) {
+        if (path != null && path.startsWith("/banner/") && !path.equals("/banner/"))
             throw new IllegalArgumentException("Please use Remix Banner link");
-        }
 
         String query = uri.getQuery();
-        if (query == null || query.isBlank()) {
+        if (query == null || query.isBlank())
             throw new IllegalArgumentException("No PlanetMinecraft banner code found");
-        }
 
         query = URLDecoder.decode(query, StandardCharsets.UTF_8);
 
@@ -117,19 +115,14 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
     }
 
     private static BannerRecipe parseCode(String code) {
-        if (code == null || code.isBlank()) {
-            throw new IllegalArgumentException("PMC banner code cannot be empty");
-        }
+        if (code == null || code.isBlank()) throw new IllegalArgumentException("PMC banner code cannot be empty");
         code = code.trim();
 
-        if (code.length() < 3 || code.length() % 2 == 0) {
+        if (code.length() < 3 || code.length() % 2 == 0)
             throw new IllegalArgumentException("Invalid PMC banner code length: " + code.length());
-        }
 
         int baseId = decodeChar(code.charAt(0));
-        if (baseId < 0 || baseId > 15) {
-            throw new IllegalArgumentException("Invalid base color id: " + baseId);
-        }
+        if (baseId < 0 || baseId > 15) throw new IllegalArgumentException("Invalid base color id: " + baseId);
 
         String bannerColor = COLORS[baseId];
         List<BannerRecipeLayer> layers = new ArrayList<>();
@@ -139,12 +132,8 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
             int patternIdx = decodeChar(code.charAt(i + 1));
 
             String pattern = PATTERNS.get(patternIdx);
-            if (pattern == null) {
-                throw new IllegalArgumentException("Unsupported PMC pattern index: " + patternIdx);
-            }
-            if (colorId < 0 || colorId > 15) {
-                throw new IllegalArgumentException("Invalid layer color id: " + colorId);
-            }
+            if (pattern == null) throw new IllegalArgumentException("Unsupported PMC pattern index: " + patternIdx);
+            if (colorId < 0 || colorId > 15) throw new IllegalArgumentException("Invalid layer color id: " + colorId);
 
             layers.add(BannerRecipeLayer.of("minecraft:" + pattern, COLORS[colorId]));
         }
@@ -155,9 +144,7 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
 
     private static int decodeChar(char c) {
         int idx = ALPHABET.indexOf(c);
-        if (idx < 0) {
-            throw new IllegalArgumentException("Invalid PMC code character: " + c);
-        }
+        if (idx < 0) throw new IllegalArgumentException("Invalid PMC code character: " + c);
         return idx;
     }
 }

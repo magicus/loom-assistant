@@ -113,9 +113,8 @@ public class JarBannerPackLoader {
         Path cachePath = cacheRoot.resolve(cacheFileName);
 
         try (InputStream in = getResourceStream(resourcePath)) {
-            if (in == null) {
-                throw new IOException("Resource not found: " + resourcePath);
-            }
+            if (in == null) throw new IOException("Resource not found: " + resourcePath);
+
             Files.createDirectories(cachePath.getParent());
             Files.copy(in, cachePath, StandardCopyOption.REPLACE_EXISTING);
         }

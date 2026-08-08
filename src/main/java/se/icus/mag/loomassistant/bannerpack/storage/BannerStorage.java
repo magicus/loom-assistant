@@ -288,9 +288,8 @@ public final class BannerStorage {
 
     private BannerPack requirePack(String packId) {
         BannerPack pack = repository.getPack(packId);
-        if (pack == null) {
-            throw new IllegalStateException("Pack not found: " + packId);
-        }
+        if (pack == null) throw new IllegalStateException("Pack not found: " + packId);
+
         return pack;
     }
 }
