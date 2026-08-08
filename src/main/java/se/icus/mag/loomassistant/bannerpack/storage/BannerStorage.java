@@ -22,8 +22,8 @@ import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
-import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 
 /**
  * Compatibility wrapper around the new types-based banner pack backend.

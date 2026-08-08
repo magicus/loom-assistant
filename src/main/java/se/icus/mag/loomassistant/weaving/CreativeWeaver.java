@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 
 /**
  * Weaver for creative mode: instantly adds the result to the player's inventory.

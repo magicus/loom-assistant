@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";

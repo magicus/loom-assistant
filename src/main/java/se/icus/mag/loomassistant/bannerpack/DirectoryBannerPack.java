@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 
 public class DirectoryBannerPack extends BannerPack {
     public DirectoryBannerPack(BannerPackMetadata metadata, Path path) {

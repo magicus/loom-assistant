@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.recipe;
+package se.icus.mag.loomassistant.recipe.converters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> {
     @Override

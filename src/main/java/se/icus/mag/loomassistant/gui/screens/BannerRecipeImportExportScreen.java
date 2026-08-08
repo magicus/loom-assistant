@@ -15,8 +15,8 @@ import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
-import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 
 /**
  * Combined import/export screen for /give commands.

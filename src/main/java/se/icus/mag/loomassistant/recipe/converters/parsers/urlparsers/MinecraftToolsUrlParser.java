@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.parsers.urlparsers;
+package se.icus.mag.loomassistant.recipe.converters.parsers.urlparsers;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.parsers.LegacyBannerPatterns;
+import se.icus.mag.loomassistant.recipe.converters.parsers.LegacyBannerPatterns;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 

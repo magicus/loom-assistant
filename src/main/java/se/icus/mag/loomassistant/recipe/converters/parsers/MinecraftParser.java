@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.parsers;
+package se.icus.mag.loomassistant.recipe.converters.parsers;
 
 import java.util.List;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;

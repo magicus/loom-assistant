@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class WeavingGuide extends ScreenExtensionWidget {

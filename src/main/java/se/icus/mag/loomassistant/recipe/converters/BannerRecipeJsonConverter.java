@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.recipe;
+package se.icus.mag.loomassistant.recipe.converters;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -10,6 +10,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class BannerRecipeJsonConverter extends BannerRecipeConverter<String> {
     public static final Codec<BannerRecipe> CODEC;

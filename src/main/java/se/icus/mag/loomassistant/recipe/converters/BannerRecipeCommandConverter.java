@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.recipe;
+package se.icus.mag.loomassistant.recipe.converters;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -17,6 +17,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.world.item.DyeColor;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class BannerRecipeCommandConverter extends BannerRecipeConverter<String> {
     public static CommandParseResult parseCommandDetailed(String input) {

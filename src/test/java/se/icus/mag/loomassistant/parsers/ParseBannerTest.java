@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.converters.parsers.ParseBanner;
 
 class ParseBannerTest {
     @Test

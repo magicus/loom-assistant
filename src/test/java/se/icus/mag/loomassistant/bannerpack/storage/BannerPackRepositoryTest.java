@@ -25,9 +25,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeCommandConverter;
-import se.icus.mag.loomassistant.recipe.BannerRecipeItemConverter;
-import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 class BannerPackRepositoryTest {
