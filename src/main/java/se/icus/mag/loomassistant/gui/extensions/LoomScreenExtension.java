@@ -7,6 +7,8 @@ package se.icus.mag.loomassistant.gui.extensions;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
 import se.icus.mag.loomassistant.LoomAssistantMod;
@@ -81,6 +83,27 @@ public class LoomScreenExtension {
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (panel != null && panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean keyPressed(KeyEvent event) {
+        if (panel != null && panel.keyPressed(event)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean charTyped(CharacterEvent event) {
+        if (panel != null && panel.charTyped(event)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (panel != null && panel.mouseDragged(event, dx, dy)) {
             return true;
         }
         return false;

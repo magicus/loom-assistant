@@ -22,9 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.component.DataComponents;
@@ -36,7 +33,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.storage.LevelResource;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.LoomRecipePanel;
 import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
@@ -651,34 +647,5 @@ public class LoomScreenStateManager {
 
     private static String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value;
-    }
-
-    // ── Input event delegation ────────────────────────────────────────────────
-
-    public boolean handleKeyPressed(KeyEvent event) {
-        if (loomExtension == null) return false;
-
-        LoomRecipePanel panel = loomExtension.getPanel();
-        if (panel == null) return false;
-
-        return panel.keyPressed(event);
-    }
-
-    public boolean handleCharTyped(CharacterEvent event) {
-        if (loomExtension == null) return false;
-
-        LoomRecipePanel panel = loomExtension.getPanel();
-        if (panel == null) return false;
-
-        return panel.charTyped(event);
-    }
-
-    public boolean handleMouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (loomExtension == null) return false;
-
-        LoomRecipePanel panel = loomExtension.getPanel();
-        if (panel == null) return false;
-        
-        return panel.mouseDragged(event, dx, dy);
     }
 }
