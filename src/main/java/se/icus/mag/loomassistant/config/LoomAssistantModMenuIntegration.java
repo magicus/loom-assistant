@@ -34,13 +34,13 @@ public class LoomAssistantModMenuIntegration implements ModMenuApi {
         AutoConfigClient.getGuiRegistry(LoomAssistantConfig.class)
                 .registerPredicateProvider(
                         LoomAssistantModMenuIntegration::buildManagePacksActionEntry,
-                        LoomAssistantModMenuIntegration::isManagePacksActionField);
+                LoomAssistantModMenuIntegration::isActivateAfterDownloadField);
         providerRegistered = true;
     }
 
-    private static boolean isManagePacksActionField(Field field) {
+        private static boolean isActivateAfterDownloadField(Field field) {
         return field.getDeclaringClass() == LoomAssistantConfig.BannerPackRepoSettings.class
-                && "managePacksAction".equals(field.getName());
+            && "activateAfterDownload".equals(field.getName());
     }
 
     private static List<AbstractConfigListEntry> buildManagePacksActionEntry(

@@ -61,7 +61,6 @@
   "text.autoconfig.loom-assistant.option.bannerPackRepo": "Banner Pack-databas",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds": "Auto-installera paket",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.autoInstallPackIds.@Tooltip[0]": "Kommaseparerade paket-id:n, t.ex. numbers, letters",
-  "text.autoconfig.loom-assistant.option.bannerPackRepo.managePacksAction": "Banner Pack-hanterare",
   "text.autoconfig.loom-assistant.option.bannerPackRepo.repoIndexUrl": "Banner Pack-databas-URL",
   "text.autoconfig.loom-assistant.category.general": "Allmänt",
   "text.autoconfig.loom-assistant.option.colorSortOrder": "Färgsortering",

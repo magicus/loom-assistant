@@ -39,10 +39,6 @@ public class LoomAssistantConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip(count = 1)
         public String autoInstallPackIds = "numbers";
 
-        // Marker field rendered by a custom AutoConfig GUI provider as an action button row.
-        public String managePacksAction = "";
-
-        @ConfigEntry.Gui.Excluded
         public boolean activateAfterDownload = true;
 
         public List<String> getAutoInstallPackIdList() {
