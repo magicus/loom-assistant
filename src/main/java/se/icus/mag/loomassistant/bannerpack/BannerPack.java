@@ -6,6 +6,7 @@ package se.icus.mag.loomassistant.bannerpack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -36,7 +38,9 @@ public abstract class BannerPack {
     private final Path path;
     private final Map<String, BannerRecipe> recipes = new LinkedHashMap<>();
     private List<BannerRecipeCategory> categories = List.of();
-    /** locale → (category id → localized name) */
+    /**
+     * locale → (category id → localized name)
+     */
     private Map<String, Map<String, String>> categoryTranslations = Map.of();
 
     protected BannerPack(BannerPackMetadata metadata, Path path) {
@@ -104,9 +108,7 @@ public abstract class BannerPack {
 
     public static DirectoryBannerPack loadDirectoryPack(Path packDir, String packId) throws IOException {
         BannerPackMetadata metadata = readMcmeta(packDir.resolve(MCMETA_FILE), packId);
-        if (metadata == null) {
-            return null;
-        }
+        if (metadata == null) return null;
 
         return new DirectoryBannerPack(
                 metadata,
@@ -121,9 +123,7 @@ public abstract class BannerPack {
         try (FileSystem fs = FileSystems.newFileSystem(zipPath, (ClassLoader) null)) {
             Path root = fs.getPath("/");
             BannerPackMetadata metadata = readMcmeta(root.resolve(MCMETA_FILE), packId);
-            if (metadata == null) {
-                return null;
-            }
+            if (metadata == null) return null;
 
             pack = new ZipBannerPack(
                     metadata,
@@ -136,15 +136,11 @@ public abstract class BannerPack {
     }
 
     private static BannerPackMetadata readMcmeta(Path path, String packId) throws IOException {
-        if (!Files.exists(path)) {
-            return null;
-        }
+        if (!Files.exists(path)) return null;
 
         try (Reader reader = Files.newBufferedReader(path)) {
             JsonObject root = GSON.fromJson(reader, JsonObject.class);
-            if (root == null || !root.has("pack")) {
-                return null;
-            }
+            if (root == null || !root.has("pack")) return null;
 
             JsonObject packObj = root.getAsJsonObject("pack");
             if (!packObj.has("pack_format")) {
@@ -201,9 +197,7 @@ public abstract class BannerPack {
     }
 
     protected final void loadCategoriesFromPath(Path categoriesPath) throws IOException {
-        if (!Files.exists(categoriesPath) || !Files.isDirectory(categoriesPath)) {
-            return;
-        }
+        if (!Files.exists(categoriesPath) || !Files.isDirectory(categoriesPath)) return;
 
         List<BannerRecipeCategory> loaded = new ArrayList<>();
         try (Stream<Path> namespaceDirs = Files.list(categoriesPath)) {
@@ -238,9 +232,8 @@ public abstract class BannerPack {
     }
 
     protected final void loadCategoryLangFiles(Path langDir) throws IOException {
-        if (!Files.exists(langDir) || !Files.isDirectory(langDir)) {
-            return;
-        }
+        if (!Files.exists(langDir) || !Files.isDirectory(langDir)) return;
+
         Map<String, Map<String, String>> loaded = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(langDir)) {
             files.filter(p -> p.getFileName().toString().endsWith(".json"))
@@ -248,12 +241,12 @@ public abstract class BannerPack {
                     .forEach(filePath -> {
                         String locale = filePath.getFileName().toString();
                         locale = locale.substring(0, locale.length() - ".json".length())
-                                .toLowerCase(java.util.Locale.ROOT);
+                                .toLowerCase(Locale.ROOT);
                         try (Reader reader = Files.newBufferedReader(filePath)) {
-                            com.google.gson.JsonObject obj = GSON.fromJson(reader, com.google.gson.JsonObject.class);
+                            JsonObject obj = GSON.fromJson(reader, JsonObject.class);
                             if (obj != null) {
                                 Map<String, String> map = new LinkedHashMap<>();
-                                for (Map.Entry<String, com.google.gson.JsonElement> e : obj.entrySet()) {
+                                for (Map.Entry<String, JsonElement> e : obj.entrySet()) {
                                     map.put(e.getKey(), e.getValue().getAsString());
                                 }
                                 loaded.put(locale, map);
@@ -279,9 +272,7 @@ public abstract class BannerPack {
     }
 
     protected final void loadRecipesFromPath(Path bannersPath) throws IOException {
-        if (!Files.exists(bannersPath) || !Files.isDirectory(bannersPath)) {
-            return;
-        }
+        if (!Files.exists(bannersPath) || !Files.isDirectory(bannersPath)) return;
 
         try (Stream<Path> namespaceDirs = Files.list(bannersPath)) {
             namespaceDirs.filter(Files::isDirectory).sorted().forEach(nsDir -> {

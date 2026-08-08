@@ -57,9 +57,7 @@ public abstract class UrlParser {
      */
     private BannerRecipe parse() {
         String error = checkParse();
-        if (error != null) {
-            return null;
-        }
+        if (error != null) return null;
 
         try {
             String code = extractBannerCode();
@@ -98,9 +96,7 @@ public abstract class UrlParser {
      */
     public static BannerRecipe parseUrl(String url) {
         UrlParser parser = selectParser(url);
-        if (parser == null) {
-            return null;
-        }
+        if (parser == null) return null;
 
         return parser.parse();
     }

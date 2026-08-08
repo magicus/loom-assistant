@@ -46,7 +46,9 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
 import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
-/** Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here. */
+/**
+ * Contains all extension logic for LoomScreen. LoomScreenMixin holds only minimal mixin hooks that delegate here.
+ */
 public class LoomScreenExtension {
     private static final int CONTENT_X_SHIFT = 3;
     private static final int BG_LEFT_PADDING = 19;
@@ -138,8 +140,9 @@ public class LoomScreenExtension {
         this.activeBannerStack = this.pendingActiveBannerStack.copy();
         LoomUiStateStore.setPersistedActiveBannerStack(screen.minecraft, this.activeBannerStack);
         BannerRecipe recipe = BannerRecipe.fromItem(this.activeBannerStack);
-        if (recipe == null) this.lastPersistedActiveBannerJson = null;
-        else {
+        if (recipe == null) {
+            this.lastPersistedActiveBannerJson = null;
+        } else {
             BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
             this.lastPersistedActiveBannerJson = converter.fromRecipe(recipe);
         }
@@ -197,8 +200,9 @@ public class LoomScreenExtension {
         } else {
             this.activeBannerStack = this.pendingActiveBannerStack.copy();
             BannerRecipe persistedRecipe = BannerRecipe.fromItem(this.activeBannerStack);
-            if (persistedRecipe == null) this.lastPersistedActiveBannerJson = null;
-            else {
+            if (persistedRecipe == null) {
+                this.lastPersistedActiveBannerJson = null;
+            } else {
                 BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
                 this.lastPersistedActiveBannerJson = converter.fromRecipe(persistedRecipe);
             }
@@ -439,9 +443,8 @@ public class LoomScreenExtension {
     }
 
     public void onMouseReleased(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {
-        if (mouseButtonEvent.button() != 0) {
-            return;
-        }
+        if (mouseButtonEvent.button() != 0) return;
+
         if (isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())
                 && !screen.menu.getCarried().isEmpty()) {
             cir.setReturnValue(true);
@@ -544,9 +547,8 @@ public class LoomScreenExtension {
     }
 
     private boolean shouldUseEditIconOnSaveButton() {
-        if (panel == null || !panel.hasActiveBanner()) {
-            return true;
-        }
+        if (panel == null || !panel.hasActiveBanner()) return true;
+
         return showEditOnSaveButton();
     }
 
@@ -629,8 +631,9 @@ public class LoomScreenExtension {
     private void syncPerWorldUiState() {
         BannerRecipe activeRecipe = BannerRecipe.fromItem(this.activeBannerStack);
         String currentActiveJson;
-        if (activeRecipe == null) currentActiveJson = null;
-        else {
+        if (activeRecipe == null) {
+            currentActiveJson = null;
+        } else {
             BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
             currentActiveJson = converter.fromRecipe(activeRecipe);
         }
@@ -653,9 +656,8 @@ public class LoomScreenExtension {
 
     private static String buildMissingMaterialsMessage(BannerRecipe banner, BannerCraftabilityModel autoCraft) {
         List<String> missingMaterials = autoCraft.getMissingMaterialDescriptions(banner);
-        if (missingMaterials.isEmpty()) {
-            return null;
-        }
+        if (missingMaterials.isEmpty()) return null;
+
         return Component.translatable("loom-assistant.active.missing_header").getString()
                 + "\n"
                 + String.join("\n", missingMaterials);
@@ -701,7 +703,9 @@ public class LoomScreenExtension {
         }
     }
 
-    /** Called by the mixin @Redirect to draw the custom background texture. */
+    /**
+     * Called by the mixin @Redirect to draw the custom background texture.
+     */
     public void drawCustomBackground(
             GuiGraphicsExtractor graphics,
             RenderPipeline renderPipeline,
@@ -736,16 +740,15 @@ public class LoomScreenExtension {
                     18,
                     Component.empty(),
                     button -> {
-                        if (LoomScreenExtension.this.panel == null
-                                || !LoomScreenExtension.this.panel.hasActiveBanner()) {
+                        if (LoomScreenExtension.this.panel == null || !LoomScreenExtension.this.panel.hasActiveBanner())
                             return;
-                        }
+
                         if (LoomScreenExtension.this.panel.isPersistentDyeSwitchEnabled()) {
                             LoomScreenExtension.this.panel.disablePersistentDyeSwitchAndReload();
-                            return;
+                        } else {
+                            LoomScreenExtension.this.screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(
+                                    LoomScreenExtension.this.screen, LoomScreenExtension.this.panel));
                         }
-                        LoomScreenExtension.this.screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(
-                                LoomScreenExtension.this.screen, LoomScreenExtension.this.panel));
                     },
                     Supplier::get);
         }

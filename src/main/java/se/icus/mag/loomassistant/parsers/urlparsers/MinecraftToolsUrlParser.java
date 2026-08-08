@@ -51,9 +51,7 @@ public final class MinecraftToolsUrlParser extends UrlParser {
     @Override
     protected String extractBannerCode() {
         String query = uri.getQuery();
-        if (query == null || query.isBlank()) {
-            return "";
-        }
+        if (query == null || query.isBlank()) return "";
 
         query = URLDecoder.decode(query, StandardCharsets.UTF_8);
 
@@ -71,9 +69,7 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             }
         }
 
-        if (params.isEmpty()) {
-            return "";
-        }
+        if (params.isEmpty()) return "";
 
         return "minecraft-tools:" + params;
     }

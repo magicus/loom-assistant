@@ -104,7 +104,9 @@ public record BannerRecipe(
         return new BannerRecipe(id, description, author, url, category, bannerColor, newLayers);
     }
 
-    /** Returns true if this recipe can be crafted in the loom (max 6 pattern layers). */
+    /**
+     * Returns true if this recipe can be crafted in the loom (max 6 pattern layers).
+     */
     public boolean isWeavable() {
         return layers.size() <= 6;
     }
@@ -135,9 +137,13 @@ public record BannerRecipe(
     }
 
     public String getDisplayName() {
-        if (description != null && !description.isEmpty() && !description.equals(DEFAULT_DESCRIPTION)) {
-            return description;
-        }
+        if (description == null || description.isEmpty() || description.equals(DEFAULT_DESCRIPTION))
+            return getUnnamedBanner();
+
+        return description;
+    }
+
+    public static String getUnnamedBanner() {
         return Component.translatable("loom-assistant.banner.unnamed").getString();
     }
 
@@ -208,9 +214,9 @@ public record BannerRecipe(
     }
 
     public static BannerRecipe fromItem(ItemStack stack) {
-        if (stack == null || stack.isEmpty() || !(stack.getItem() instanceof BannerItem bannerItem)) {
-            return null;
-        }
+        if (stack == null || stack.isEmpty()) return null;
+        if (!(stack.getItem() instanceof BannerItem bannerItem)) return null;
+
         var customName = stack.getCustomName();
         String description = customName != null ? customName.getString() : DEFAULT_DESCRIPTION;
         return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
@@ -225,18 +231,14 @@ public record BannerRecipe(
             Registry<BannerPattern> registry, Item baseBannerItem, List<BannerRecipeLayer> layers) {
         ItemStack stack = new ItemStack(baseBannerItem);
 
-        if (registry == null || layers.isEmpty()) {
-            return stack;
-        }
+        if (registry == null || layers.isEmpty()) return stack;
 
         try {
             BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();
             for (BannerRecipeLayer layer : layers) {
                 try {
                     Identifier patternId = Identifier.tryParse(layer.patternId());
-                    if (patternId == null) {
-                        continue;
-                    }
+                    if (patternId == null) continue;
 
                     Optional<Holder.Reference<BannerPattern>> entry = registry.get(patternId);
                     if (entry.isEmpty()) {
@@ -368,29 +370,21 @@ public record BannerRecipe(
         if (trimmed == null
                 || trimmed.length() < 2
                 || trimmed.charAt(0) != '{'
-                || trimmed.charAt(trimmed.length() - 1) != '}') {
-            return null;
-        }
+                || trimmed.charAt(trimmed.length() - 1) != '}') return null;
 
         String body = trimmed.substring(1, trimmed.length() - 1);
         String idValue = findTopLevelFieldValue(body, "id");
-        if (idValue == null) {
-            return null;
-        }
+        if (idValue == null) return null;
 
         DyeColor baseColor = parseBannerColor(unquoteIfNeeded(idValue));
-        if (baseColor == null) {
-            return null;
-        }
+        if (baseColor == null) return null;
 
         String description = DEFAULT_DESCRIPTION;
         String componentsValue = findTopLevelFieldValue(body, "components");
         List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
         if (componentsValue != null) {
             String componentsBody = stripOuterBraces(componentsValue);
-            if (componentsBody == null) {
-                return null;
-            }
+            if (componentsBody == null) return null;
 
             String customName = findTopLevelFieldValue(componentsBody, "custom_name");
             if (customName != null && !customName.isBlank()) {
@@ -400,19 +394,16 @@ public record BannerRecipe(
             String patternsValue = findTopLevelFieldValue(componentsBody, "banner_patterns");
             if (patternsValue != null) {
                 String listBody = stripOuterBrackets(patternsValue);
-                if (listBody == null) {
-                    return null;
-                }
+                if (listBody == null) return null;
+
                 for (String entry : splitTopLevelEntries(listBody)) {
                     String patternBody = stripOuterBraces(entry);
-                    if (patternBody == null) {
-                        return null;
-                    }
+                    if (patternBody == null) return null;
+
                     String patternValue = findTopLevelFieldValue(patternBody, "pattern");
                     String colorValue = findTopLevelFieldValue(patternBody, "color");
-                    if (patternValue == null || colorValue == null) {
-                        return null;
-                    }
+                    if (patternValue == null || colorValue == null) return null;
+
                     String patternId = unquoteIfNeeded(patternValue);
                     String namespacedPattern = patternId.contains(":") ? patternId : "minecraft:" + patternId;
                     try {
@@ -428,9 +419,7 @@ public record BannerRecipe(
     }
 
     private static String findTopLevelFieldValue(String body, String key) {
-        if (body == null || body.isBlank()) {
-            return null;
-        }
+        if (body == null || body.isBlank()) return null;
 
         int braceDepth = 0;
         int bracketDepth = 0;
@@ -495,9 +484,7 @@ public record BannerRecipe(
 
     private static List<String> splitTopLevelEntries(String body) {
         List<String> entries = new ArrayList<>();
-        if (body == null || body.isBlank()) {
-            return entries;
-        }
+        if (body == null || body.isBlank()) return entries;
 
         int braceDepth = 0;
         int bracketDepth = 0;
@@ -555,9 +542,8 @@ public record BannerRecipe(
     }
 
     private static String stripOuterBraces(String value) {
-        if (value == null) {
-            return null;
-        }
+        if (value == null) return null;
+
         String trimmed = value.trim();
         return trimmed.length() >= 2 && trimmed.charAt(0) == '{' && trimmed.charAt(trimmed.length() - 1) == '}'
                 ? trimmed.substring(1, trimmed.length() - 1)
@@ -565,9 +551,8 @@ public record BannerRecipe(
     }
 
     private static String stripOuterBrackets(String value) {
-        if (value == null) {
-            return null;
-        }
+        if (value == null) return null;
+
         String trimmed = value.trim();
         return trimmed.length() >= 2 && trimmed.charAt(0) == '[' && trimmed.charAt(trimmed.length() - 1) == ']'
                 ? trimmed.substring(1, trimmed.length() - 1)
@@ -575,22 +560,20 @@ public record BannerRecipe(
     }
 
     private static String unquoteIfNeeded(String value) {
-        if (value == null) {
-            return null;
-        }
+        if (value == null) return null;
+
         String trimmed = value.trim();
         if (trimmed.length() >= 2 && trimmed.charAt(0) == '"' && trimmed.charAt(trimmed.length() - 1) == '"') {
             return trimmed.substring(1, trimmed.length() - 1).replace("\\\"", "\"");
+        } else {
+            return trimmed;
         }
-        return trimmed;
     }
 
     private static BannerRecipe parseItemTag(CompoundTag tag) {
         String id = tag.getString("id").orElse(null);
         DyeColor baseColor = parseBannerColor(id);
-        if (baseColor == null) {
-            return null;
-        }
+        if (baseColor == null) return null;
 
         String description = DEFAULT_DESCRIPTION;
         CompoundTag components = tag.getCompoundOrEmpty("components");
@@ -603,14 +586,12 @@ public record BannerRecipe(
         ListTag bannerPatterns = components.getListOrEmpty("banner_patterns");
         for (int i = 0; i < bannerPatterns.size(); i++) {
             CompoundTag layerTag = bannerPatterns.getCompound(i).orElse(null);
-            if (layerTag == null) {
-                return null;
-            }
+            if (layerTag == null) return null;
+
             String patternId = layerTag.getString("pattern").orElse(null);
             String colorName = layerTag.getString("color").orElse(null);
-            if (patternId == null || colorName == null) {
-                return null;
-            }
+            if (patternId == null || colorName == null) return null;
+
             String namespacedPattern = patternId.contains(":") ? patternId : "minecraft:" + patternId;
             try {
                 parsedLayers.add(BannerRecipeLayer.of(namespacedPattern, colorName));
@@ -625,14 +606,10 @@ public record BannerRecipe(
     private static BannerRecipe parseLegacyCommand(String working) {
         Matcher itemMatcher = Pattern.compile("(?:^|\\s)(?:minecraft:)?([a-z_]+)_banner(?=\\b|\\[)")
                 .matcher(working);
-        if (!itemMatcher.find()) {
-            return null;
-        }
+        if (!itemMatcher.find()) return null;
 
         DyeColor baseColor = DyeColor.byName(itemMatcher.group(1), null);
-        if (baseColor == null) {
-            return null;
-        }
+        if (baseColor == null) return null;
 
         List<BannerRecipeLayer> parsedLayers = new ArrayList<>();
         Matcher patternsMatcher = Pattern.compile("banner_patterns=\\[(.*?)]").matcher(working);
@@ -641,13 +618,11 @@ public record BannerRecipe(
             try {
                 JsonArray patternsArray = GSON.fromJson(patternsJson, JsonArray.class);
                 for (JsonElement element : patternsArray) {
-                    if (!element.isJsonObject()) {
-                        continue;
-                    }
+                    if (!element.isJsonObject()) continue;
+
                     JsonObject patternObj = element.getAsJsonObject();
-                    if (!patternObj.has("pattern") || !patternObj.has("color")) {
-                        continue;
-                    }
+                    if (!patternObj.has("pattern") || !patternObj.has("color")) continue;
+
                     String patternId = patternObj.get("pattern").getAsString();
                     String namespacedPattern = patternId.contains(":") ? patternId : "minecraft:" + patternId;
                     parsedLayers.add(BannerRecipeLayer.of(
@@ -663,20 +638,17 @@ public record BannerRecipe(
     }
 
     private static DyeColor parseBannerColor(String itemId) {
-        if (itemId == null || itemId.isBlank()) {
-            return null;
-        }
+        if (itemId == null || itemId.isBlank()) return null;
+
         String stripped = stripMinecraftNamespace(itemId);
-        if (!stripped.endsWith("_banner")) {
-            return null;
-        }
+        if (!stripped.endsWith("_banner")) return null;
+
         return DyeColor.byName(stripped.substring(0, stripped.length() - "_banner".length()), null);
     }
 
     private static String stripMinecraftNamespace(String value) {
-        if (value == null) {
-            return "";
-        }
+        if (value == null) return "";
+
         return value.startsWith("minecraft:") ? value.substring("minecraft:".length()) : value;
     }
 

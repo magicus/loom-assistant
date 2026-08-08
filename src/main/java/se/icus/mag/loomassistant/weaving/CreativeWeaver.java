@@ -11,14 +11,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
-/** Weaver for creative mode: instantly adds the result to the player's inventory. */
+/**
+ * Weaver for creative mode: instantly adds the result to the player's inventory.
+ */
 public class CreativeWeaver extends Weaver {
     @Override
     public void weave(BannerRecipe banner) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null || mc.gameMode == null) {
-            return;
-        }
+        if (mc == null || mc.player == null || mc.gameMode == null) return;
 
         ItemStack result = BannerRecipe.toItem(Minecraft.getInstance(), banner);
 
@@ -40,8 +40,12 @@ public class CreativeWeaver extends Weaver {
                     break;
                 }
             }
-            if (targetSlot == -1) targetSlot = inventory.getFreeSlot();
-            if (targetSlot == -1) targetSlot = inventory.getSelectedSlot();
+            if (targetSlot == -1) {
+                targetSlot = inventory.getFreeSlot();
+            }
+            if (targetSlot == -1) {
+                targetSlot = inventory.getSelectedSlot();
+            }
             inventory.setItem(targetSlot, result.copy());
         } else {
             inventory.getItem(targetSlot).grow(result.getCount());

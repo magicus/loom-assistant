@@ -74,9 +74,11 @@ public class DirectoryBannerPack extends BannerPack {
         if (id == null || id.isBlank()) {
             return recipe.withId(
                     getMetadata().id() + ":" + UUID.randomUUID().toString().replace("-", ""));
-        } else if (!id.contains(":")) {
+        }
+        if (!id.contains(":")) {
             return recipe.withId(getMetadata().id() + ":" + id);
         }
+
         return recipe;
     }
 

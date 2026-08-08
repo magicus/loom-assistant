@@ -33,7 +33,9 @@ public final class DyeColorSorting {
     public static DyeColor[] sorted(LoomAssistantConfig.ColorSortOrder order) {
         if (order == LoomAssistantConfig.ColorSortOrder.RAINBOW) {
             return RAINBOW_ORDER.clone();
+        } else if (order == LoomAssistantConfig.ColorSortOrder.VANILLA) {
+            return DyeColor.values().clone();
         }
-        return DyeColor.values().clone();
+        throw new IllegalStateException();
     }
 }

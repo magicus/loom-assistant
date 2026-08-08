@@ -117,9 +117,7 @@ public final class BannerStorage {
     public void removeBanner(String id) {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);
-        if (packId == null) {
-            return;
-        }
+        if (packId == null) return;
 
         BannerPack pack = requirePack(packId);
         try {
@@ -159,14 +157,10 @@ public final class BannerStorage {
     public void renameBanner(String id, String newName) {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);
-        if (packId == null) {
-            return;
-        }
+        if (packId == null) return;
 
         BannerRecipe existing = repository.getBannerRecipeById(id);
-        if (existing == null) {
-            return;
-        }
+        if (existing == null) return;
 
         BannerPack pack = requirePack(packId);
         try {
@@ -180,14 +174,10 @@ public final class BannerStorage {
     public void updateBannerMetadata(String id, String newName, String newCategory) {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);
-        if (packId == null) {
-            return;
-        }
+        if (packId == null) return;
 
         BannerRecipe existing = repository.getBannerRecipeById(id);
-        if (existing == null) {
-            return;
-        }
+        if (existing == null) return;
 
         BannerPack pack = requirePack(packId);
         try {
@@ -202,9 +192,8 @@ public final class BannerStorage {
     public String exportBannerToJson(String bannerId) {
         ensureRepositoryLoaded();
         BannerRecipe recipe = repository.getBannerRecipeById(bannerId);
-        if (recipe == null) {
-            return null;
-        }
+        if (recipe == null) return null;
+
         BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
         return converter.fromRecipe(recipe);
     }
@@ -212,17 +201,14 @@ public final class BannerStorage {
     public String exportBannerToGiveCommand(String bannerId) {
         ensureRepositoryLoaded();
         BannerRecipe recipe = repository.getBannerRecipeById(bannerId);
-        if (recipe == null) {
-            return null;
-        }
+        if (recipe == null) return null;
+
         return recipe.toCommand();
     }
 
     private BannerRecipe importBannerFromJson(String input) {
         ensureRepositoryLoaded();
-        if (input == null || input.trim().isEmpty()) {
-            return null;
-        }
+        if (input == null || input.trim().isEmpty()) return null;
 
         String trimmed = input.trim();
 
@@ -283,9 +269,7 @@ public final class BannerStorage {
 
     private void refreshBannerCache() {
         banners.clear();
-        if (repository == null || activePacksConfig == null) {
-            return;
-        }
+        if (repository == null || activePacksConfig == null) return;
 
         List<String> activePacks = activePacksConfig.getActivePacks();
         for (String packId : activePacks) {

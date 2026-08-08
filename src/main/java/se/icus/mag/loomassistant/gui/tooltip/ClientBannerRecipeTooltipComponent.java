@@ -52,7 +52,9 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
         this.component = component;
     }
 
-    /** X offset where the recipe steps icon column starts. */
+    /**
+     * X offset where the recipe steps icon column starts.
+     */
     private int stepsOffsetX() {
         return component.hasPreview() ? PREVIEW_W + PREVIEW_GAP : 0;
     }

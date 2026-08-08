@@ -268,13 +268,11 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private String getImportStatusText() {
-        if (importBox == null) {
-            return null;
-        }
+        if (importBox == null) return null;
+
         String value = importBox.getValue();
-        if (value == null || value.isBlank()) {
-            return null;
-        }
+        if (value == null || value.isBlank()) return null;
+
         if (importParseResult.recipe() != null) {
             return "OK";
         }
@@ -285,22 +283,19 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private void pasteFromClipboard() {
-        if (this.minecraft == null) {
-            return;
-        }
+        if (this.minecraft == null) return;
+
         String clipboard = this.minecraft.keyboardHandler.getClipboard();
-        if (clipboard == null || clipboard.isBlank()) {
-            return;
-        }
+        if (clipboard == null || clipboard.isBlank()) return;
+
         importBox.setValue(clipboard.trim());
         importBox.setCursorPosition(importBox.getValue().length());
     }
 
     private void doImport() {
         BannerRecipe recipe = importParseResult.recipe();
-        if (recipe == null || loomPanel == null || this.minecraft == null) {
-            return;
-        }
+        if (recipe == null || loomPanel == null || this.minecraft == null) return;
+
         loomPanel.loadImportedBanner(recipe);
         this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, loomPanel, false));
     }
@@ -315,9 +310,8 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private void copyToClipboard() {
-        if (this.minecraft == null || !hasExportTarget()) {
-            return;
-        }
+        if (this.minecraft == null || !hasExportTarget()) return;
+
         this.minecraft.keyboardHandler.setClipboard(buildExportCommand());
         copiedFeedback = true;
     }

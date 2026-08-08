@@ -49,11 +49,9 @@ public final class NeedCoolershoesUrlParser extends UrlParser {
         }
 
         String queryCode = extractBannerCodeFromQuery(uri.getRawQuery());
-        if (!queryCode.isBlank()) {
-            return queryCode;
-        }
+        if (queryCode.isBlank()) throw new IllegalArgumentException("No banner code found in NeedCoolerShoes URL");
 
-        throw new IllegalArgumentException("No banner code found in NeedCoolerShoes URL");
+        return queryCode;
     }
 
     @Override
@@ -62,9 +60,7 @@ public final class NeedCoolershoesUrlParser extends UrlParser {
     }
 
     private String extractBannerCodeFromQuery(String query) {
-        if (query == null || query.isBlank()) {
-            return "";
-        }
+        if (query == null || query.isBlank()) return "";
 
         query = URLDecoder.decode(query, StandardCharsets.UTF_8);
 

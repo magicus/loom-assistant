@@ -71,9 +71,7 @@ public final class LoomUiStateStore {
         loadIfNeeded();
         String worldKey = getWorldKey(minecraft);
         String recipeJson = activeBannerRecipeByWorld.get(worldKey);
-        if (recipeJson == null || recipeJson.isBlank()) {
-            return ItemStack.EMPTY;
-        }
+        if (recipeJson == null || recipeJson.isBlank()) return ItemStack.EMPTY;
 
         try {
             BannerRecipe banner = BannerRecipe.fromJson(recipeJson);
@@ -154,20 +152,15 @@ public final class LoomUiStateStore {
     }
 
     private static void loadIfNeeded() {
-        if (loaded) {
-            return;
-        }
+        if (loaded) return;
+
         loaded = true;
 
-        if (!Files.exists(FILE_PATH)) {
-            return;
-        }
+        if (!Files.exists(FILE_PATH)) return;
 
         try (Reader reader = Files.newBufferedReader(FILE_PATH)) {
             JsonObject root = GSON.fromJson(reader, JsonObject.class);
-            if (root == null || !root.has(PANEL_OPEN_BY_WORLD_KEY)) {
-                return;
-            }
+            if (root == null || !root.has(PANEL_OPEN_BY_WORLD_KEY)) return;
 
             JsonObject perWorld = root.getAsJsonObject(PANEL_OPEN_BY_WORLD_KEY);
             if (perWorld == null) {
@@ -196,9 +189,8 @@ public final class LoomUiStateStore {
                 JsonObject dyesPerWorld = root.getAsJsonObject(PERSISTENT_DYE_BY_WORLD_KEY);
                 if (dyesPerWorld != null) {
                     for (Map.Entry<String, JsonElement> worldEntry : dyesPerWorld.entrySet()) {
-                        if (!worldEntry.getValue().isJsonObject()) {
-                            continue;
-                        }
+                        if (!worldEntry.getValue().isJsonObject()) continue;
+
                         JsonObject stateObj = worldEntry.getValue().getAsJsonObject();
                         boolean enabled = stateObj.has(DYE_ENABLED_KEY)
                                 && stateObj.get(DYE_ENABLED_KEY).getAsBoolean();
@@ -292,9 +284,7 @@ public final class LoomUiStateStore {
     }
 
     private static String getWorldKey(Minecraft minecraft) {
-        if (minecraft == null) {
-            return "unknown";
-        }
+        if (minecraft == null) return "unknown";
 
         IntegratedServer singleplayerServer = minecraft.getSingleplayerServer();
         if (singleplayerServer != null) {

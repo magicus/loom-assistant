@@ -40,9 +40,7 @@ public final class SkinMcUrlParser extends UrlParser {
         }
 
         String query = uri.getQuery();
-        if (query == null || query.isBlank()) {
-            return "";
-        }
+        if (query == null || query.isBlank()) return "";
 
         query = URLDecoder.decode(query, StandardCharsets.UTF_8);
 

@@ -195,9 +195,8 @@ public class BannerSaveEditScreen extends Screen {
     }
 
     private String normalizeCategory(String id) {
-        if (id == null || id.isBlank()) {
-            return BannerRecipe.DEFAULT_CATEGORY;
-        }
+        if (id == null || id.isBlank()) return BannerRecipe.DEFAULT_CATEGORY;
+
         return indexOfCategory(id) >= 0 ? id : BannerRecipe.DEFAULT_CATEGORY;
     }
 

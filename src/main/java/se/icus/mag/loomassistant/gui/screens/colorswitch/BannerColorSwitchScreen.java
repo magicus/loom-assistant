@@ -362,7 +362,9 @@ public class BannerColorSwitchScreen extends Screen {
         boolean changed = panel.applyDyeSwitch(targets, true);
         LoomScreenExtension ext = LoomAssistantMod.getExtension(previousScreen);
         if (ext != null) {
-            if (changed) ext.setPendingActiveBannerStack(panel.getActiveBannerStack());
+            if (changed) {
+                ext.setPendingActiveBannerStack(panel.getActiveBannerStack());
+            }
             ext.setPersistentDyeSwitchState(
                     panel.isPersistentDyeSwitchEnabled(), panel.getPersistentDyeReplacementMapCopy());
         }

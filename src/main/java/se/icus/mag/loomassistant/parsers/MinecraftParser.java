@@ -18,15 +18,12 @@ public final class MinecraftParser {
     private MinecraftParser() {}
 
     public static String checkParse(String input) {
-        if (input == null || input.isBlank()) {
-            return "Input cannot be empty";
-        }
+        if (input == null || input.isBlank()) return "Input cannot be empty";
 
         try {
             BannerRecipe recipe = parseInternal(input);
-            if (recipe == null) {
-                return "Could not parse Minecraft banner data";
-            }
+            if (recipe == null) return "Could not parse Minecraft banner data";
+
             return null;
         } catch (RuntimeException e) {
             return e.getMessage() != null ? e.getMessage() : "Invalid Minecraft banner data";
@@ -35,9 +32,7 @@ public final class MinecraftParser {
 
     public static BannerRecipe parse(String input) {
         String error = checkParse(input);
-        if (error != null) {
-            return null;
-        }
+        if (error != null) return null;
 
         try {
             return parseInternal(input);
@@ -47,9 +42,7 @@ public final class MinecraftParser {
     }
 
     private static BannerRecipe parseInternal(String input) {
-        if (input == null || input.isBlank()) {
-            return null;
-        }
+        if (input == null || input.isBlank()) return null;
 
         String trimmed = input.trim();
 

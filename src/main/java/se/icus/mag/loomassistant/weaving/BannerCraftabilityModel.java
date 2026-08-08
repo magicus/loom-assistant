@@ -18,7 +18,9 @@ import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
-/** Computes craftability and missing materials for loom banner recipes. */
+/**
+ * Computes craftability and missing materials for loom banner recipes.
+ */
 public class BannerCraftabilityModel {
     private static final int BANNER_SLOT = 0;
     private static final int DYE_SLOT = 1;
@@ -42,28 +44,23 @@ public class BannerCraftabilityModel {
     }
 
     public boolean canCraft(BannerRecipe banner) {
-        if (banner == null) {
-            return false;
-        }
+        if (banner == null) return false;
+
         return getMissingMaterialsInCraftOrder(banner).isEmpty();
     }
 
     public MissingMaterialType getMissingMaterialType(BannerRecipe banner) {
-        if (banner == null) {
-            return MissingMaterialType.NONE;
-        }
+        if (banner == null) return MissingMaterialType.NONE;
+
         List<MissingMaterial> missingMaterials = getMissingMaterialsInCraftOrder(banner);
-        if (missingMaterials.isEmpty()) {
-            return MissingMaterialType.NONE;
-        }
+        if (missingMaterials.isEmpty()) return MissingMaterialType.NONE;
+
         return missingMaterials.getFirst().type();
     }
 
     public List<String> getMissingMaterialDescriptions(BannerRecipe banner) {
         List<String> descriptions = new ArrayList<>();
-        if (banner == null) {
-            return descriptions;
-        }
+        if (banner == null) return descriptions;
 
         List<MissingMaterial> missingMaterials = getMissingMaterialsInCraftOrder(banner);
         for (MissingMaterial missingMaterial : missingMaterials) {
@@ -74,9 +71,8 @@ public class BannerCraftabilityModel {
 
     public String getValidationError(BannerRecipe banner) {
         List<String> missingDescriptions = getMissingMaterialDescriptions(banner);
-        if (missingDescriptions.isEmpty()) {
-            return null;
-        }
+        if (missingDescriptions.isEmpty()) return null;
+
         return "Missing " + String.join(", ", missingDescriptions);
     }
 
@@ -153,9 +149,8 @@ public class BannerCraftabilityModel {
         int count = 0;
         for (int i = INVENTORY_START; i < INVENTORY_END; i++) {
             ItemStack stack = handler.getSlot(i).getItem();
-            if (stack.isEmpty() || stack.getItem() != bannerItem) {
-                continue;
-            }
+            if (stack.isEmpty() || stack.getItem() != bannerItem) continue;
+
             BannerPatternLayers patterns = stack.get(DataComponents.BANNER_PATTERNS);
             if (patterns == null || patterns.layers().isEmpty()) {
                 count += stack.getCount();
@@ -166,9 +161,7 @@ public class BannerCraftabilityModel {
 
     private static boolean consumeOne(Map<Item, Integer> availableCounts, Item item) {
         int available = availableCounts.getOrDefault(item, 0);
-        if (available <= 0) {
-            return false;
-        }
+        if (available <= 0) return false;
 
         availableCounts.put(item, available - 1);
         return true;

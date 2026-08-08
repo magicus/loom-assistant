@@ -24,9 +24,7 @@ public final class ParseBanner {
      * @return null if valid, error message if invalid
      */
     public static String checkParse(String input) {
-        if (input == null || input.isBlank()) {
-            return "Input cannot be empty";
-        }
+        if (input == null || input.isBlank()) return "Input cannot be empty";
 
         if (isUrl(input)) {
             return UrlParser.checkParseUrl(input);
@@ -43,9 +41,7 @@ public final class ParseBanner {
      */
     public static BannerRecipe parse(String input) {
         String error = checkParse(input);
-        if (error != null) {
-            return null;
-        }
+        if (error != null) return null;
 
         if (isUrl(input)) {
             return UrlParser.parseUrl(input);

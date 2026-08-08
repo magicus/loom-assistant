@@ -132,9 +132,7 @@ public class BannerPackSelectionScreen extends Screen {
     }
 
     private void updateFilteredEntries(String value) {
-        if (this.availablePackList == null || this.activePackList == null) {
-            return;
-        }
+        if (this.availablePackList == null || this.activePackList == null) return;
 
         String lowerCaseValue = value.toLowerCase(Locale.ROOT);
         Stream<BannerPackModelEntry> available = this.repository.getPacks().values().stream()
@@ -172,22 +170,23 @@ public class BannerPackSelectionScreen extends Screen {
         String author = pack.getMetadata().author();
         if (author != null && !author.isBlank()) {
             return Component.literal(author);
+        } else {
+            return description(pack);
         }
-        return description(pack);
     }
 
     private static String displayName(BannerPack pack) {
         Path path = pack.getPath();
         Path fileName = path.getFileName();
-        if (fileName == null) {
+        if (fileName != null) {
+            String name = fileName.toString();
+            if (name.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+                name = name.substring(0, name.length() - 4);
+            }
+            return name;
+        } else {
             return pack.getMetadata().id();
         }
-
-        String name = fileName.toString();
-        if (name.toLowerCase(Locale.ROOT).endsWith(".zip")) {
-            name = name.substring(0, name.length() - 4);
-        }
-        return name;
     }
 
     private boolean isPackActive(String packId) {
@@ -220,9 +219,7 @@ public class BannerPackSelectionScreen extends Screen {
 
     @Override
     public void onFilesDrop(List<Path> files) {
-        if (files.isEmpty()) {
-            return;
-        }
+        if (files.isEmpty()) return;
 
         for (Path file : files) {
             try {
@@ -246,9 +243,8 @@ public class BannerPackSelectionScreen extends Screen {
     }
 
     public void movePackToAvailable(String packId) {
-        if (BannerPackRepository.LOCAL_PACK_ID.equals(packId)) {
-            return;
-        }
+        if (BannerPackRepository.LOCAL_PACK_ID.equals(packId)) return;
+
         List<String> active = new ArrayList<>(this.activeConfig.getActivePacks());
         active.remove(packId);
         this.activeConfig.setActivePacks(active);
@@ -314,9 +310,7 @@ public class BannerPackSelectionScreen extends Screen {
     }
 
     private Identifier loadIconTexture(BannerPack pack, Path iconPath) throws IOException {
-        if (!Files.exists(iconPath)) {
-            return DEFAULT_ICON;
-        }
+        if (!Files.exists(iconPath)) return DEFAULT_ICON;
 
         String id = pack.getMetadata().id();
         @SuppressWarnings("deprecation")

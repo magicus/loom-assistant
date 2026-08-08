@@ -263,9 +263,7 @@ public class BannerPackRepository {
     }
 
     private static void deleteRecursively(Path directory) throws IOException {
-        if (!Files.exists(directory)) {
-            return;
-        }
+        if (!Files.exists(directory)) return;
 
         try (Stream<Path> stream = Files.walk(directory)) {
             stream.sorted(Comparator.reverseOrder()).forEach(path -> {

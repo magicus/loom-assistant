@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.gui.panel;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -28,6 +29,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -35,10 +37,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
@@ -228,9 +232,7 @@ public class LoomRecipePanel {
     }
 
     private void renderTabScrollArrows(GuiGraphicsExtractor ctx, int mouseX, int mouseY, int tx, int visibleTabCount) {
-        if (!hasScrollableTabs()) {
-            return;
-        }
+        if (!hasScrollableTabs()) return;
 
         int arrowX = tx + (RecipeBookTabButton.WIDTH - TAB_SCROLL_ARROW_W) / 2;
 
@@ -242,7 +244,7 @@ public class LoomRecipePanel {
             ctx.blitSprite(
                     RenderPipelines.GUI_TEXTURED, upSprite, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
             if (upHover) {
-                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.requestCursor(CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
                         Minecraft.getInstance().font,
                         List.of(CATEGORY_SCROLL_UP_TOOLTIP),
@@ -266,7 +268,7 @@ public class LoomRecipePanel {
                     TAB_SCROLL_ARROW_W,
                     TAB_SCROLL_ARROW_H);
             if (downHover) {
-                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.requestCursor(CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
                         Minecraft.getInstance().font,
                         List.of(CATEGORY_SCROLL_DOWN_TOOLTIP),
@@ -347,8 +349,12 @@ public class LoomRecipePanel {
         if (totalPages > 1) {
             pageForwardButton.visible = page < totalPages - 1;
             pageBackButton.visible = page > 0;
-            if (pageForwardButton.visible) pageForwardButton.extractRenderState(ctx, mouseX, mouseY, 0f);
-            if (pageBackButton.visible) pageBackButton.extractRenderState(ctx, mouseX, mouseY, 0f);
+            if (pageForwardButton.visible) {
+                pageForwardButton.extractRenderState(ctx, mouseX, mouseY, 0f);
+            }
+            if (pageBackButton.visible) {
+                pageBackButton.extractRenderState(ctx, mouseX, mouseY, 0f);
+            }
 
             Component pageText = Component.translatable("gui.recipebook.page", page + 1, totalPages);
             int textW = font.width(pageText);
@@ -358,14 +364,11 @@ public class LoomRecipePanel {
 
     private static Optional<TooltipComponent> buildTooltipImage(BannerRecipe banner, int currentRowIndex) {
         List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
-        if (rows.isEmpty()) {
-            return Optional.empty();
-        }
+        if (rows.isEmpty()) return Optional.empty();
 
         ItemStack previewStack = BannerRecipe.toItem(Minecraft.getInstance(), banner);
-        net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
-                previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
-        net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
+        BannerPatternLayers patterns = previewStack.get(DataComponents.BANNER_PATTERNS);
+        DyeColor baseColor = banner.getBannerColorEnum();
         boolean notWeavable = !banner.isWeavable();
         return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns, currentRowIndex, notWeavable));
     }
@@ -401,30 +404,21 @@ public class LoomRecipePanel {
 
     private static ItemStack getPatternItem(String patternId) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) {
-            return ItemStack.EMPTY;
-        }
-        try {
-            var itemRegistry = mc.level.registryAccess().lookup(Registries.ITEM);
-            if (itemRegistry.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
+        if (mc.level == null) return ItemStack.EMPTY;
 
-            String[] parts = patternId.split(":");
-            String namespace = parts.length > 1 ? parts[0] : "minecraft";
-            String patternName = parts.length > 1 ? parts[1] : patternId;
-            Identifier itemId = Identifier.tryParse(namespace + ":" + patternName + "_banner_pattern");
-            if (itemId == null) {
-                return ItemStack.EMPTY;
-            }
+        var itemRegistry = mc.level.registryAccess().lookup(Registries.ITEM);
+        if (itemRegistry.isEmpty()) return ItemStack.EMPTY;
 
-            var entry = itemRegistry.get().get(itemId);
-            if (entry.isPresent()) {
-                return new ItemStack(entry.get().value());
-            }
-        } catch (RuntimeException ignored) {
-        }
-        return ItemStack.EMPTY;
+        String[] parts = patternId.split(":");
+        String namespace = parts.length > 1 ? parts[0] : "minecraft";
+        String patternName = parts.length > 1 ? parts[1] : patternId;
+        Identifier itemId = Identifier.tryParse(namespace + ":" + patternName + "_banner_pattern");
+        if (itemId == null) return ItemStack.EMPTY;
+
+        var entry = itemRegistry.get().get(itemId);
+        if (entry.isEmpty()) return ItemStack.EMPTY;
+
+        return new ItemStack(entry.get().value());
     }
 
     // -------------------------------------------------------------------------
@@ -539,9 +533,7 @@ public class LoomRecipePanel {
         int newOffset = tabScrollOffset + direction;
         int maxOffset = Math.max(0, tabs.size() - getVisibleTabCount());
         newOffset = Math.clamp(newOffset, 0, maxOffset);
-        if (newOffset == tabScrollOffset) {
-            return;
-        }
+        if (newOffset == tabScrollOffset) return;
 
         tabScrollOffset = newOffset;
         clampSelectedTabToVisibleWindow();
@@ -569,9 +561,8 @@ public class LoomRecipePanel {
     }
 
     private int indexOfSelectedTab() {
-        if (selectedCategoryId == null) {
-            return 0;
-        }
+        if (selectedCategoryId == null) return 0;
+
         for (int i = 0; i < tabs.size(); i++) {
             if (selectedCategoryId.equals(tabs.get(i).categoryId())) {
                 return i;
@@ -663,9 +654,7 @@ public class LoomRecipePanel {
 
     private void playUiClickSound() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.getSoundManager() == null) {
-            return;
-        }
+        if (mc.getSoundManager() == null) return;
 
         mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
@@ -731,16 +720,13 @@ public class LoomRecipePanel {
         String query = searchBox.getValue().trim().toLowerCase(Locale.ROOT);
         List<BannerRecipe> out = new ArrayList<>();
         for (BannerRecipe banner : BannerStorage.getInstance().getBanners()) {
-            if (selectedCategoryId != null && !selectedCategoryId.equalsIgnoreCase(banner.getCategory())) {
-                continue;
-            }
+            if (selectedCategoryId != null && !selectedCategoryId.equalsIgnoreCase(banner.getCategory())) continue;
+
             if (!query.isEmpty()
-                    && !banner.getDisplayName().toLowerCase(Locale.ROOT).contains(query)) {
-                continue;
-            }
-            if (craftableOnly && !isCraftableNow(banner)) {
-                continue;
-            }
+                    && !banner.getDisplayName().toLowerCase(Locale.ROOT).contains(query)) continue;
+
+            if (craftableOnly && !isCraftableNow(banner)) continue;
+
             out.add(banner);
         }
         return out;
@@ -764,30 +750,29 @@ public class LoomRecipePanel {
         BannerRecipe recipe = getSelectedBanner();
         if (recipe == null) return -1;
 
-        net.minecraft.world.item.ItemStack bannerInSlot =
-                handler.getBannerSlot().getItem();
+        ItemStack bannerInSlot = handler.getBannerSlot().getItem();
         if (bannerInSlot.isEmpty()) return -1;
-        if (!(bannerInSlot.getItem() instanceof net.minecraft.world.item.BannerItem bannerItem)) return -1;
+        if (!(bannerInSlot.getItem() instanceof BannerItem bannerItem)) return -1;
         if (bannerItem.getColor() != recipe.getBannerColorEnum()) return -1;
 
-        net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
-                bannerInSlot.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
-        java.util.List<net.minecraft.world.level.block.entity.BannerPatternLayers.Layer> currentLayers =
-                patterns != null ? patterns.layers() : java.util.List.of();
-        java.util.List<BannerRecipeLayer> recipeLayers = recipe.getLayers();
+        BannerPatternLayers patterns = bannerInSlot.get(DataComponents.BANNER_PATTERNS);
+        List<BannerPatternLayers.Layer> currentLayers = patterns != null ? patterns.layers() : List.of();
+        List<BannerRecipeLayer> recipeLayers = recipe.getLayers();
 
         int k = currentLayers.size();
-        if (k >= recipeLayers.size()) return -1; // fully crafted or over-crafted
+        if (k >= recipeLayers.size()) return -1;
 
         for (int i = 0; i < k; i++) {
-            net.minecraft.world.level.block.entity.BannerPatternLayers.Layer cur = currentLayers.get(i);
+            BannerPatternLayers.Layer cur = currentLayers.get(i);
             BannerRecipeLayer exp = recipeLayers.get(i);
             if (cur.color() != exp.getDyeColorEnum()) return -1;
+
             String curId = cur.pattern()
                     .unwrapKey()
                     .map(key -> key.identifier().toString())
                     .orElse(null);
             if (curId == null) return -1;
+
             String expId = exp.patternId().contains(":") ? exp.patternId() : "minecraft:" + exp.patternId();
             if (!curId.equals(expId)) return -1;
         }
@@ -800,9 +785,8 @@ public class LoomRecipePanel {
 
     public ItemStack getActiveBannerStack() {
         BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) {
-            return ItemStack.EMPTY;
-        }
+        if (selectedBanner == null) return ItemStack.EMPTY;
+
         return BannerRecipe.toItem(Minecraft.getInstance(), selectedBanner);
     }
 
@@ -812,9 +796,7 @@ public class LoomRecipePanel {
 
     public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
         BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) {
-            return;
-        }
+        if (selectedBanner == null) return;
 
         // currentRowIndex: row 0 = base banner (always "done" when banner is in slot)
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
@@ -846,9 +828,8 @@ public class LoomRecipePanel {
 
     public boolean isActiveBannerCraftable() {
         BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) {
-            return false;
-        }
+        if (selectedBanner == null) return false;
+
         return Weaver.getWeaver(handler).canWeave(selectedBanner);
     }
 
@@ -859,16 +840,17 @@ public class LoomRecipePanel {
         }
         boolean survivalTooManySteps = !selectedBanner.isWeavable() && isInSurvivalMode();
         List<String> missingMaterials = Weaver.getWeaver(handler).getMissingMaterialDescriptions(selectedBanner);
-        if (missingMaterials.isEmpty() && !survivalTooManySteps) {
-            return null;
-        }
+        if (missingMaterials.isEmpty() && !survivalTooManySteps) return null;
+
         StringBuilder msg = new StringBuilder();
         if (survivalTooManySteps) {
             msg.append(Component.translatable("loom-assistant.active.too_many_steps")
                     .getString());
         }
         if (!missingMaterials.isEmpty()) {
-            if (!msg.isEmpty()) msg.append("\n");
+            if (!msg.isEmpty()) {
+                msg.append("\n");
+            }
             msg.append(Component.translatable("loom-assistant.active.missing_header")
                             .getString())
                     .append("\n")
@@ -896,9 +878,8 @@ public class LoomRecipePanel {
 
     public boolean setActiveBannerFromItemStack(ItemStack stack) {
         BannerRecipe banner = BannerRecipe.fromItem(stack);
-        if (banner == null) {
-            return false;
-        }
+        if (banner == null) return false;
+
         setActiveBannerFromSource(banner, null);
         return true;
     }
@@ -925,40 +906,31 @@ public class LoomRecipePanel {
 
     public String getActiveBannerDialogName(boolean editMode) {
         BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return Component.translatable("loom-assistant.banner.unnamed").getString();
-        }
+        if (selected == null) return BannerRecipe.getUnnamedBanner();
 
         if (editMode && isActiveBannerFromWritableSource()) {
             BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
             if (source != null) {
                 String existingName = source.getName();
-                if (existingName == null || existingName.isBlank()) {
-                    return Component.translatable("loom-assistant.banner.unnamed")
-                            .getString();
-                }
+                if (existingName == null || existingName.isBlank()) return BannerRecipe.getUnnamedBanner();
+
                 return existingName;
             }
         }
 
         // For new saves, pre-fill with the banner's own name if it has one.
-        String name = effectiveActiveName();
-        if (!name.equals(Component.translatable("loom-assistant.banner.unnamed").getString())) {
-            return name;
-        }
-        return Component.translatable("loom-assistant.banner.unnamed").getString();
+        return effectiveActiveName();
     }
 
     // Returns the display name for the active banner, appending MODIFIED_SUFFIX when color replacement is active.
     private String effectiveActiveName() {
         BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return Component.translatable("loom-assistant.banner.unnamed").getString();
-        }
+        if (selected == null) return BannerRecipe.getUnnamedBanner();
+
         String base = selected.getName();
-        if (base == null || base.isBlank() || base.equals(BannerRecipe.DEFAULT_DESCRIPTION)) {
-            return Component.translatable("loom-assistant.banner.unnamed").getString();
-        }
+        if (base == null || base.isBlank() || base.equals(BannerRecipe.DEFAULT_DESCRIPTION))
+            return BannerRecipe.getUnnamedBanner();
+
         if (persistentDyeSwitchEnabled) {
             return base + Component.translatable(MODIFIED_SUFFIX_KEY).getString();
         }
@@ -967,9 +939,7 @@ public class LoomRecipePanel {
 
     public String getActiveBannerDialogCategory(boolean editMode) {
         BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return defaultSaveCategory();
-        }
+        if (selected == null) return defaultSaveCategory();
 
         if (editMode && isActiveBannerFromWritableSource()) {
             BannerRecipe source = BannerStorage.getInstance().getBannerById(activeBannerSourceId);
@@ -988,13 +958,9 @@ public class LoomRecipePanel {
 
     public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
         BannerRecipe selected = getSelectedBanner();
-        if (selected == null) {
-            return;
-        }
+        if (selected == null) return;
 
-        String name = (nameInput == null || nameInput.isBlank())
-                ? Component.translatable("loom-assistant.banner.unnamed").getString()
-                : nameInput.trim();
+        String name = nameInput == null || nameInput.isBlank() ? BannerRecipe.getUnnamedBanner() : nameInput.trim();
         String category =
                 (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
 
@@ -1016,9 +982,7 @@ public class LoomRecipePanel {
 
     public boolean saveActiveBanner() {
         BannerRecipe selected = getSelectedBanner();
-        if (selected == null || !isActiveBannerSavable()) {
-            return false;
-        }
+        if (selected == null || !isActiveBannerSavable()) return false;
 
         BannerRecipe toSave = cloneBannerForSave(selected);
         BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
@@ -1058,9 +1022,7 @@ public class LoomRecipePanel {
     }
 
     public List<DyeColor> getActiveBannerUsedColors() {
-        if (activeBanner == null) {
-            return List.of();
-        }
+        if (activeBanner == null) return List.of();
 
         Set<DyeColor> colors = new LinkedHashSet<>();
         colors.add(activeBanner.getBaseColorEnum());
@@ -1079,9 +1041,7 @@ public class LoomRecipePanel {
     }
 
     public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
-        if (activeBanner == null) {
-            return false;
-        }
+        if (activeBanner == null) return false;
 
         BannerRecipe sourceForTransform;
         if (persistent) {
@@ -1101,14 +1061,10 @@ public class LoomRecipePanel {
             persistentDyeSwitchEnabled = !persistentDyeReplacementMap.isEmpty();
         }
 
-        if (normalized.isEmpty()) {
-            return false;
-        }
+        if (normalized.isEmpty()) return false;
 
         BannerRecipe transformed = applyDyeReplacementMap(sourceForTransform, normalized);
-        if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) {
-            return false;
-        }
+        if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) return false;
 
         activeBanner = transformed;
         selectedBannerId = null;
@@ -1116,9 +1072,7 @@ public class LoomRecipePanel {
     }
 
     public void disablePersistentDyeSwitchAndReload() {
-        if (!persistentDyeSwitchEnabled) {
-            return;
-        }
+        if (!persistentDyeSwitchEnabled) return;
 
         persistentDyeSwitchEnabled = false;
         persistentDyeReplacementMap.clear();
@@ -1156,9 +1110,7 @@ public class LoomRecipePanel {
 
     private static Map<DyeColor, DyeColor> normalizeReplacementMap(Map<DyeColor, DyeColor> replacements) {
         EnumMap<DyeColor, DyeColor> normalized = new EnumMap<>(DyeColor.class);
-        if (replacements == null) {
-            return normalized;
-        }
+        if (replacements == null) return normalized;
 
         for (Map.Entry<DyeColor, DyeColor> entry : replacements.entrySet()) {
             DyeColor src = entry.getKey();
@@ -1171,9 +1123,7 @@ public class LoomRecipePanel {
     }
 
     private BannerRecipe applyDyeReplacementMap(BannerRecipe source, Map<DyeColor, DyeColor> replacements) {
-        if (source == null) {
-            return null;
-        }
+        if (source == null) return null;
 
         BannerRecipe copy = cloneBannerForSave(source);
         DyeColor newBase = replacements.getOrDefault(copy.getBaseColorEnum(), copy.getBaseColorEnum());
@@ -1242,9 +1192,12 @@ public class LoomRecipePanel {
         String raw = id.contains(":") ? id.split(":", 2)[1] : id;
         StringBuilder sb = new StringBuilder();
         for (String word : raw.split("_")) {
-            if (!sb.isEmpty()) sb.append(' ');
-            if (!word.isEmpty())
+            if (!sb.isEmpty()) {
+                sb.append(' ');
+            }
+            if (!word.isEmpty()) {
                 sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+            }
         }
         return sb.toString();
     }

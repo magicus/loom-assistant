@@ -67,14 +67,11 @@ public class SurvivalWeaver extends Weaver {
 
     @Override
     public void tick() {
-        if (state == AutoCraftState.IDLE || state == AutoCraftState.COMPLETE || state == AutoCraftState.ERROR) {
-            return;
-        }
+        if (state == AutoCraftState.IDLE || state == AutoCraftState.COMPLETE || state == AutoCraftState.ERROR) return;
 
         ticksInState++;
-        if (ticksInState < TICK_DELAY) {
-            return;
-        }
+        if (ticksInState < TICK_DELAY) return;
+
         ticksInState = 0;
 
         switch (state) {

@@ -11,12 +11,16 @@ package se.icus.mag.loomassistant.recipe;
  * render the tab icon. If the item is unknown the tab falls back to a lava bucket.
  */
 public record BannerRecipeCategory(String id, String description, String iconItemId) {
-    /** Fallback used when a recipe references an unknown category id. */
+    /**
+     * Fallback used when a recipe references an unknown category id.
+     */
     public static BannerRecipeCategory fallback(String id) {
         return new BannerRecipeCategory(id, id, "minecraft:lava_bucket");
     }
 
-    /** Returns a copy with description and icon taken from {@code override} when present. */
+    /**
+     * Returns a copy with description and icon taken from {@code override} when present.
+     */
     public BannerRecipeCategory mergedWith(BannerRecipeCategory override) {
         if (override == null) return this;
         String desc = override.description() != null && !override.description().isBlank()
