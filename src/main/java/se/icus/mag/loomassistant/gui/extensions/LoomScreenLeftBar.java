@@ -5,21 +5,26 @@
 package se.icus.mag.loomassistant.gui.extensions;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
@@ -190,7 +195,7 @@ public class LoomScreenLeftBar {
             int leftPos = screen.leftPos;
             int topPos = screen.topPos;
 
-            for (var slot : screen.menu.slots) {
+            for (Slot slot : screen.menu.slots) {
                 if (mouseX >= leftPos + slot.x
                         && mouseX < leftPos + slot.x + 16
                         && mouseY >= topPos + slot.y
@@ -248,7 +253,7 @@ public class LoomScreenLeftBar {
     }
 
     private boolean isSurvivalNotWeavable() {
-        var player = screen.minecraft.player;
+		LocalPlayer player = screen.minecraft.player;
         return !state.isActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
     }
 
@@ -267,7 +272,7 @@ public class LoomScreenLeftBar {
     }
 
     private static boolean isMouseOverWidget(
-            net.minecraft.client.gui.components.AbstractWidget widget, int mouseX, int mouseY) {
+            AbstractWidget widget, int mouseX, int mouseY) {
         return mouseX >= widget.getX()
                 && mouseX < widget.getX() + widget.getWidth()
                 && mouseY >= widget.getY()
@@ -279,13 +284,13 @@ public class LoomScreenLeftBar {
     }
 
     private boolean isShiftHeld() {
-        var window = screen.minecraft.getWindow();
+		Window window = screen.minecraft.getWindow();
         return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT)
                 || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     private void playActiveSlotSetSound() {
-        var mc = screen.minecraft;
+		Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
@@ -302,7 +307,7 @@ public class LoomScreenLeftBar {
     }
 
     private void playActiveSlotClearSound() {
-        var mc = screen.minecraft;
+		Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
