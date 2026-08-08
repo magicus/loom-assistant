@@ -9,6 +9,7 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class WeavingGuide {
     public static boolean resultMatchesExpected(ItemStack activeBannerStack, ItemStack result, int nextLayerIndex) {
@@ -23,8 +24,8 @@ public class WeavingGuide {
         if (layers.layers().size() != expected) return false;
 
         for (int i = 0; i < expected; i++) {
-            var cur = layers.layers().get(i);
-            var exp = recipe.getLayers().get(i);
+            BannerPatternLayers.Layer cur = layers.layers().get(i);
+            BannerRecipeLayer exp = recipe.getLayers().get(i);
             if (cur.color() != exp.getDyeColorEnum()) return false;
             String curId = cur.pattern()
                     .unwrapKey()

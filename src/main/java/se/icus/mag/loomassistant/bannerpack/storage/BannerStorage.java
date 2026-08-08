@@ -140,7 +140,7 @@ public final class BannerStorage {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);
         if (packId == null) return false;
-        var pack = repository.getPack(packId);
+        BannerPack pack = repository.getPack(packId);
         return pack != null && pack.isReadOnly();
     }
 

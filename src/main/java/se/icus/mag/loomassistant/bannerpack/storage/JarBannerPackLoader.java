@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import se.icus.mag.loomassistant.LoomAssistantMod;
@@ -84,13 +86,13 @@ public class JarBannerPackLoader {
      * This is framework-specific and may need adjustment.
      */
     private void loadFromModContainer(ModContainer modContainer, List<BannerPack> packs) throws IOException {
-        var resourceDir = modContainer.findPath(JAR_PACK_DIR);
+        Optional<Path> resourceDir = modContainer.findPath(JAR_PACK_DIR);
         if (resourceDir.isEmpty() || !Files.isDirectory(resourceDir.get())) {
             LoomAssistantMod.LOGGER.debug("No bundled banner pack directory found at {}", JAR_PACK_DIR);
             return;
         }
 
-        try (var stream = Files.list(resourceDir.get())) {
+        try (Stream<Path> stream = Files.list(resourceDir.get())) {
             for (Path zipResource : stream.filter(
                             path -> path.getFileName().toString().endsWith(".zip"))
                     .toList()) {

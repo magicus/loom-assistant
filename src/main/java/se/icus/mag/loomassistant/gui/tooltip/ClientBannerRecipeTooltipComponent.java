@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.gui.tooltip;
 
 import java.util.Objects;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
@@ -164,9 +166,10 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
         try {
             Minecraft mc = Minecraft.getInstance();
             if (mc.level == null) return;
-            var registry = mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
+            Optional<Registry<BannerPattern>> registry =
+                    mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
             if (registry.isEmpty()) return;
-            var entryOpt = registry.get().get(row.patternSprite());
+            Optional<Holder.Reference<BannerPattern>> entryOpt = registry.get().get(row.patternSprite());
             if (entryOpt.isEmpty()) return;
 
             Holder<BannerPattern> holder = entryOpt.get();

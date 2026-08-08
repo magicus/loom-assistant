@@ -8,6 +8,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
@@ -29,7 +30,7 @@ public class CreativeWeaver extends Weaver {
             result.set(DataComponents.CUSTOM_NAME, Component.literal(banner.description()));
         }
 
-        var inventory = mc.player.getInventory();
+        Inventory inventory = mc.player.getInventory();
 
         // Mirror what /give does: stack into an existing slot if possible, otherwise use free slot.
         int targetSlot = inventory.getSlotWithRemainingSpace(result);

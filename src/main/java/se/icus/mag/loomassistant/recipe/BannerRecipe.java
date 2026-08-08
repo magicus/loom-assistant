@@ -216,7 +216,7 @@ public record BannerRecipe(
         if (stack == null || stack.isEmpty()) return null;
         if (!(stack.getItem() instanceof BannerItem bannerItem)) return null;
 
-        var customName = stack.getCustomName();
+        Component customName = stack.getCustomName();
         String description = customName != null ? customName.getString() : DEFAULT_DESCRIPTION;
         return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
     }

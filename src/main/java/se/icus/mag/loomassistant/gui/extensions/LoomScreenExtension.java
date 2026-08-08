@@ -6,6 +6,7 @@ package se.icus.mag.loomassistant.gui.extensions;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -27,6 +29,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -46,6 +49,7 @@ import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen
 import se.icus.mag.loomassistant.gui.support.LoomUiStateStore;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeJsonConverter;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.weaving.BannerCraftabilityModel;
 
 /**
@@ -279,7 +283,7 @@ public class LoomScreenExtension {
             this.saveButton.visible = true;
             hasActiveBanner = !activeBannerStack.isEmpty();
             if (hasActiveBanner && craftabilityProbe != null) {
-                var mc = screen.minecraft;
+                Minecraft mc = screen.minecraft;
                 if (mc != null && mc.player != null && mc.player.hasInfiniteMaterials()) {
                     canCraftActiveBanner = true;
                     craftDisabledMessage = null;
@@ -364,7 +368,7 @@ public class LoomScreenExtension {
     }
 
     public void extractGuideRender(GuiGraphicsExtractor context) {
-        var mc = screen.minecraft;
+        Minecraft mc = screen.minecraft;
         boolean survivalNotWeavable =
                 !panel.isActiveBannerWeavable() && mc.player != null && !mc.player.hasInfiniteMaterials();
         if (!survivalNotWeavable) {
@@ -580,7 +584,7 @@ public class LoomScreenExtension {
         BannerRecipe recipe = BannerRecipe.fromItem(activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
-        var layer = recipe.getLayers().get(nextLayerIndex);
+        BannerRecipeLayer layer = recipe.getLayers().get(nextLayerIndex);
         int px = screen.leftPos + 141;
         int py = screen.topPos + 8;
 
@@ -590,9 +594,10 @@ public class LoomScreenExtension {
         try {
             Identifier patId = Identifier.tryParse(layer.patternId());
             if (patId != null && screen.minecraft.level != null) {
-                var reg = screen.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
+                Optional<Registry<BannerPattern>> reg =
+                        screen.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
                 if (reg.isPresent()) {
-                    var entry = reg.get().get(patId);
+                    Optional<Holder.Reference<BannerPattern>> entry = reg.get().get(patId);
                     if (entry.isPresent()) {
                         Holder<BannerPattern> holder = entry.get();
                         TextureAtlasSprite sprite = context.getSprite(Sheets.getBannerSprite(holder));
@@ -665,13 +670,13 @@ public class LoomScreenExtension {
     }
 
     private boolean isShiftHeld() {
-        var win = screen.minecraft.getWindow();
+        Window win = screen.minecraft.getWindow();
         return InputConstants.isKeyDown(win, GLFW.GLFW_KEY_LEFT_SHIFT)
                 || InputConstants.isKeyDown(win, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     private void playActiveSlotSetSound() {
-        var mc = screen.minecraft;
+        Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()
@@ -688,7 +693,7 @@ public class LoomScreenExtension {
     }
 
     private void playActiveSlotClearSound() {
-        var mc = screen.minecraft;
+        Minecraft mc = screen.minecraft;
         if (mc != null && mc.player != null) {
             mc.player
                     .level()

@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 class ParseBannerTest {
     @Test
@@ -73,7 +74,7 @@ class ParseBannerTest {
 
     @Test
     void testParseSkinMcUrl() {
-        var recipe = ParseBanner.parse("https://skinmc.net/banner/editor?=paalpwpEac");
+        BannerRecipe recipe = ParseBanner.parse("https://skinmc.net/banner/editor?=paalpwpEac");
         assertNotNull(recipe);
         assertEquals("white", recipe.bannerColor());
         assertEquals(4, recipe.layers().size());
@@ -88,7 +89,7 @@ class ParseBannerTest {
 
     @Test
     void testParseInvalidReturnsNull() {
-        var recipe = ParseBanner.parse("https://unknown.com/banner?code=xyz");
+        BannerRecipe recipe = ParseBanner.parse("https://unknown.com/banner?code=xyz");
         assertNull(recipe);
     }
 }

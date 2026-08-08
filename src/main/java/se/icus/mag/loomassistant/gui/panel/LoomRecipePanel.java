@@ -29,6 +29,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
@@ -39,6 +41,7 @@ import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
@@ -407,7 +410,7 @@ public class LoomRecipePanel {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return ItemStack.EMPTY;
 
-        var itemRegistry = mc.level.registryAccess().lookup(Registries.ITEM);
+        Optional<Registry<Item>> itemRegistry = mc.level.registryAccess().lookup(Registries.ITEM);
         if (itemRegistry.isEmpty()) return ItemStack.EMPTY;
 
         String[] parts = patternId.split(":");
@@ -416,7 +419,7 @@ public class LoomRecipePanel {
         Identifier itemId = Identifier.tryParse(namespace + ":" + patternName + "_banner_pattern");
         if (itemId == null) return ItemStack.EMPTY;
 
-        var entry = itemRegistry.get().get(itemId);
+        Optional<Holder.Reference<Item>> entry = itemRegistry.get().get(itemId);
         if (entry.isEmpty()) return ItemStack.EMPTY;
 
         return new ItemStack(entry.get().value());
@@ -1169,11 +1172,13 @@ public class LoomRecipePanel {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
             try {
-                var regOpt = mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
+                Optional<Registry<BannerPattern>> regOpt =
+                        mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
                 if (regOpt.isPresent()) {
                     Identifier id = Identifier.tryParse(layer.patternId());
                     if (id != null) {
-                        var entry = regOpt.get().get(id);
+                        Optional<Holder.Reference<BannerPattern>> entry =
+                                regOpt.get().get(id);
                         if (entry.isPresent()) {
                             BannerPattern pattern = entry.get().value();
                             String key = pattern.translationKey() + "."
@@ -1214,10 +1219,10 @@ public class LoomRecipePanel {
     }
 
     public static boolean saveBannerFromOutput(LoomMenu handler) {
-        var dyeStack = handler.getSlot(1).getItem();
-        var patternStack = handler.getSlot(2).getItem();
+        ItemStack dyeStack = handler.getSlot(1).getItem();
+        ItemStack patternStack = handler.getSlot(2).getItem();
         if (dyeStack.isEmpty() && patternStack.isEmpty()) {
-            var bannerStack = handler.getSlot(0).getItem();
+            ItemStack bannerStack = handler.getSlot(0).getItem();
             if (bannerStack.isEmpty()) return false;
             BannerRecipe banner = BannerRecipe.fromItem(bannerStack);
             if (banner != null) {
@@ -1225,7 +1230,7 @@ public class LoomRecipePanel {
                 return true;
             }
         } else {
-            var outputStack = handler.getSlot(3).getItem();
+            ItemStack outputStack = handler.getSlot(3).getItem();
             if (outputStack.isEmpty()) return false;
             BannerRecipe banner = BannerRecipe.fromItem(outputStack);
             if (banner != null) {
