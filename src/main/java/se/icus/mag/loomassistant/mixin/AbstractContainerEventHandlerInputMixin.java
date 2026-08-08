@@ -13,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
-import se.icus.mag.loomassistant.gui.extensions.LoomRecipePanel;
-import se.icus.mag.loomassistant.gui.extensions.LoomScreenExtension;
 
 @Mixin(ContainerEventHandler.class)
 public interface AbstractContainerEventHandlerInputMixin {
@@ -22,11 +20,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onCharTyped(CharacterEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
-        LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
-        if (panel == null) return;
-
-        if (panel.charTyped(event)) {
+        if (LoomAssistantMod.getLoomManager().handleCharTyped(event)) {
             cir.setReturnValue(true);
         }
     }
@@ -35,11 +29,7 @@ public interface AbstractContainerEventHandlerInputMixin {
     private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
         if (!(this instanceof LoomScreen)) return;
 
-        LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
-        LoomRecipePanel panel = extension != null ? extension.getPanel() : null;
-        if (panel == null) return;
-
-        if (panel.mouseDragged(event, dx, dy)) {
+        if (LoomAssistantMod.getLoomManager().handleMouseDragged(event, dx, dy)) {
             cir.setReturnValue(true);
         }
     }

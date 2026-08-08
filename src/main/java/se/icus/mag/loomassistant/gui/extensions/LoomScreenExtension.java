@@ -79,11 +79,7 @@ public class LoomScreenExtension {
         return false;
     }
 
-    public boolean mouseScrolled(
-            double mouseX,
-            double mouseY,
-            double horizontalAmount,
-            double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (panel != null && panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             return true;
         }
