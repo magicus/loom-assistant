@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
@@ -122,6 +123,11 @@ public class BannerRecipeImportExportScreen extends Screen {
                         Component.translatable("loom-assistant.screen.import_export.manage_packs"),
                         b -> openBannerPackManager())
                 .bounds(px + PAD, packsBtnY, PANEL_W - PAD * 2, BTN_H)
+                .build());
+        Button downloadPacksButton = this.addRenderableWidget(Button.builder(
+                        Component.translatable("loom-assistant.screen.import_export.download_packs"),
+                        b -> openPackDownloadManager())
+                .bounds(px + PAD, packsBtnY + BTN_H + PAD, PANEL_W - PAD * 2, BTN_H)
                 .build());
     }
 
@@ -267,6 +273,10 @@ public class BannerRecipeImportExportScreen extends Screen {
         }
         this.minecraft.gui.setScreen(
                 new BannerPackSelectionScreen(storage.getRepository(), storage.getActivePacksConfig()));
+    }
+
+    private void openPackDownloadManager() {
+        this.minecraft.gui.setScreen(new BannerPackDownloadManagementScreen(this));
     }
 
     private String getImportStatusText() {

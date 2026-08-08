@@ -4,8 +4,8 @@
  */
 package se.icus.mag.loomassistant.recipe.converters.parsers;
 
-import se.icus.mag.loomassistant.recipe.converters.parsers.urlparsers.UrlParser;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
+import se.icus.mag.loomassistant.recipe.converters.parsers.urlparsers.UrlParser;
 
 /**
  * Top-level entry point for banner parsing.

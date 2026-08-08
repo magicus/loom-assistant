@@ -19,6 +19,9 @@
     "main": [
       "se.icus.mag.loomassistant.LoomAssistantMod"
     ],
+    "client": [
+      "se.icus.mag.loomassistant.LoomAssistantClientMod"
+    ],
     "modmenu": [
       "se.icus.mag.loomassistant.config.LoomAssistantModMenuIntegration"
     ]

@@ -52,8 +52,8 @@ import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
-import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomRecipePanel extends ScreenExtensionWidget {

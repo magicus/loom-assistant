@@ -57,22 +57,6 @@ public class BannerPackRepository {
                 });
             }
 
-            // Load JAR-bundled packs
-            try {
-                JarBannerPackLoader jarLoader = new JarBannerPackLoader();
-                for (BannerPack pack : jarLoader.loadBundledPacks()) {
-                    String packId = pack.getMetadata().id();
-                    if (packs.containsKey(packId)) {
-                        LoomAssistantMod.LOGGER.warn(
-                                "Bundled banner pack '{}' conflicts with a user pack, skipping", packId);
-                    } else {
-                        packs.put(packId, pack);
-                        LoomAssistantMod.LOGGER.info("Loaded bundled banner pack: {}", packId);
-                    }
-                }
-            } catch (RuntimeException e) {
-                LoomAssistantMod.LOGGER.debug("No bundled banner packs found or error loading them", e);
-            }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to initialize banner pack repository", e);
         }

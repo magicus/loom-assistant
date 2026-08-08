@@ -4,6 +4,8 @@
  */
 package se.icus.mag.loomassistant.config;
 
+import java.util.Arrays;
+import java.util.List;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
@@ -19,7 +21,32 @@ public class LoomAssistantConfig implements ConfigData {
     @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
     ColorSortOrder colorSortOrder = ColorSortOrder.RAINBOW;
 
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    public BannerPackRepoSettings bannerPackRepo = new BannerPackRepoSettings();
+
     public ColorSortOrder getColorSortOrder() {
         return colorSortOrder;
+    }
+
+    public BannerPackRepoSettings getBannerPackRepo() {
+        return bannerPackRepo;
+    }
+
+    public static class BannerPackRepoSettings {
+        public String repoIndexUrl =
+                "https://raw.githubusercontent.com/magicus/banner-recipe-database/refs/heads/main/bannerpack-index-v1.json";
+
+        /** Comma-separated pack IDs to auto-install, e.g. "numbers, letters". */
+        public String autoInstallPackIds = "numbers";
+
+        @ConfigEntry.Gui.Excluded
+        public boolean activateAfterDownload = true;
+
+        public List<String> getAutoInstallPackIdList() {
+            return Arrays.stream(autoInstallPackIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        }
     }
 }

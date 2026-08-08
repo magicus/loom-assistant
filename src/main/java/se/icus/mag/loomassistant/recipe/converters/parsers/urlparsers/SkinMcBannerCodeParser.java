@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
-import se.icus.mag.loomassistant.recipe.converters.parsers.LegacyBannerPatterns;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
+import se.icus.mag.loomassistant.recipe.converters.parsers.LegacyBannerPatterns;
 
 /**
  * Shared utility for parsing SkinMC-format banner codes.
