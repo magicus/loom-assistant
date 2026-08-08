@@ -362,7 +362,8 @@ public class LoomRecipePanel {
             return Optional.empty();
         }
 
-        ItemStack previewStack = LoomAssistantMod.createBannerWithPatterns(banner);
+        ItemStack previewStack = LoomAssistantMod.createBannerStack(
+                banner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), banner.getLayers());
         net.minecraft.world.level.block.entity.BannerPatternLayers patterns =
                 previewStack.get(net.minecraft.core.component.DataComponents.BANNER_PATTERNS);
         net.minecraft.world.item.DyeColor baseColor = banner.getBannerColorEnum();
@@ -386,7 +387,15 @@ public class LoomRecipePanel {
                 rows.add(BannerRecipeTooltipComponent.Row.withPattern(dyeStack, patternId, stepText));
             } else {
                 ItemStack patternIcon = getPatternItem(layer.patternId());
-                if (patternIcon.isEmpty()) patternIcon = LoomAssistantMod.createLayerPreviewStack(layer);
+                if (patternIcon.isEmpty()) {
+                    Minecraft mc = Minecraft.getInstance();
+                    patternIcon = LoomAssistantMod.createBannerStack(
+                            Items.BANNER.white(),
+                            mc.level == null
+                                    ? null
+                                    : mc.level.registryAccess().lookup(Registries.BANNER_PATTERN).orElse(null),
+                            List.of(layer));
+                }
                 rows.add(BannerRecipeTooltipComponent.Row.pair(dyeStack, patternIcon, stepText));
             }
             idx++;
@@ -798,7 +807,8 @@ public class LoomRecipePanel {
         if (selectedBanner == null) {
             return ItemStack.EMPTY;
         }
-        return LoomAssistantMod.createBannerWithPatterns(selectedBanner);
+        return LoomAssistantMod.createBannerStack(
+                selectedBanner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), selectedBanner.getLayers());
     }
 
     public BannerRecipe getActiveBannerRecipe() {

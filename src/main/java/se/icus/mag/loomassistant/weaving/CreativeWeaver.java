@@ -21,7 +21,8 @@ public class CreativeWeaver extends Weaver {
             return;
         }
 
-        ItemStack result = LoomAssistantMod.createBannerWithPatterns(banner);
+        ItemStack result = LoomAssistantMod.createBannerStack(
+                banner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), banner.getLayers());
 
         // Apply recipe name as custom name if it's not the unnamed placeholder.
         if (banner.description() != null

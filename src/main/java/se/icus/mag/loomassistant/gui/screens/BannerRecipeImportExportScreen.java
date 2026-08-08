@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.gui.screens;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -213,7 +214,8 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = LoomAssistantMod.createBannerWithPatterns(recipe);
+        ItemStack stack = LoomAssistantMod.createBannerStack(
+                recipe.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), recipe.getLayers());
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
@@ -228,7 +230,8 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = LoomAssistantMod.createBannerWithPatterns(recipe);
+        ItemStack stack = LoomAssistantMod.createBannerStack(
+                recipe.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), recipe.getLayers());
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);

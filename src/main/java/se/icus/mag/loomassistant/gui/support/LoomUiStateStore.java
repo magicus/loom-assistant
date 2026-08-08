@@ -76,7 +76,8 @@ public final class LoomUiStateStore {
 
         try {
             BannerRecipe banner = BannerRecipe.fromJson(recipeJson);
-            return LoomAssistantMod.createBannerWithPatterns(banner);
+            return LoomAssistantMod.createBannerStack(
+                    banner.getBaseBannerItem(), LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()), banner.getLayers());
         } catch (RuntimeException e) {
             LoomAssistantMod.LOGGER.warn("Failed to restore persisted active banner for {}", worldKey, e);
             return ItemStack.EMPTY;
