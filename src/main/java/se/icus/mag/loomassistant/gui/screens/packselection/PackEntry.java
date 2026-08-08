@@ -11,6 +11,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.SelectableEntry;
 import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
@@ -85,7 +87,7 @@ public class PackEntry extends BannerPackListEntry implements SelectableEntry {
     }
 
     @Override
-    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (this.showHoverOverlay() && this.mouseOverIcon((int) event.x(), (int) event.y())) {
             this.togglePack();
             return true;
@@ -94,7 +96,7 @@ public class PackEntry extends BannerPackListEntry implements SelectableEntry {
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+    public boolean keyPressed(KeyEvent event) {
         if (event.isConfirmation() && this.showHoverOverlay()) {
             this.togglePack();
             return true;

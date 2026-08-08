@@ -11,6 +11,8 @@ import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -287,7 +289,7 @@ public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         int mx = (int) event.x();
         int my = (int) event.y();
 
@@ -323,7 +325,7 @@ public class BannerColorSwitchScreen extends Screen {
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+    public boolean keyPressed(KeyEvent event) {
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
             if (pickerOpenFor == null) {
                 this.onClose();

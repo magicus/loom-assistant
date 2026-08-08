@@ -10,6 +10,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 
@@ -45,7 +46,7 @@ public class BannerPackListWidget extends ObjectSelectionList<BannerPackListEntr
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+    public boolean keyPressed(KeyEvent event) {
         BannerPackListEntry selected = this.getSelected();
         return selected != null ? selected.keyPressed(event) : super.keyPressed(event);
     }

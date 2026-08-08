@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
@@ -31,6 +32,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -384,7 +386,7 @@ public class LoomScreenExtension {
             int my = (int) mouseButtonEvent.y();
             int leftPos = screen.leftPos;
             int topPos = screen.topPos;
-            for (net.minecraft.world.inventory.Slot slot : screen.menu.slots) {
+            for (Slot slot : screen.menu.slots) {
                 if (mx >= leftPos + slot.x
                         && mx < leftPos + slot.x + 16
                         && my >= topPos + slot.y
@@ -530,8 +532,7 @@ public class LoomScreenExtension {
 
     // ── rendering helpers ─────────────────────────────────────────────────────
 
-    private static boolean isMouseOverWidget(
-            net.minecraft.client.gui.components.AbstractWidget widget, int mouseX, int mouseY) {
+    private static boolean isMouseOverWidget(AbstractWidget widget, int mouseX, int mouseY) {
         return mouseX >= widget.getX()
                 && mouseX < widget.getX() + widget.getWidth()
                 && mouseY >= widget.getY()

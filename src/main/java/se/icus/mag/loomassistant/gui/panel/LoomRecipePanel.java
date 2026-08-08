@@ -42,6 +42,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
@@ -222,7 +223,7 @@ public class LoomRecipePanel {
             }
             button.extractContents(ctx, mouseX, mouseY, 0.0F);
             if (isIn(mouseX, mouseY, tx - 2, ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
-                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.requestCursor(CursorTypes.POINTING_HAND);
                 ctx.setTooltipForNextFrame(
                         Minecraft.getInstance().font, List.of(tab.tooltip()), Optional.empty(), mouseX, mouseY);
             }
@@ -310,7 +311,7 @@ public class LoomRecipePanel {
         }
         ctx.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, bx, by, FILTER_W, FILTER_H);
         if (hov) {
-            ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+            ctx.requestCursor(CursorTypes.POINTING_HAND);
             Component tooltip = craftableOnly ? ONLY_CRAFTABLES_TOOLTIP : ALL_RECIPES_TOOLTIP;
             ctx.setTooltipForNextFrame(
                     Minecraft.getInstance().font, List.of(tooltip), Optional.empty(), mouseX, mouseY);
@@ -336,7 +337,7 @@ public class LoomRecipePanel {
             PreviewExtension.render(ctx, banner, handler, bx + 4, by + 4, 16);
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
-                ctx.requestCursor(com.mojang.blaze3d.platform.cursor.CursorTypes.POINTING_HAND);
+                ctx.requestCursor(CursorTypes.POINTING_HAND);
                 setBannerTooltip(ctx, banner, mouseX, mouseY);
             }
         }
@@ -1174,8 +1175,7 @@ public class LoomRecipePanel {
                     if (id != null) {
                         var entry = regOpt.get().get(id);
                         if (entry.isPresent()) {
-                            net.minecraft.world.level.block.entity.BannerPattern pattern =
-                                    entry.get().value();
+                            BannerPattern pattern = entry.get().value();
                             String key = pattern.translationKey() + "."
                                     + layer.getDyeColorEnum().getName();
                             return Component.translatable(key).getString();

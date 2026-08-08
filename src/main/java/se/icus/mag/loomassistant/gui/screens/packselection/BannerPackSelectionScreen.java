@@ -13,6 +13,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
@@ -112,7 +114,7 @@ public class BannerPackSelectionScreen extends Screen {
         LinearLayout footer = this.layout.addToFooter(LinearLayout.horizontal().spacing(8));
         footer.addChild(Button.builder(
                         OPEN_PACK_DIR_TITLE, button -> Util.getPlatform().openPath(this.repository.getPacksRoot()))
-                .tooltip(net.minecraft.client.gui.components.Tooltip.create(PACK_FOLDER_TOOLTIP))
+                .tooltip(Tooltip.create(PACK_FOLDER_TOOLTIP))
                 .build());
         this.doneButton = footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
                 .build());
@@ -282,9 +284,7 @@ public class BannerPackSelectionScreen extends Screen {
             copyDirectory(source, targetDir);
         } else if (source.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip")) {
             Files.copy(
-                    source,
-                    targetRoot.resolve(source.getFileName().toString()),
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    source, targetRoot.resolve(source.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -298,7 +298,7 @@ public class BannerPackSelectionScreen extends Screen {
                         Files.createDirectories(dest);
                     } else {
                         Files.createDirectories(dest.getParent());
-                        Files.copy(path, dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(path, dest, StandardCopyOption.REPLACE_EXISTING);
                     }
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);

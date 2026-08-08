@@ -6,15 +6,16 @@ package se.icus.mag.loomassistant.gui.screens.packselection;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 @Environment(EnvType.CLIENT)
 public class HeaderEntry extends BannerPackListEntry {
-    private final net.minecraft.client.gui.Font font;
+    private final Font font;
     private final Component text;
 
-    public HeaderEntry(net.minecraft.client.gui.Font font, Component text) {
+    public HeaderEntry(Font font, Component text) {
         this.font = font;
         this.text = text;
     }

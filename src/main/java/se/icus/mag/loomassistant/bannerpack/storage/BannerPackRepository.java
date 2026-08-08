@@ -4,7 +4,10 @@
  */
 package se.icus.mag.loomassistant.bannerpack.storage;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -216,12 +219,12 @@ public class BannerPackRepository {
             throws IOException {
         Path langDir = categoriesDir.resolve("lang");
         Files.createDirectories(langDir);
-        com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+        JsonObject obj = new JsonObject();
         for (String[] entry : entries) {
             obj.addProperty(entry[0], entry[1]);
         }
-        try (java.io.Writer w = java.nio.file.Files.newBufferedWriter(langDir.resolve(locale + ".json"))) {
-            new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(obj, w);
+        try (Writer w = Files.newBufferedWriter(langDir.resolve(locale + ".json"))) {
+            new GsonBuilder().setPrettyPrinting().create().toJson(obj, w);
         }
     }
 
