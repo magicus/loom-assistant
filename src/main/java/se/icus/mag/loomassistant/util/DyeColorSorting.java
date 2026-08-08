@@ -36,6 +36,6 @@ public final class DyeColorSorting {
         } else if (order == LoomAssistantConfig.ColorSortOrder.VANILLA) {
             return DyeColor.values().clone();
         }
-        throw new IllegalStateException();
+        throw new IllegalArgumentException();
     }
 }
