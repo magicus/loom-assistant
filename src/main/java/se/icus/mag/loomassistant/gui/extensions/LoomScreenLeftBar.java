@@ -29,12 +29,11 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 
-public class LoomScreenLeftBar {
+public class LoomScreenLeftBar extends ScreenExtensionWidget {
     private static final int BG_LEFT_PADDING = 19;
     private static final int LEFT_STRIP_BUTTON_X = 3;
     private static final int LEFT_STRIP_RECIPE_Y = 5;
@@ -128,7 +127,8 @@ public class LoomScreenLeftBar {
         }
     }
 
-    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+    @Override
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         boolean hasActiveBanner = manager.hasActiveBanner();
         boolean canCraftActiveBanner = hasActiveBanner && manager.isActiveBannerCraftable();
         String craftDisabledMessage =

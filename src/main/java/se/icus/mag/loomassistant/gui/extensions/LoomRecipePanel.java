@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.gui.panel;
+package se.icus.mag.loomassistant.gui.extensions;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
@@ -48,7 +48,6 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
-import se.icus.mag.loomassistant.gui.extensions.WeavingGuide;
 import se.icus.mag.loomassistant.gui.tooltip.BannerRecipeTooltipComponent;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
@@ -56,7 +55,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
-public class LoomRecipePanel {
+public class LoomRecipePanel extends ScreenExtensionWidget {
     public static final int PANEL_WIDTH = 147;
     private static final int PANEL_HEIGHT = 166;
     private static final int GRID_COLUMNS = 5;
@@ -175,11 +174,12 @@ public class LoomRecipePanel {
     // Rendering
     // -------------------------------------------------------------------------
 
-    public void render(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
+    @Override
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         refreshVisibleTabs();
         Font font = Minecraft.getInstance().font;
 
-        ctx.blit(
+        context.blit(
                 RenderPipelines.GUI_TEXTURED,
                 RECIPE_BOOK_TEXTURE,
                 x,
@@ -190,13 +190,13 @@ public class LoomRecipePanel {
                 PANEL_HEIGHT,
                 256,
                 256);
-        renderTabs(ctx, mouseX, mouseY);
-        searchBox.extractRenderState(ctx, mouseX, mouseY, delta);
-        renderFilterButton(ctx, mouseX, mouseY);
-        renderBannerGrid(ctx, font, mouseX, mouseY);
+        renderTabs(context, mouseX, mouseY);
+        searchBox.extractRenderState(context, mouseX, mouseY, delta);
+        renderFilterButton(context, mouseX, mouseY);
+        renderBannerGrid(context, font, mouseX, mouseY);
 
         if (manager.isWeavingActive()) {
-            ctx.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
+            context.text(font, WEAVING_LABEL, x + 8, y + PANEL_HEIGHT + 2, 0xFFFFFF00, true);
         }
     }
 

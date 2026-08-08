@@ -12,7 +12,6 @@ import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
-import se.icus.mag.loomassistant.gui.panel.LoomRecipePanel;
 
 public class LoomScreenExtension {
     private static final int CONTENT_X_SHIFT = 3;
@@ -53,13 +52,13 @@ public class LoomScreenExtension {
         manager.onLoomScreenClosed();
     }
 
-    public void onExtractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         manager.tick();
         if (panel != null) {
-            panel.render(context, mouseX, mouseY, delta);
+            panel.extractBackground(context, mouseX, mouseY, delta);
         }
-        weavingGuide.render(context);
-        leftBar.render(context, mouseX, mouseY);
+        weavingGuide.extractBackground(context, mouseX, mouseY, delta);
+        leftBar.extractBackground(context, mouseX, mouseY, delta);
     }
 
     public void onMouseClicked(MouseButtonEvent mouseButtonEvent, CallbackInfoReturnable<Boolean> cir) {

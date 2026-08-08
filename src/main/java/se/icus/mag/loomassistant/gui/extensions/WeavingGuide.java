@@ -25,7 +25,7 @@ import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
-public class WeavingGuide {
+public class WeavingGuide extends ScreenExtensionWidget {
     private static final Identifier RECIPE_WEAVE_ICON =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
 
@@ -37,7 +37,8 @@ public class WeavingGuide {
         this.manager = manager;
     }
 
-    public void render(GuiGraphicsExtractor context) {
+    @Override
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         if (!manager.hasActiveBanner()) return;
 
         Minecraft minecraft = screen.minecraft;

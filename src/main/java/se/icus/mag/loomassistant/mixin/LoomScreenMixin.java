@@ -68,7 +68,7 @@ public abstract class LoomScreenMixin {
         LoomScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
         if (extension == null) return;
 
-        extension.onExtractBackground(graphics, mouseX, mouseY, delta);
+        extension.extractBackground(graphics, mouseX, mouseY, delta);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
