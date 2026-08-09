@@ -58,7 +58,8 @@ public class WeavingGuide implements ScreenExtension {
         }
     }
 
-    public static void renderBannerPreview(GuiGraphicsExtractor context, Minecraft mc, BannerRecipe banner, int x, int y) {
+    public static void renderBannerPreview(
+            GuiGraphicsExtractor context, Minecraft mc, BannerRecipe banner, int x, int y) {
         ItemStack bannerStack = BannerRecipeItemConverter.toItem(mc, banner);
         context.item(bannerStack, x, y);
     }
