@@ -44,7 +44,7 @@ public class WeavingGuide implements ScreenExtension {
         if (!manager.hasActiveBanner()) return;
 
         Minecraft minecraft = screen.minecraft;
-        boolean survivalNotWeavable = !manager.isActiveBannerWeavable()
+        boolean survivalNotWeavable = !manager.isEffectiveActiveBannerWeavable()
                 && minecraft.player != null
                 && !minecraft.player.hasInfiniteMaterials();
         if (!survivalNotWeavable) {
@@ -103,7 +103,7 @@ public class WeavingGuide implements ScreenExtension {
     }
 
     private void renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
-        BannerRecipe recipe = manager.getActiveBannerRecipe();
+        BannerRecipe recipe = manager.getEffectiveActiveBanner();
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
         BannerRecipeLayer layer = recipe.getLayers().get(nextLayerIndex);
@@ -146,7 +146,7 @@ public class WeavingGuide implements ScreenExtension {
         ItemStack result = screen.menu.getResultSlot().getItem();
         if (result.isEmpty()) return;
 
-        boolean correct = resultMatchesExpected(manager.getActiveBannerStack(), result, progress);
+        boolean correct = resultMatchesExpected(manager.getEffectiveActiveBannerStack(), result, progress);
         int color = correct ? 0xFF44FF44 : 0xFFFF4444;
         context.fill(resultX - 1, resultY - 1, resultX + 17, resultY, color);
         context.fill(resultX - 1, resultY + 16, resultX + 17, resultY + 17, color);

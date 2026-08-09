@@ -742,27 +742,33 @@ public class LoomRecipePanel implements ScreenExtension {
         return manager.detectCraftingProgress();
     }
 
-    private BannerRecipe getSelectedBanner() {
-        return manager.getActiveBannerRecipe();
+    private BannerRecipe getSelectedBaseBanner() {
+        return manager.getActiveBanner();
     }
 
     public ItemStack getActiveBannerStack() {
         return manager.getActiveBannerStack();
     }
 
-    public BannerRecipe getActiveBannerRecipe() {
-        return manager.getActiveBannerRecipe();
+    public BannerRecipe getActiveBanner() {
+        return manager.getActiveBanner();
     }
 
     public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
-        BannerRecipe selectedBanner = getSelectedBanner();
-        if (selectedBanner == null) return;
+        BannerRecipe selectedBaseBanner = getSelectedBaseBanner();
+        if (selectedBaseBanner == null) return;
 
         // currentRowIndex: row 0 = base banner (always "done" when banner is in slot)
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
         int progress = detectCraftingProgress();
         int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        setBannerTooltip(ctx, manager.getActiveBannerDisplayName(), selectedBanner, currentRowIndex, mouseX, mouseY);
+        setBannerTooltip(
+            ctx,
+            selectedBaseBanner.getDisplayName(),
+            selectedBaseBanner,
+            currentRowIndex,
+            mouseX,
+            mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
@@ -830,7 +836,9 @@ public class LoomRecipePanel implements ScreenExtension {
 
     public boolean saveActiveBanner() {
         if (!manager.hasActiveBanner() || !manager.isActiveBannerSavable()) return false;
-        manager.applyActiveBannerMetadata(manager.getActiveBannerDisplayName(), getActiveBannerDialogCategory(false));
+        BannerRecipe activeBanner = manager.getActiveBanner();
+        String baseName = activeBanner != null ? activeBanner.getDisplayName() : BannerRecipe.getUnnamedBanner();
+        manager.applyActiveBannerMetadata(baseName, getActiveBannerDialogCategory(false));
         return manager.isActiveBannerAlreadySaved();
     }
 

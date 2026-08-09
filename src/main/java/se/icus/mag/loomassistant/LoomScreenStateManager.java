@@ -131,7 +131,7 @@ public class LoomScreenStateManager {
         return state.getActiveBanner() != null;
     }
 
-    public BannerRecipe getActiveBannerRecipe() {
+    public BannerRecipe getActiveBanner() {
         return state.getActiveBanner();
     }
 
@@ -143,12 +143,29 @@ public class LoomScreenStateManager {
         return converter.fromRecipe(banner);
     }
 
-    public String getActiveBannerDisplayName() {
+    public int getActiveBannerLayerCount() {
+        BannerRecipe banner = state.getActiveBanner();
+        return banner != null ? banner.getLayers().size() : 0;
+    }
+
+    public BannerRecipe getEffectiveActiveBanner() {
+        return state.getEffectiveActiveBanner();
+    }
+
+    public ItemStack getEffectiveActiveBannerStack() {
+        BannerRecipe banner = state.getEffectiveActiveBanner();
+        if (banner == null) return ItemStack.EMPTY;
+
+        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
+        return converter.fromRecipe(banner);
+    }
+
+    public String getEffectiveActiveBannerDisplayName() {
         return effectiveActiveName();
     }
 
-    public int getActiveBannerLayerCount() {
-        BannerRecipe banner = state.getActiveBanner();
+    public int getEffectiveActiveBannerLayerCount() {
+        BannerRecipe banner = state.getEffectiveActiveBanner();
         return banner != null ? banner.getLayers().size() : 0;
     }
 
@@ -171,7 +188,10 @@ public class LoomScreenStateManager {
         BannerRecipe banner = converter.toRecipe(stack);
         if (banner == null) return false;
 
-        setActiveBannerFromSource(banner, null, true);
+        BannerRecipe created = saveBannerToLocalPack(banner);
+        if (created == null) return false;
+
+        setActiveBannerFromSource(created, created.getId(), true);
         return true;
     }
 
@@ -180,13 +200,15 @@ public class LoomScreenStateManager {
     }
 
     public void loadImportedBanner(BannerRecipe imported) {
-        setActiveBannerFromSource(imported, null, true);
+        BannerRecipe created = saveBannerToLocalPack(imported);
+        if (created == null) return;
+
+        setActiveBannerFromSource(created, created.getId(), true);
     }
 
     public void clearActiveBanner() {
         state.setActiveBanner(null);
-        state.setSelectedBannerId(null);
-        state.setActiveBannerSource(null);
+        state.setEffectiveActiveBanner(null);
         state.setActiveBannerRecipe(null);
         persistCurrentWorldState();
     }
@@ -195,7 +217,7 @@ public class LoomScreenStateManager {
 
     public int detectCraftingProgress() {
         if (currentMenu == null) return -1;
-        BannerRecipe recipe = state.getActiveBanner();
+        BannerRecipe recipe = state.getEffectiveActiveBanner();
         if (recipe == null) return -1;
 
         ItemStack bannerInSlot = currentMenu.getBannerSlot().getItem();
@@ -229,9 +251,15 @@ public class LoomScreenStateManager {
     }
 
     public void craftActiveBanner() {
-        if (currentWeaver == null || state.getActiveBanner() == null) return;
-        BannerRecipe toWeave = state.getActiveBanner().withDescription(effectiveActiveName());
+        if (currentWeaver == null || state.getEffectiveActiveBanner() == null) return;
+        BannerRecipe toWeave = state.getEffectiveActiveBanner().withDescription(effectiveActiveName());
         currentWeaver.weave(toWeave);
+    }
+
+    public boolean isEffectiveActiveBannerCraftable() {
+        return currentWeaver != null
+                && state.getEffectiveActiveBanner() != null
+                && currentWeaver.canWeave(state.getEffectiveActiveBanner());
     }
 
     public boolean isActiveBannerCraftable() {
@@ -240,9 +268,42 @@ public class LoomScreenStateManager {
                 && currentWeaver.canWeave(state.getActiveBanner());
     }
 
+    public boolean isEffectiveActiveBannerWeavable() {
+        BannerRecipe banner = state.getEffectiveActiveBanner();
+        return banner == null || banner.isWeavable();
+    }
+
     public boolean isActiveBannerWeavable() {
         BannerRecipe banner = state.getActiveBanner();
         return banner == null || banner.isWeavable();
+    }
+
+    public String getEffectiveActiveBannerMissingMaterialMessage() {
+        BannerRecipe banner = state.getEffectiveActiveBanner();
+        if (banner == null) {
+            return Component.translatable("loom-assistant.active.select_banner").getString();
+        }
+
+        boolean survivalTooManySteps = !banner.isWeavable() && isInSurvivalMode();
+        List<String> missingMaterials =
+                currentWeaver != null ? currentWeaver.getMissingMaterialDescriptions(banner) : List.of();
+        if (missingMaterials.isEmpty() && !survivalTooManySteps) return null;
+
+        StringBuilder message = new StringBuilder();
+        if (survivalTooManySteps) {
+            message.append(Component.translatable("loom-assistant.active.too_many_steps")
+                    .getString());
+        }
+        if (!missingMaterials.isEmpty()) {
+            if (!message.isEmpty()) {
+                message.append("\n");
+            }
+            message.append(Component.translatable("loom-assistant.active.missing_header")
+                            .getString())
+                    .append("\n")
+                    .append(String.join("\n", missingMaterials));
+        }
+        return message.toString();
     }
 
     public String getActiveBannerMissingMaterialMessage() {
@@ -297,10 +358,13 @@ public class LoomScreenStateManager {
 
         BannerRecipe sourceForTransform;
         if (persistent) {
-            BannerRecipe source = state.getActiveBannerSource() != null ? state.getActiveBannerSource() : activeBanner;
+            String sourceId = blankToNull(state.getActiveBannerRecipe());
+            if (sourceId == null) return false;
+
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
+            if (source == null) return false;
+
             sourceForTransform = cloneBanner(source);
-            state.setActiveBannerSource(cloneBanner(sourceForTransform));
-            state.setActiveBannerRecipe(state.getSelectedBannerId());
         } else {
             sourceForTransform = cloneBanner(activeBanner);
             state.setColorReplacementEnabled(false);
@@ -319,8 +383,7 @@ public class LoomScreenStateManager {
         BannerRecipe transformed = applyDyeReplacementMap(sourceForTransform, normalized);
         if (transformed == null || bannersEquivalent(sourceForTransform, transformed)) return false;
 
-        state.setActiveBanner(transformed);
-        state.setSelectedBannerId(null);
+        state.setEffectiveActiveBanner(transformed);
         persistCurrentWorldState();
         return true;
     }
@@ -331,9 +394,9 @@ public class LoomScreenStateManager {
         state.setColorReplacementEnabled(false);
         state.getColorReplacements().clear();
 
-        if (state.getActiveBannerSource() != null) {
-            state.setActiveBanner(cloneBanner(state.getActiveBannerSource()));
-            state.setSelectedBannerId(state.getActiveBannerRecipe());
+        BannerRecipe source = state.getActiveBanner();
+        if (source != null) {
+            state.setEffectiveActiveBanner(cloneBanner(source));
         }
 
         persistCurrentWorldState();
@@ -355,7 +418,7 @@ public class LoomScreenStateManager {
     }
 
     public String getActiveBannerDialogName(boolean editMode) {
-        BannerRecipe banner = state.getActiveBanner();
+        BannerRecipe banner = state.getEffectiveActiveBanner();
         if (banner == null) return BannerRecipe.getUnnamedBanner();
 
         if (editMode && isActiveBannerFromWritableSource()) {
@@ -399,8 +462,10 @@ public class LoomScreenStateManager {
             return;
         }
 
-        BannerRecipe toSave =
-                cloneBanner(state.getActiveBanner()).withDescription(name).withCategory(category);
+        BannerRecipe effectiveBanner = state.getEffectiveActiveBanner();
+        if (effectiveBanner == null) return;
+
+        BannerRecipe toSave = cloneBanner(effectiveBanner).withDescription(name).withCategory(category);
         BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
         if (created != null) {
             setActiveBannerFromSource(created, created.getId(), true);
@@ -428,30 +493,45 @@ public class LoomScreenStateManager {
     private void setActiveBannerFromSource(BannerRecipe sourceBanner, String sourceId, boolean persist) {
         if (sourceBanner == null) {
             state.setActiveBanner(null);
-            state.setSelectedBannerId(null);
-            state.setActiveBannerSource(null);
+            state.setEffectiveActiveBanner(null);
             state.setActiveBannerRecipe(null);
             if (persist) persistCurrentWorldState();
             return;
         }
 
-        state.setActiveBannerSource(cloneBanner(sourceBanner));
-        state.setActiveBannerRecipe(sourceId);
-        state.setSelectedBannerId(sourceId);
+        state.setActiveBannerRecipe(blankToNull(sourceId));
+
+        BannerRecipe source = cloneBanner(sourceBanner);
+        state.setActiveBanner(source);
 
         if (state.isColorReplacementEnabled() && !state.getColorReplacements().isEmpty()) {
-            BannerRecipe transformed =
-                    applyDyeReplacementMap(state.getActiveBannerSource(), state.getColorReplacements());
-            if (transformed != null && !bannersEquivalent(state.getActiveBannerSource(), transformed)) {
-                state.setActiveBanner(transformed);
-                state.setSelectedBannerId(null);
+            BannerRecipe transformed = applyDyeReplacementMap(source, state.getColorReplacements());
+            if (transformed != null && !bannersEquivalent(source, transformed)) {
+                state.setEffectiveActiveBanner(transformed);
                 if (persist) persistCurrentWorldState();
                 return;
             }
         }
 
-        state.setActiveBanner(cloneBanner(sourceBanner));
+        state.setEffectiveActiveBanner(cloneBanner(source));
         if (persist) persistCurrentWorldState();
+    }
+
+    private BannerRecipe saveBannerToLocalPack(BannerRecipe banner) {
+        if (banner == null) return null;
+
+        String name = banner.getName();
+        if (name == null || name.isBlank()) {
+            name = BannerRecipe.getUnnamedBanner();
+        }
+
+        String category = banner.getCategory();
+        if (category == null || category.isBlank()) {
+            category = defaultSaveCategory();
+        }
+
+        BannerRecipe toSave = cloneBanner(banner).withDescription(name).withCategory(category);
+        return BannerStorage.getInstance().addBanner(toSave);
     }
 
     private boolean isActiveBannerFromWritableSource() {
@@ -460,7 +540,7 @@ public class LoomScreenStateManager {
     }
 
     private String effectiveActiveName() {
-        BannerRecipe banner = state.getActiveBanner();
+        BannerRecipe banner = state.getEffectiveActiveBanner();
         if (banner == null) return BannerRecipe.getUnnamedBanner();
 
         String base = banner.getName();
@@ -512,8 +592,7 @@ public class LoomScreenStateManager {
     private void resetStateFromPersistence() {
         state.setPanelOpen(false);
         state.setActiveBanner(null);
-        state.setSelectedBannerId(null);
-        state.setActiveBannerSource(null);
+        state.setEffectiveActiveBanner(null);
         state.setActiveBannerRecipe(null);
         state.setSelectedCategory(null);
         state.setColorReplacementEnabled(false);
@@ -583,16 +662,14 @@ public class LoomScreenStateManager {
         String sourceId = blankToNull(state.getActiveBannerRecipe());
         if (sourceId == null) {
             state.setActiveBanner(null);
-            state.setActiveBannerSource(null);
-            state.setSelectedBannerId(null);
+            state.setEffectiveActiveBanner(null);
             return;
         }
 
         BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
         if (source == null) {
             state.setActiveBanner(null);
-            state.setActiveBannerSource(null);
-            state.setSelectedBannerId(null);
+            state.setEffectiveActiveBanner(null);
             return;
         }
 

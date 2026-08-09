@@ -131,9 +131,10 @@ public class LoomScreenLeftBar implements ScreenExtension {
     @Override
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         boolean hasActiveBanner = manager.hasActiveBanner();
-        boolean canCraftActiveBanner = hasActiveBanner && manager.isActiveBannerCraftable();
-        String craftDisabledMessage =
-                hasActiveBanner && !canCraftActiveBanner ? manager.getActiveBannerMissingMaterialMessage() : null;
+        boolean canCraftEffectiveActiveBanner = hasActiveBanner && manager.isEffectiveActiveBannerCraftable();
+        String craftDisabledMessage = hasActiveBanner && !canCraftEffectiveActiveBanner
+                ? manager.getEffectiveActiveBannerMissingMaterialMessage()
+                : null;
 
         updateButtonState();
 
@@ -161,14 +162,15 @@ public class LoomScreenLeftBar implements ScreenExtension {
             setSingleLineTooltip(context, CHANGE_COLORS_TOOLTIP, mouseX, mouseY);
         }
 
-        ItemStack activeBannerStack = manager.getActiveBannerStack();
-        if (activeBannerStack.isEmpty()) return;
+        ItemStack effectiveActiveBannerStack = manager.getEffectiveActiveBannerStack();
+        if (effectiveActiveBannerStack.isEmpty()) return;
 
-        context.fakeItem(activeBannerStack, getLeftStripButtonX() + 2, screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y + 1);
+        context.fakeItem(
+                effectiveActiveBannerStack, getLeftStripButtonX() + 2, screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y + 1);
 
         if (!isSurvivalNotWeavable()) {
             int progress = manager.detectCraftingProgress();
-            int total = manager.getActiveBannerLayerCount();
+            int total = manager.getEffectiveActiveBannerLayerCount();
             if (progress >= 0 && total > 0) {
                 String badge = (progress + 1) + "/" + total;
                 int badgeWidth = screen.font.width(badge);
@@ -178,13 +180,13 @@ public class LoomScreenLeftBar implements ScreenExtension {
             }
         }
 
-        if (isInActiveSlot(mouseX, mouseY) && manager.getActiveBannerRecipe() != null) {
+        if (isInActiveSlot(mouseX, mouseY) && manager.getEffectiveActiveBanner() != null) {
             int progress = manager.detectCraftingProgress();
             int currentRowIndex = progress >= 0 ? progress + 1 : -1;
             LoomRecipePanel.setBannerTooltip(
                     context,
-                    manager.getActiveBannerDisplayName(),
-                    manager.getActiveBannerRecipe(),
+                    manager.getEffectiveActiveBannerDisplayName(),
+                    manager.getEffectiveActiveBanner(),
                     currentRowIndex,
                     mouseX,
                     mouseY);
@@ -247,7 +249,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
             saveButton.visible = true;
         }
         if (craftButton != null) {
-            craftButton.active = hasActiveBanner && manager.isActiveBannerCraftable();
+            craftButton.active = hasActiveBanner && manager.isEffectiveActiveBannerCraftable();
         }
         if (colorButton != null) {
             colorButton.active = hasActiveBanner;
@@ -257,7 +259,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
     private boolean isSurvivalNotWeavable() {
         LocalPlayer player = screen.minecraft.player;
-        return !manager.isActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
+        return !manager.isEffectiveActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
     }
 
     private int getLeftStripButtonX() {

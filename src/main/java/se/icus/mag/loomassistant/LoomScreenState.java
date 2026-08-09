@@ -12,8 +12,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 public class LoomScreenState {
     private boolean panelOpen;
     private transient BannerRecipe activeBanner;
-    private transient String selectedBannerId;
-    private transient BannerRecipe activeBannerSource;
+    private transient BannerRecipe effectiveActiveBanner;
     private String activeBannerRecipe;
     private String selectedCategory;
     private Map<DyeColor, DyeColor> colorReplacements = new HashMap<>();
@@ -35,20 +34,12 @@ public class LoomScreenState {
         this.activeBanner = activeBanner;
     }
 
-    public String getSelectedBannerId() {
-        return selectedBannerId;
+    public BannerRecipe getEffectiveActiveBanner() {
+        return effectiveActiveBanner;
     }
 
-    public void setSelectedBannerId(String selectedBannerId) {
-        this.selectedBannerId = selectedBannerId;
-    }
-
-    public BannerRecipe getActiveBannerSource() {
-        return activeBannerSource;
-    }
-
-    public void setActiveBannerSource(BannerRecipe activeBannerSource) {
-        this.activeBannerSource = activeBannerSource;
+    public void setEffectiveActiveBanner(BannerRecipe effectiveActiveBanner) {
+        this.effectiveActiveBanner = effectiveActiveBanner;
     }
 
     public String getActiveBannerRecipe() {

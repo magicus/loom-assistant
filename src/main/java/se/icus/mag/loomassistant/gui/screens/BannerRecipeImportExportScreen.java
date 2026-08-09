@@ -230,7 +230,7 @@ public class BannerRecipeImportExportScreen extends Screen {
     }
 
     private void renderExportPreview(GuiGraphicsExtractor ctx, int x, int y, int mouseX, int mouseY) {
-        BannerRecipe recipe = manager.getActiveBannerRecipe();
+        BannerRecipe recipe = manager.getEffectiveActiveBanner();
         if (recipe == null) {
             drawPreviewSlot(ctx, x, y);
             return;
@@ -309,15 +309,15 @@ public class BannerRecipeImportExportScreen extends Screen {
         if (recipe == null || this.minecraft == null) return;
 
         manager.loadImportedBanner(recipe);
-        this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, manager, false));
+        this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, manager, true));
     }
 
     private boolean hasExportTarget() {
-        return manager.getActiveBannerRecipe() != null;
+        return manager.getEffectiveActiveBanner() != null;
     }
 
     private String buildExportCommand() {
-        BannerRecipe recipe = manager.getActiveBannerRecipe();
+        BannerRecipe recipe = manager.getEffectiveActiveBanner();
         if (recipe == null) return "";
 
         BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
