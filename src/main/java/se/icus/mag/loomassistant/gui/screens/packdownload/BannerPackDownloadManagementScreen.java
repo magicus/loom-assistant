@@ -75,8 +75,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
         this.repoSettings = LoomAssistantMod.getConfig().getBannerPackRepo();
         this.activateAfterDownload = repoSettings.activateAfterDownload;
         LoomAssistantMod.LOGGER.info("[PackDownload] screen created, repo URL: {}", repoSettings.repoIndexUrl);
-        InstalledPackRegistry registry = new InstalledPackRegistry(
-                BannerStorage.getInstance().getRepository().getPacksRoot());
+        InstalledPackRegistry registry = new InstalledPackRegistry();
         BannerPackRepoClient client = new BannerPackRepoClient(repoSettings.repoIndexUrl);
         this.service = new BannerPackDownloadService(
                 client, registry, BannerStorage.getInstance().getRepository().getPacksRoot());

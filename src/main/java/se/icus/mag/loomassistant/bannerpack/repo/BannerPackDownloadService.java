@@ -124,9 +124,8 @@ public class BannerPackDownloadService {
         }
 
         String now = Instant.now().toString();
-        String activatedAt = activate ? now : null;
-        InstalledPackState state = new InstalledPackState(
-                entry.id(), entry.id() + ".zip", entry.downloadUrl(), entry.sha256(), now, activatedAt);
+        InstalledPackState state =
+                new InstalledPackState(entry.id(), entry.id() + ".zip", entry.downloadUrl(), entry.sha256(), now);
         registry.put(state);
 
         if (activate) {

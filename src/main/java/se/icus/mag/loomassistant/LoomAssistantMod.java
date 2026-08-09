@@ -66,8 +66,7 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
         if (repoSettings.getAutoInstallPackIdList().isEmpty()) return;
 
         BannerStorage storage = BannerStorage.getInstance();
-        InstalledPackRegistry registry =
-                new InstalledPackRegistry(storage.getRepository().getPacksRoot());
+        InstalledPackRegistry registry = new InstalledPackRegistry();
         BannerPackRepoClient repoClient = new BannerPackRepoClient(repoSettings.repoIndexUrl);
         BannerPackDownloadService service = new BannerPackDownloadService(
                 repoClient, registry, storage.getRepository().getPacksRoot());

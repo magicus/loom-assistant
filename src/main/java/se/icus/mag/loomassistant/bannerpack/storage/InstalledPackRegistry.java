@@ -16,23 +16,26 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.fabricmc.loader.api.FabricLoader;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 
 /**
  * Tracks banner packs that were downloaded from the online repository.
- * Stored in bannerpacks/.loom-assistant/downloaded-packs.json.
+ * Stored in config/loom-assistant/downloaded-bannerpacks.json.
  */
 public class InstalledPackRegistry {
-    private static final String META_DIR = ".loom-assistant";
-    private static final String REGISTRY_FILE = "downloaded-packs.json";
+    private static final String REGISTRY_FILE = "downloaded-bannerpacks.json";
     private static final int SCHEMA_VERSION = 1;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final Path registryFile;
     private final Map<String, InstalledPackState> entries = new LinkedHashMap<>();
 
-    public InstalledPackRegistry(Path packsRoot) {
-        this.registryFile = packsRoot.resolve(META_DIR).resolve(REGISTRY_FILE);
+    public InstalledPackRegistry() {
+        this.registryFile = FabricLoader.getInstance()
+                .getConfigDir()
+                .resolve(LoomAssistantMod.MOD_ID)
+                .resolve(REGISTRY_FILE);
         load();
     }
 
