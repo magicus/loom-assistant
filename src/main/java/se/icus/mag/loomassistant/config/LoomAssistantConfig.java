@@ -11,6 +11,8 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.config.clothconfig.ConfigButtons;
+import se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen;
+import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 
 @Config(name = LoomAssistantMod.MOD_ID)
 public class LoomAssistantConfig implements ConfigData {
@@ -42,11 +44,10 @@ public class LoomAssistantConfig implements ConfigData {
 
         @ConfigButtons({
             @ConfigButtons.ButtonAction(
-                    screenClass = "se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen",
+                    screenClass = BannerPackSelectionScreen.class,
                     buttonLabelKey = "loom-assistant.screen.import_export.select_packs"),
             @ConfigButtons.ButtonAction(
-                    screenClass =
-                            "se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen",
+                    screenClass = BannerPackDownloadManagementScreen.class,
                     buttonLabelKey = "loom-assistant.screen.import_export.download_packs")
         })
         @ConfigEntry.Gui.Excluded

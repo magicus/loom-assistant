@@ -8,6 +8,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Adds one or more action buttons to the config UI row for the annotated field.
@@ -20,7 +21,7 @@ public @interface ConfigButtons {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({})
     @interface ButtonAction {
-        String screenClass();
+        Class<? extends Screen> screenClass();
 
         String buttonLabelKey();
     }

@@ -58,22 +58,13 @@ public final class ConfigButtonsHooks {
         return combined;
     }
 
-    private static void openConfiguredScreen(String screenClassName, Screen configScreen) {
-        LoomAssistantMod.LOGGER.info("[Config] Action button clicked for {}", screenClassName);
+    private static void openConfiguredScreen(Class<? extends Screen> screenClass, Screen configScreen) {
+        LoomAssistantMod.LOGGER.info("[Config] Action button clicked for {}", screenClass.getName());
         try {
-            Class<?> screenType = Class.forName(screenClassName);
-            if (!Screen.class.isAssignableFrom(screenType)) {
-                LoomAssistantMod.LOGGER.error(
-                        "[Config] Configured class is not a Screen subclass: {}", screenClassName);
-                return;
-            }
-
-            @SuppressWarnings("unchecked")
-            Class<? extends Screen> typedClass = (Class<? extends Screen>) screenType;
-            Screen targetScreen = typedClass.getConstructor(Screen.class).newInstance(configScreen);
+            Screen targetScreen = screenClass.getConstructor(Screen.class).newInstance(configScreen);
             Minecraft.getInstance().gui.setScreen(targetScreen);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            LoomAssistantMod.LOGGER.error("[Config] Failed to open configured screen {}", screenClassName, e);
+            LoomAssistantMod.LOGGER.error("[Config] Failed to open configured screen {}", screenClass.getName(), e);
         }
     }
 }
