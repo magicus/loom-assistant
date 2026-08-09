@@ -18,7 +18,8 @@ import se.icus.mag.loomassistant.LoomAssistantMod;
  * Manages which banner packs are currently active/enabled.
  *
  * <p>Configuration is stored as JSON in the config directory as
- * "bannerpacks.json". The local pack is always implicitly active.
+ * "bannerpacks.json". The "local" pack is included in the configuration on
+ * first startup.
  */
 public class ActivePacksConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -45,11 +46,10 @@ public class ActivePacksConfig {
             } catch (IOException e) {
                 LoomAssistantMod.LOGGER.error("Failed to load active packs config from {}", configFile, e);
             }
-        }
-
-        // Ensure local pack is always in the list
-        if (!activePacks.contains(BannerPackRepository.LOCAL_PACK_ID)) {
-            activePacks.addFirst(BannerPackRepository.LOCAL_PACK_ID);
+        } else {
+            // Initialize with local pack on first startup
+            activePacks.add(BannerPackRepository.LOCAL_PACK_ID);
+            save();
         }
     }
 
@@ -66,21 +66,17 @@ public class ActivePacksConfig {
     }
 
     /**
-     * Gets the list of active pack IDs (always includes "local").
+     * Gets the list of active pack IDs.
      */
     public List<String> getActivePacks() {
         return new ArrayList<>(activePacks);
     }
 
     /**
-     * Sets which packs are active. The local pack is always active and will be added if missing.
+     * Sets which packs are active.
      */
     public void setActivePacks(List<String> packIds) {
         activePacks = new ArrayList<>(packIds);
-        // Ensure local pack is always active
-        if (!activePacks.contains(BannerPackRepository.LOCAL_PACK_ID)) {
-            activePacks.addFirst(BannerPackRepository.LOCAL_PACK_ID);
-        }
         save();
     }
 
