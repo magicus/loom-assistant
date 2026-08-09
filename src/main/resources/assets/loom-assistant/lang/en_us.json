@@ -16,7 +16,7 @@
   "loom-assistant.screen.color_switch.title": "Replace Colors",
   "loom-assistant.screen.import_export.copied": "Copied!",
   "loom-assistant.screen.import_export.copy": "Copy",
-  "loom-assistant.screen.import_export.download_packs": "Download Packs",
+  "loom-assistant.screen.import_export.download_packs": "Download Banner Packs",
   "loom-assistant.screen.import_export.error_at_pos": "Error at pos %s",
   "loom-assistant.screen.import_export.export_command_label": "Export the active banner as a /give command",
   "loom-assistant.screen.import_export.export_label": "Export",
