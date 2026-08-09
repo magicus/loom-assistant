@@ -101,10 +101,10 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
         this.saveButton = screen.addRenderableWidget(new SaveEditButton());
         this.craftButton = screen.addRenderableWidget(new WeaveButton());
+        this.craftButton.setOverrideRenderHighlightedSprite(this.craftButton::isHovered);
         this.importExportButton = screen.addRenderableWidget(new ImportExportButton());
         this.colorButton = screen.addRenderableWidget(new ReplaceColorButton());
-        this.colorButton.setOverrideRenderHighlightedSprite(
-                () -> manager.isPersistentDyeSwitchEnabled() || this.colorButton.isHoveredOrFocused());
+        this.colorButton.setOverrideRenderHighlightedSprite(this.colorButton::isHovered);
 
         refreshLayout();
         updateButtonState();
@@ -115,13 +115,13 @@ public class LoomScreenLeftBar implements ScreenExtension {
             recipeBookButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_RECIPE_Y);
         }
         if (saveButton != null) {
-            saveButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_SAVE_EDIT_Y);
+            saveButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_SAVE_EDIT_Y + 1);
         }
         if (craftButton != null) {
-            craftButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_CRAFT_Y);
+            craftButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_CRAFT_Y - 1);
         }
         if (colorButton != null) {
-            colorButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_COLOR_Y);
+            colorButton.setPosition(getLeftStripButtonX(), screen.topPos + LEFT_STRIP_COLOR_Y + 3);
         }
         if (importExportButton != null) {
             importExportButton.setPosition(getLeftStripButtonX(), getImportExportButtonY());
@@ -268,7 +268,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
     }
 
     private int getImportExportButtonY() {
-        return screen.topPos + screen.imageHeight - 18 - LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN;
+        return screen.topPos + screen.imageHeight - 20 - LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN;
     }
 
     private boolean isInActiveSlot(int mouseX, int mouseY) {
@@ -328,9 +328,9 @@ public class LoomScreenLeftBar implements ScreenExtension {
         protected ReplaceColorButton() {
             super(
                     LoomScreenLeftBar.this.getLeftStripButtonX(),
-                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_COLOR_Y,
+                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_COLOR_Y + 3,
                     20,
-                    18,
+                    20,
                     Component.empty(),
                     button -> {
                         if (!manager.hasActiveBanner()) return;
@@ -346,28 +346,38 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
         @Override
         public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-            this.extractDefaultSprite(graphics);
             boolean persistent = manager.isPersistentDyeSwitchEnabled();
-            int iconOffset = persistent ? 1 : 0;
+            if (persistent) {
+                // Rotate 180° to flip highlight/shadow, giving a pressed-in look
+                float cx = this.getX() + this.getWidth() / 2.0f;
+                float cy = this.getY() + this.getHeight() / 2.0f;
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(cx, cy);
+                graphics.pose().rotate((float) Math.PI);
+                graphics.pose().translate(-cx, -cy);
+                this.extractDefaultSprite(graphics);
+                graphics.pose().popMatrix();
+                graphics.fill(
+                        this.getX() + 1,
+                        this.getY() + 1,
+                        this.getX() + this.getWidth() - 1,
+                        this.getY() + this.getHeight() - 1,
+                        0xAA8A92C5);
+            } else {
+                this.extractDefaultSprite(graphics);
+            }
+            int iconShift = persistent ? 1 : 0;
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,
                     RECIPE_SWAP_COLORS_ICON,
-                    this.getX() + 2 + iconOffset,
-                    this.getY() + 1 + iconOffset,
+                    this.getX() + 2 + iconShift,
+                    this.getY() + 2 + iconShift,
                     0.0F,
                     0.0F,
                     16,
                     16,
                     16,
                     16);
-            if (persistent) {
-                graphics.fill(
-                        this.getX() + 1,
-                        this.getY() + 1,
-                        this.getX() + this.getWidth() - 1,
-                        this.getY() + 2,
-                        0x55000000);
-            }
         }
     }
 
@@ -375,9 +385,9 @@ public class LoomScreenLeftBar implements ScreenExtension {
         protected SaveEditButton() {
             super(
                     LoomScreenLeftBar.this.getLeftStripButtonX(),
-                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_SAVE_EDIT_Y,
+                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_SAVE_EDIT_Y + 1,
                     20,
-                    18,
+                    20,
                     Component.empty(),
                     button -> {
                         if (manager.hasActiveBanner()) {
@@ -407,7 +417,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
             this.extractDefaultSprite(graphics);
             Identifier icon = manager.isActiveBannerAlreadySaved() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
             graphics.blit(
-                    RenderPipelines.GUI_TEXTURED, icon, this.getX() + 2, this.getY() + 1, 0.0F, 0.0F, 16, 16, 16, 16);
+                    RenderPipelines.GUI_TEXTURED, icon, this.getX() + 2, this.getY() + 2, 0.0F, 0.0F, 16, 16, 16, 16);
         }
     }
 
@@ -415,9 +425,9 @@ public class LoomScreenLeftBar implements ScreenExtension {
         protected WeaveButton() {
             super(
                     LoomScreenLeftBar.this.getLeftStripButtonX(),
-                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_CRAFT_Y,
+                    LoomScreenLeftBar.this.screen.topPos + LEFT_STRIP_CRAFT_Y - 1,
                     20,
-                    18,
+                    20,
                     Component.empty(),
                     button -> manager.craftActiveBanner(),
                     Supplier::get);
@@ -430,7 +440,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     RenderPipelines.GUI_TEXTURED,
                     RECIPE_WEAVE_ICON,
                     this.getX() + 2,
-                    this.getY() + 1,
+                    this.getY() + 2,
                     0.0F,
                     0.0F,
                     16,
@@ -446,7 +456,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     LoomScreenLeftBar.this.getLeftStripButtonX(),
                     LoomScreenLeftBar.this.getImportExportButtonY(),
                     20,
-                    18,
+                    20,
                     Component.empty(),
                     button -> screen.minecraft.gui.setScreen(new ManageBannerRecipesScreen(screen, manager)),
                     Supplier::get);
@@ -459,7 +469,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     RenderPipelines.GUI_TEXTURED,
                     RECIPE_IMPORT_EXPORT_ICON,
                     this.getX() + 2,
-                    this.getY() + 1,
+                    this.getY() + 2,
                     0.0F,
                     0.0F,
                     16,
