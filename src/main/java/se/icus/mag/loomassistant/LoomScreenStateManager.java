@@ -406,7 +406,7 @@ public class LoomScreenStateManager {
         if (!state.isColorReplacementEnabled()) return;
 
         state.setColorReplacementEnabled(false);
-        state.getColorReplacements().clear();
+        // map kept intentionally so shift+click can re-enable it
 
         BannerRecipe source = state.getActiveBanner();
         if (source != null) {
@@ -414,6 +414,30 @@ public class LoomScreenStateManager {
         }
 
         persistCurrentWorldState();
+    }
+
+    public boolean hasSavedColorReplacements() {
+        return !state.getColorReplacements().isEmpty();
+    }
+
+    public boolean reenablePersistentDyeSwitch() {
+        if (state.isColorReplacementEnabled() || state.getColorReplacements().isEmpty()) return false;
+        String sourceId = blankToNull(state.getActiveBannerRecipe());
+        if (sourceId == null) return false;
+        BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
+        if (source == null) return false;
+
+        BannerRecipe transformed = applyDyeReplacementMap(cloneBanner(source), state.getColorReplacements());
+        if (transformed == null) return false;
+
+        state.setColorReplacementEnabled(true);
+        state.setEffectiveActiveBanner(transformed);
+        persistCurrentWorldState();
+        return true;
+    }
+
+    public void clearColorReplacements() {
+        state.getColorReplacements().clear();
     }
 
     // ── Banner storage / metadata ─────────────────────────────────────────────
@@ -628,7 +652,8 @@ public class LoomScreenStateManager {
         state.setColorReplacementEnabled(state.getActiveBannerRecipe() != null
                 && persistedWorldState.isColorReplacementEnabled()
                 && !state.getColorReplacements().isEmpty());
-        if (!state.isColorReplacementEnabled()) {
+        // clear map only if there is no banner to re-enable for
+        if (state.getActiveBannerRecipe() == null) {
             state.getColorReplacements().clear();
         }
 
@@ -666,7 +691,8 @@ public class LoomScreenStateManager {
                 && state.isColorReplacementEnabled()
                 && !state.getColorReplacements().isEmpty();
         snapshot.setColorReplacementEnabled(persistentDyeEnabled);
-        if (persistentDyeEnabled) {
+        // always persist the map so shift+re-enable survives a restart
+        if (persistableBanner && !state.getColorReplacements().isEmpty()) {
             snapshot.setColorReplacements(state.getColorReplacements());
         }
         return snapshot;

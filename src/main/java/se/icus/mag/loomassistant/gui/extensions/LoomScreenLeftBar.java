@@ -337,7 +337,10 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
                         if (manager.isPersistentDyeSwitchEnabled()) {
                             manager.disablePersistentDyeSwitchAndReload();
+                        } else if (isShiftHeld() && manager.hasSavedColorReplacements()) {
+                            manager.reenablePersistentDyeSwitch();
                         } else {
+                            manager.clearColorReplacements();
                             screen.minecraft.gui.setScreen(new BannerColorSwitchScreen(screen, manager));
                         }
                     },
