@@ -37,7 +37,7 @@ public class LoomAssistantConfig implements ConfigData {
                 "https://raw.githubusercontent.com/magicus/banner-recipe-database/refs/heads/main/bannerpack-index-v1.json";
 
         @ConfigEntry.Gui.Tooltip(count = 1)
-        public String autoInstallPackIds = "numbers";
+        public String autoInstallPackIds = "categories,numbers";
 
         public boolean activateAfterDownload = true;
 

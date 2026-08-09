@@ -4,10 +4,7 @@
  */
 package se.icus.mag.loomassistant.bannerpack.storage;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,7 +20,6 @@ import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.bannerpack.BannerPackMetadata;
 import se.icus.mag.loomassistant.bannerpack.DirectoryBannerPack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 
 public class BannerPackRepository {
     public static final String LOCAL_PACK_ID = "local";
@@ -164,7 +160,6 @@ public class BannerPackRepository {
     private void ensureRootPackExists() {
         Path localPackDir = packsRoot.resolve(LOCAL_PACK_ID);
         Path localBannersDir = localPackDir.resolve(BannerPack.BANNERS_DIR);
-        Path localCategoriesDir = localPackDir.resolve(BannerPack.CATEGORIES_DIR);
 
         try {
             Files.createDirectories(localBannersDir);
@@ -172,46 +167,9 @@ public class BannerPackRepository {
             if (!Files.exists(mcmeta)) {
                 BannerPackMetadata metadata = new BannerPackMetadata(LOCAL_PACK_ID, "Local");
                 BannerPack.writeMcmeta(localPackDir, metadata);
-                writeDefaultCategories(localCategoriesDir);
             }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create local pack", e);
-        }
-    }
-
-    private static void writeDefaultCategories(Path categoriesDir) throws IOException {
-        String ns = "loom-assistant";
-        for (BannerRecipeCategory cat : new BannerRecipeCategory[] {
-            new BannerRecipeCategory(
-                    "flags",
-                    "Flags",
-                    "minecraft:blue_banner[banner_patterns=[{\"pattern\":\"straight_cross\",\"color\":\"yellow\"}]]"),
-            new BannerRecipeCategory("letters", "Letters", "minecraft:book"),
-            new BannerRecipeCategory("logos", "Logos", "minecraft:blaze_powder"),
-            new BannerRecipeCategory("misc", "Misc", "minecraft:lava_bucket"),
-            new BannerRecipeCategory("nature", "Nature", "minecraft:poppy"),
-        }) {
-            BannerPack.writeCategoryFile(categoriesDir, ns, cat);
-        }
-        writeCategoryLangFile(categoriesDir, "sv_se", new String[][] {
-            {"flags", "Flaggor"},
-            {"letters", "Bokstäver"},
-            {"logos", "Logotyper"},
-            {"misc", "Övrigt"},
-            {"nature", "Natur"},
-        });
-    }
-
-    private static void writeCategoryLangFile(Path categoriesDir, String locale, String[][] entries)
-            throws IOException {
-        Path langDir = categoriesDir.resolve("lang");
-        Files.createDirectories(langDir);
-        JsonObject obj = new JsonObject();
-        for (String[] entry : entries) {
-            obj.addProperty(entry[0], entry[1]);
-        }
-        try (Writer w = Files.newBufferedWriter(langDir.resolve(locale + ".json"))) {
-            new GsonBuilder().setPrettyPrinting().create().toJson(obj, w);
         }
     }
 

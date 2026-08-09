@@ -50,6 +50,7 @@ class BannerPackRepositoryTest {
         assertTrue(Files.exists(packsRoot.resolve("local")));
         assertTrue(Files.exists(packsRoot.resolve("local").resolve("bannerpack.mcmeta")));
         assertTrue(Files.exists(packsRoot.resolve("local").resolve("banners")));
+        assertFalse(Files.exists(packsRoot.resolve("local").resolve("categories")));
         assertNotNull(repository.getPack("local"));
     }
 

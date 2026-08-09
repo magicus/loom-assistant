@@ -326,6 +326,11 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
     @Override
     public void onClose() {
+        if (previousScreen
+                instanceof
+                se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen selectionScreen) {
+            selectionScreen.refreshFromStorage();
+        }
         this.minecraft.gui.setScreen(previousScreen);
     }
 

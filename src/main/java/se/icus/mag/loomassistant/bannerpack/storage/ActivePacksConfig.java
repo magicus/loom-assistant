@@ -33,6 +33,10 @@ public class ActivePacksConfig {
         load();
     }
 
+    public void reloadFromDisk() {
+        load();
+    }
+
     private void load() {
         activePacks.clear();
 

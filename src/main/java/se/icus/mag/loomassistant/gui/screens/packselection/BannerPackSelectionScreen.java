@@ -231,6 +231,12 @@ public class BannerPackSelectionScreen extends Screen {
         }
     }
 
+    public void refreshFromStorage() {
+        this.repository.load();
+        this.activeConfig.reloadFromDisk();
+        this.reload();
+    }
+
     @Override
     public void onFilesDrop(List<Path> files) {
         if (files.isEmpty()) return;
