@@ -21,6 +21,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
 import se.icus.mag.loomassistant.recipe.converters.UrlExport;
+import se.icus.mag.loomassistant.recipe.converters.parsers.urlparsers.UrlParser;
 
 public class ManageBannerRecipesScreen extends Screen {
     private static final int MAX_PANEL_W = 360;
@@ -275,7 +276,14 @@ public class ManageBannerRecipesScreen extends Screen {
 
     private void onImportTextChanged(String text) {
         copiedFeedback = false;
-        importParseResult = BannerRecipeCommandConverter.parseCommandDetailed(text);
+        String trimmed = text == null ? "" : text.strip();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            String error = UrlParser.checkParseUrl(trimmed);
+            BannerRecipe recipe = error == null ? UrlParser.parseUrl(trimmed) : null;
+            importParseResult = new BannerRecipeCommandConverter.CommandParseResult(recipe, error, null);
+        } else {
+            importParseResult = BannerRecipeCommandConverter.parseCommandDetailed(text);
+        }
         importButton.active = importParseResult.recipe() != null;
     }
 
