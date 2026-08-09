@@ -762,13 +762,7 @@ public class LoomRecipePanel implements ScreenExtension {
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
         int progress = detectCraftingProgress();
         int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        setBannerTooltip(
-            ctx,
-            selectedBaseBanner.getDisplayName(),
-            selectedBaseBanner,
-            currentRowIndex,
-            mouseX,
-            mouseY);
+        setBannerTooltip(ctx, selectedBaseBanner.getDisplayName(), selectedBaseBanner, currentRowIndex, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
