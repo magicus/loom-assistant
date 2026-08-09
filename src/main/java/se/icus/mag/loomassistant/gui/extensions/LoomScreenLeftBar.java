@@ -31,7 +31,7 @@ import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.gui.screens.BannerDetailsScreen;
-import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
+import se.icus.mag.loomassistant.gui.screens.ManageBannerRecipesScreen;
 import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 
 public class LoomScreenLeftBar implements ScreenExtension {
@@ -448,7 +448,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     20,
                     18,
                     Component.empty(),
-                    button -> screen.minecraft.gui.setScreen(new BannerRecipeImportExportScreen(screen, manager)),
+                    button -> screen.minecraft.gui.setScreen(new ManageBannerRecipesScreen(screen, manager)),
                     Supplier::get);
         }
 
