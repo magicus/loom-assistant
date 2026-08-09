@@ -38,7 +38,7 @@
   "loom-assistant.screen.pack_download.action.delete": "Delete",
   "loom-assistant.screen.pack_download.action.download": "Download",
   "loom-assistant.screen.pack_download.action.update": "Update",
-  "loom-assistant.screen.pack_download.activate_after_download": "☑ Activate after download",
+  "loom-assistant.screen.pack_download.activate_after_download": "Activate after download",
   "loom-assistant.screen.pack_download.check_updates": "Check for Updates",
   "loom-assistant.screen.pack_download.checking": "Checking…",
   "loom-assistant.screen.pack_download.confirm.delete": "Delete “%s”?",

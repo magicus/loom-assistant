@@ -16,7 +16,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -50,10 +52,11 @@ public class BannerPackDownloadManagementScreen extends Screen {
     private final Map<String, Identifier> iconCache = new HashMap<>();
 
     private PackListWidget packList;
+    private StringWidget titleWidget;
     private Button checkUpdatesButton;
     private Button downloadButton;
     private Button deleteButton;
-    private Button activateToggle;
+    private Checkbox activateCheckbox;
     private Button doneButton;
 
     private RemoteRepoIndex cachedIndex;
@@ -62,11 +65,12 @@ public class BannerPackDownloadManagementScreen extends Screen {
     private String fetchError;
     private boolean operationInProgress;
     private String operationError;
+    private String selectedPackIdBeforeRefresh;
 
     private boolean activateAfterDownload;
 
     public BannerPackDownloadManagementScreen(Screen previousScreen) {
-        super(Component.translatable("loom-assistant.screen.pack_download.title"));
+        super(Component.literal("Download Banner Packs"));
         this.previousScreen = previousScreen;
         this.repoSettings = LoomAssistantMod.getConfig().getBannerPackRepo();
         this.activateAfterDownload = repoSettings.activateAfterDownload;
@@ -80,42 +84,61 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
     @Override
     protected void init() {
-        // Explicit bounds: title at top, one button row at bottom, list fills middle
+        // Explicit bounds: title at top, two button rows at bottom, list fills middle
         int listX = (this.width - LIST_WIDTH) / 2;
         int listY = FOOTER_H;
-        int listH = this.height - FOOTER_H - BTN_ROW_H;
-        int btnY = this.height - BTN_ROW_H + 4;
+        int bottomBtnY = this.height - BTN_ROW_H + 4;
+        int topBtnY = bottomBtnY - BTN_ROW_H;
+        int listBottom = topBtnY - 4;
+        int listH = listBottom - listY;
         int btnH = 20;
 
-        // Centre five buttons across the screen
-        int totalBtnW = 150 + 8 + 130 + 8 + 80 + 8 + 80 + 8 + 60;
-        int bx = (this.width - totalBtnW) / 2;
+        this.titleWidget = addRenderableOnly(new StringWidget(this.getTitle(), this.font));
+        this.titleWidget.setPosition((this.width - this.titleWidget.getWidth()) / 2, 8);
+
+        // Top row: first two buttons
+        this.activateCheckbox = Checkbox.builder(
+                        Component.translatable("loom-assistant.screen.pack_download.activate_after_download"),
+                        this.minecraft.font)
+                .pos(0, topBtnY)
+                .selected(activateAfterDownload)
+                .maxWidth(280)
+                .onValueChange((checkbox, value) -> {
+                    activateAfterDownload = value;
+                    repoSettings.activateAfterDownload = value;
+                    me.shedaniel.autoconfig.AutoConfig.getConfigHolder(LoomAssistantConfig.class)
+                            .save();
+                })
+                .build();
+        int topRowTotalW = 150 + 8 + this.activateCheckbox.getWidth();
+        int bx = (this.width - topRowTotalW) / 2;
         this.checkUpdatesButton = addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.pack_download.check_updates"),
                         b -> onCheckUpdates())
-                .bounds(bx, btnY, 150, btnH)
+                .bounds(bx, topBtnY, 150, btnH)
                 .build());
         bx += 150 + 8;
-        this.activateToggle =
-                addRenderableWidget(Button.builder(getActivateToggleLabel(), b -> toggleActivateAfterDownload())
-                        .bounds(bx, btnY, 130, btnH)
-                        .build());
-        bx += 130 + 8;
+        this.activateCheckbox.setPosition(bx, topBtnY);
+        addRenderableWidget(this.activateCheckbox);
+
+        // Bottom row: remaining three buttons
+        int bottomRowTotalW = 80 + 8 + 80 + 8 + 60;
+        bx = (this.width - bottomRowTotalW) / 2;
         this.downloadButton = addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.pack_download.action.download"),
                         b -> onDownload())
-                .bounds(bx, btnY, 80, btnH)
+                .bounds(bx, bottomBtnY, 80, btnH)
                 .build());
         this.downloadButton.active = false;
         bx += 80 + 8;
         this.deleteButton = addRenderableWidget(Button.builder(
                         Component.translatable("loom-assistant.screen.pack_download.action.delete"), b -> onDelete())
-                .bounds(bx, btnY, 80, btnH)
+                .bounds(bx, bottomBtnY, 80, btnH)
                 .build());
         this.deleteButton.active = false;
         bx += 80 + 8;
         this.doneButton = addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> this.onClose())
-                .bounds(bx, btnY, 60, btnH)
+                .bounds(bx, bottomBtnY, 60, btnH)
                 .build());
 
         this.packList = new PackListWidget(this.minecraft, LIST_WIDTH, listH, listX, listY);
@@ -131,29 +154,17 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
     @Override
     protected void repositionElements() {
-        // rebuildWidgets re-runs init(); no extra reposition needed
-    }
-
-    private Component getActivateToggleLabel() {
-        return activateAfterDownload
-                ? Component.translatable("loom-assistant.screen.pack_download.activate_after_download")
-                        .withStyle(ChatFormatting.GREEN)
-                : Component.translatable("loom-assistant.screen.pack_download.activate_after_download")
-                        .withStyle(ChatFormatting.GRAY);
-    }
-
-    private void toggleActivateAfterDownload() {
-        activateAfterDownload = !activateAfterDownload;
-        repoSettings.activateAfterDownload = activateAfterDownload;
-        me.shedaniel.autoconfig.AutoConfig.getConfigHolder(LoomAssistantConfig.class)
-                .save();
-        if (activateToggle != null) {
-            activateToggle.setMessage(getActivateToggleLabel());
+        // rebuildWidgets re-runs init(); keep the title centered if the screen is resized directly.
+        if (this.titleWidget != null) {
+            this.titleWidget.setPosition((this.width - this.titleWidget.getWidth()) / 2, 8);
         }
     }
 
     private void onCheckUpdates() {
         if (fetching || operationInProgress) return;
+        selectedPackIdBeforeRefresh = getSelectedStatus() == null
+                ? null
+                : getSelectedStatus().remoteEntry().id();
         fetching = true;
         fetchError = null;
         operationError = null;
@@ -310,7 +321,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
         if (downloadButton != null) downloadButton.active = enabled;
         if (deleteButton != null) deleteButton.active = enabled;
         if (doneButton != null) doneButton.active = enabled;
-        if (activateToggle != null) activateToggle.active = enabled;
+        if (activateCheckbox != null) activateCheckbox.active = enabled;
     }
 
     @Override
@@ -372,10 +383,12 @@ public class BannerPackDownloadManagementScreen extends Screen {
                         s.remoteEntry().id(),
                         s.status());
             }
-            String prevSelectedId = null;
-            PackListEntry prevSelected = this.getSelected();
-            if (prevSelected instanceof PackRowEntry r) {
-                prevSelectedId = r.status.remoteEntry().id();
+            String prevSelectedId = BannerPackDownloadManagementScreen.this.selectedPackIdBeforeRefresh;
+            if (prevSelectedId == null) {
+                PackListEntry prevSelected = this.getSelected();
+                if (prevSelected instanceof PackRowEntry r) {
+                    prevSelectedId = r.status.remoteEntry().id();
+                }
             }
             this.clearEntries();
 
@@ -409,6 +422,9 @@ public class BannerPackDownloadManagementScreen extends Screen {
                 if (toReselect != null) {
                     this.setSelected(toReselect);
                 }
+            }
+            if (!fetching) {
+                BannerPackDownloadManagementScreen.this.selectedPackIdBeforeRefresh = null;
             }
         }
     }

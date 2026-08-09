@@ -38,7 +38,7 @@
   "loom-assistant.screen.pack_download.action.delete": "Ta bort",
   "loom-assistant.screen.pack_download.action.download": "Ladda ner",
   "loom-assistant.screen.pack_download.action.update": "Uppdatera",
-  "loom-assistant.screen.pack_download.activate_after_download": "☑ Aktivera vid nedladdning",
+  "loom-assistant.screen.pack_download.activate_after_download": "Aktivera vid nedladdning",
   "loom-assistant.screen.pack_download.check_updates": "Sök efter uppdateringar",
   "loom-assistant.screen.pack_download.checking": "Söker…",
   "loom-assistant.screen.pack_download.confirm.delete": "Ta bort „%s“?",
