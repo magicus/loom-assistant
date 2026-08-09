@@ -13,6 +13,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -182,7 +183,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
                             }
                             reload();
                         },
-                        Minecraft.getInstance());
+                        this.minecraft);
     }
 
     private void onDownload() {
@@ -380,17 +381,19 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
             if (operationError != null) {
                 this.addEntry(
-                        new StatusTextEntry(Component.literal(operationError).withStyle(ChatFormatting.RED)));
+                        new StatusTextEntry(this.minecraft.font, Component.literal(operationError).withStyle(ChatFormatting.RED)));
             }
 
             if (fetching) {
-                this.addEntry(new StatusTextEntry(Component.translatable("loom-assistant.screen.pack_download.checking")
-                        .withStyle(ChatFormatting.GRAY)));
+                this.addEntry(new StatusTextEntry(
+                        this.minecraft.font,
+                        Component.translatable("loom-assistant.screen.pack_download.checking").withStyle(ChatFormatting.GRAY)));
             } else if (fetchError != null) {
-                this.addEntry(new StatusTextEntry(Component.literal(fetchError).withStyle(ChatFormatting.RED)));
+                this.addEntry(new StatusTextEntry(this.minecraft.font, Component.literal(fetchError).withStyle(ChatFormatting.RED)));
             } else if (statuses.isEmpty()) {
-                this.addEntry(new StatusTextEntry(Component.translatable("loom-assistant.screen.pack_download.no_packs")
-                        .withStyle(ChatFormatting.GRAY)));
+                this.addEntry(new StatusTextEntry(
+                        this.minecraft.font,
+                        Component.translatable("loom-assistant.screen.pack_download.no_packs").withStyle(ChatFormatting.GRAY)));
             } else {
                 PackRowEntry toReselect = null;
                 for (PackUpdateStatus s : statuses) {
@@ -415,9 +418,11 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
     @Environment(EnvType.CLIENT)
     static class StatusTextEntry extends PackListEntry {
+        private final Font font;
         private final Component text;
 
-        StatusTextEntry(Component text) {
+        StatusTextEntry(Font font, Component text) {
+            this.font = font;
             this.text = text;
         }
 
@@ -428,12 +433,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
         @Override
         public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            graphics.centeredText(
-                    Minecraft.getInstance().font,
-                    text,
-                    this.getContentX() + this.getWidth() / 2,
-                    this.getContentYMiddle() - 4,
-                    0xAAAAAA);
+            graphics.centeredText(font, text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 4, 0xAAAAAA);
         }
     }
 
@@ -481,7 +481,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
                     32,
                     32);
 
-            var font = Minecraft.getInstance().font;
+            var font = screen.font;
             int textX = this.getContentX() + 38;
             String title = status.remoteEntry().displayTitle();
             graphics.text(font, Component.literal(title), textX, this.getContentY() + PADDING, 0xFFFFFFFF, false);

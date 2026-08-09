@@ -89,8 +89,8 @@ public final class BannerRecipeCategories {
      * Returns the category name localized for the current game language.
      * Falls back to description field, then the id itself.
      */
-    public static String getLocalizedDescription(String catId) {
-        String locale = currentLocale();
+    public static String getLocalizedDescription(Minecraft mc, String catId) {
+        String locale = currentLocale(mc);
         Map<String, String> localeMap = translations.get(locale);
         if (localeMap != null && localeMap.containsKey(catId)) {
             return localeMap.get(catId);
@@ -106,9 +106,8 @@ public final class BannerRecipeCategories {
         return cat != null ? cat.description() : catId;
     }
 
-    private static String currentLocale() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.options == null) return "en_us";
+    private static String currentLocale(Minecraft mc) {
+        if (mc.options == null) return "en_us";
 
         return mc.options.languageCode.toLowerCase(Locale.ROOT);
     }

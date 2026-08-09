@@ -35,7 +35,7 @@ public class PackEntry extends BannerPackListEntry implements SelectableEntry {
     private final MultiLineTextWidget secondLineWidget;
 
     public PackEntry(
-            Minecraft minecraft,
+            Minecraft mc,
             BannerPackSelectionScreen screen,
             BannerPackListWidget parent,
             BannerPackModelEntry pack,
@@ -43,9 +43,9 @@ public class PackEntry extends BannerPackListEntry implements SelectableEntry {
         this.screen = screen;
         this.parent = parent;
         this.pack = pack.withActive(active);
-        this.nameWidget = new StringWidget(this.pack.getTitle(), minecraft.font);
+        this.nameWidget = new StringWidget(this.pack.getTitle(), mc.font);
         this.secondLineWidget = new MultiLineTextWidget(
-                ComponentUtils.mergeStyles(this.pack.secondLine(), Style.EMPTY.withColor(-8355712)), minecraft.font);
+                ComponentUtils.mergeStyles(this.pack.secondLine(), Style.EMPTY.withColor(-8355712)), mc.font);
         this.secondLineWidget.setMaxRows(2);
     }
 

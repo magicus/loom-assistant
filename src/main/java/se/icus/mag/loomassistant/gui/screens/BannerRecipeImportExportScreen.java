@@ -221,7 +221,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);
@@ -236,7 +236,7 @@ public class BannerRecipeImportExportScreen extends Screen {
             return;
         }
 
-        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(recipe);
         ctx.item(stack, x + 5, y + 5);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
             ctx.setTooltipForNextFrame(this.font, Component.literal(recipe.getDisplayName()), mouseX, mouseY, null);

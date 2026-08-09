@@ -14,13 +14,13 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
@@ -43,10 +43,8 @@ public class WeavingGuide implements ScreenExtension {
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         if (!manager.hasActiveBanner()) return;
 
-        Minecraft minecraft = screen.minecraft;
-        boolean survivalNotWeavable = !manager.isEffectiveActiveBannerWeavable()
-                && minecraft.player != null
-                && !minecraft.player.hasInfiniteMaterials();
+        Minecraft mc = screen.minecraft;
+        boolean survivalNotWeavable = !manager.isEffectiveActiveBannerWeavable() && !mc.player.hasInfiniteMaterials();
         if (!survivalNotWeavable) {
             int progress = manager.detectCraftingProgress();
             if (progress >= 0) {
@@ -61,9 +59,7 @@ public class WeavingGuide implements ScreenExtension {
     }
 
     public static void renderBannerPreview(GuiGraphicsExtractor context, BannerRecipe banner, int x, int y) {
-        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
-        ItemStack bannerStack = converter.fromRecipe(banner);
-        ;
+        ItemStack bannerStack = BannerRecipeItemConverter.toItem(banner);
         context.item(bannerStack, x, y);
     }
 
@@ -115,13 +111,10 @@ public class WeavingGuide implements ScreenExtension {
 
         try {
             Identifier patternId = Identifier.tryParse(layer.patternId());
-            if (patternId == null || screen.minecraft.level == null) return;
+            if (patternId == null) return;
 
-            Optional<Registry<BannerPattern>> registry =
-                    screen.minecraft.level.registryAccess().lookup(Registries.BANNER_PATTERN);
-            if (registry.isEmpty()) return;
-
-            Optional<Holder.Reference<BannerPattern>> entry = registry.get().get(patternId);
+            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry();
+            Optional<Holder.Reference<BannerPattern>> entry = registry.get(patternId);
             if (entry.isEmpty()) return;
 
             Holder<BannerPattern> holder = entry.get();

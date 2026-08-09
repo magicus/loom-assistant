@@ -10,6 +10,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import org.slf4j.Logger;
@@ -36,18 +38,14 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
         return AutoConfig.getConfigHolder(LoomAssistantConfig.class).getConfig();
     }
 
-    public static Registry<BannerPattern> getBannerPatternRegistry(Minecraft client) {
-        if (client.level != null) {
-            try {
-                return client.level
-                        .registryAccess()
-                        .lookup(Registries.BANNER_PATTERN)
-                        .orElse(null);
-            } catch (RuntimeException e) {
-                LOGGER.debug("Failed to get registry from world", e);
-            }
+    public static Registry<BannerPattern> getBannerPatternRegistry() {
+        RegistryAccess registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+        Registry<BannerPattern> registry = registryAccess.lookup(Registries.BANNER_PATTERN).orElse(null);
+        if (registry == null) {
+            LOGGER.error("BannerPattern registry is unavailable — this should never happen");
+            throw new IllegalStateException("BannerPattern registry is unavailable");
         }
-        return null;
+        return registry;
     }
 
     @Override
@@ -59,12 +57,12 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-            client.execute(this::scheduleAutoInstall);
+        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
+            mc.execute(() -> scheduleAutoInstall(mc));
         });
     }
 
-    private void scheduleAutoInstall() {
+    private void scheduleAutoInstall(Minecraft mc) {
         LoomAssistantConfig.BannerPackRepoSettings repoSettings =
                 LoomAssistantMod.getConfig().getBannerPackRepo();
         if (repoSettings.getAutoInstallPackIdList().isEmpty()) return;
@@ -84,6 +82,6 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
                             storage.load();
                             LoomAssistantMod.LOGGER.info("Auto-install of default packs completed");
                         },
-                        net.minecraft.client.Minecraft.getInstance());
+                        mc);
     }
 }

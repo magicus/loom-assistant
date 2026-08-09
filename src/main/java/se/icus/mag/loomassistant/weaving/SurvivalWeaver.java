@@ -50,7 +50,8 @@ public class SurvivalWeaver extends Weaver {
         ERROR
     }
 
-    public SurvivalWeaver(LoomMenu menu) {
+    public SurvivalWeaver(LoomMenu menu, Minecraft mc) {
+        super(mc);
         this.handler = menu;
         this.craftabilityModel = new BannerCraftabilityModel(menu);
     }
@@ -210,9 +211,8 @@ public class SurvivalWeaver extends Weaver {
         }
 
         if (patternIndex >= 0) {
-            Minecraft client = Minecraft.getInstance();
-            if (client.gameMode != null) {
-                client.gameMode.handleInventoryButtonClick(handler.containerId, patternIndex);
+            if (mc.gameMode != null) {
+                mc.gameMode.handleInventoryButtonClick(handler.containerId, patternIndex);
             }
             state = AutoCraftState.WAITING_FOR_OUTPUT;
         } else {
@@ -228,23 +228,19 @@ public class SurvivalWeaver extends Weaver {
     }
 
     private void takeOutput() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.gameMode != null && client.player != null) {
+        if (mc.gameMode != null) {
             if (currentLayerIndex + 1 < targetBanner.getLayers().size()) {
-                client.gameMode.handleContainerInput(
-                        handler.containerId, OUTPUT_SLOT, 0, ContainerInput.PICKUP, client.player);
+                mc.gameMode.handleContainerInput(handler.containerId, OUTPUT_SLOT, 0, ContainerInput.PICKUP, mc.player);
                 returnPatternItemsToInventory();
 
                 ItemStack bannerSlotStack = handler.getSlot(BANNER_SLOT).getItem();
                 if (!bannerSlotStack.isEmpty()) {
-                    client.gameMode.handleContainerInput(
-                            handler.containerId, BANNER_SLOT, 0, ContainerInput.QUICK_MOVE, client.player);
+                    mc.gameMode.handleContainerInput(
+                            handler.containerId, BANNER_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
                 }
-                client.gameMode.handleContainerInput(
-                        handler.containerId, BANNER_SLOT, 0, ContainerInput.PICKUP, client.player);
+                mc.gameMode.handleContainerInput(handler.containerId, BANNER_SLOT, 0, ContainerInput.PICKUP, mc.player);
             } else {
-                client.gameMode.handleContainerInput(
-                        handler.containerId, OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, client.player);
+                mc.gameMode.handleContainerInput(handler.containerId, OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
                 returnPatternItemsToInventory();
             }
         }
@@ -291,34 +287,27 @@ public class SurvivalWeaver extends Weaver {
     }
 
     private void quickMoveToSlot(int fromSlot, int toSlot) {
-        Minecraft client = Minecraft.getInstance();
-        if (client.gameMode != null && client.player != null) {
+        if (mc.gameMode != null) {
             ItemStack sourceStack = handler.getSlot(fromSlot).getItem();
             if (sourceStack.isEmpty()) return;
 
-            client.gameMode.handleContainerInput(
-                    handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
-            client.gameMode.handleContainerInput(handler.containerId, toSlot, 1, ContainerInput.PICKUP, client.player);
-            client.gameMode.handleContainerInput(
-                    handler.containerId, fromSlot, 0, ContainerInput.PICKUP, client.player);
+            mc.gameMode.handleContainerInput(handler.containerId, fromSlot, 0, ContainerInput.PICKUP, mc.player);
+            mc.gameMode.handleContainerInput(handler.containerId, toSlot, 1, ContainerInput.PICKUP, mc.player);
+            mc.gameMode.handleContainerInput(handler.containerId, fromSlot, 0, ContainerInput.PICKUP, mc.player);
         }
     }
 
     private void quickMoveToInventory(int slot) {
-        Minecraft client = Minecraft.getInstance();
-        if (client.gameMode != null && client.player != null) {
-            client.gameMode.handleContainerInput(
-                    handler.containerId, slot, 0, ContainerInput.QUICK_MOVE, client.player);
+        if (mc.gameMode != null) {
+            mc.gameMode.handleContainerInput(handler.containerId, slot, 0, ContainerInput.QUICK_MOVE, mc.player);
         }
     }
 
     private void returnPatternItemsToInventory() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.gameMode != null && client.player != null) {
+        if (mc.gameMode != null) {
             ItemStack patternSlot = handler.getSlot(PATTERN_SLOT).getItem();
             if (!patternSlot.isEmpty()) {
-                client.gameMode.handleContainerInput(
-                        handler.containerId, PATTERN_SLOT, 0, ContainerInput.QUICK_MOVE, client.player);
+                mc.gameMode.handleContainerInput(handler.containerId, PATTERN_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
             }
         }
     }

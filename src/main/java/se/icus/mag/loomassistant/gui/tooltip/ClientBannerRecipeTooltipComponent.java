@@ -18,11 +18,11 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 
 public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponent {
     private static final int SLOT_SIZE = 16;
@@ -107,8 +107,9 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
 
     @Override
     public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+        Minecraft mc = Minecraft.getInstance();
         if (component.hasPreview()) {
-            ensureFlag();
+            ensureFlag(mc);
             if (sharedFlag != null) {
                 DyeColor base = component.previewBaseColor();
                 BannerPatternLayers patterns = Objects.requireNonNullElseGet(
@@ -145,7 +146,7 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
             if (row.hasPatternSprite()) {
                 // Dye icon on left, pattern sprite on right
                 graphics.item(row.primary(), iconX, drawY, seed++);
-                renderPatternSprite(graphics, row, iconX + SLOT_SIZE + COL_GAP, drawY);
+                renderPatternSprite(graphics, mc, row, iconX + SLOT_SIZE + COL_GAP, drawY);
             } else {
                 graphics.item(row.primary(), iconX, drawY, seed++);
                 if (row.hasSecondary()) {
@@ -162,14 +163,10 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     }
 
     private static void renderPatternSprite(
-            GuiGraphicsExtractor graphics, BannerRecipeTooltipComponent.Row row, int x, int y) {
+            GuiGraphicsExtractor graphics, Minecraft mc, BannerRecipeTooltipComponent.Row row, int x, int y) {
         try {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.level == null) return;
-            Optional<Registry<BannerPattern>> registry =
-                    mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
-            if (registry.isEmpty()) return;
-            Optional<Holder.Reference<BannerPattern>> entryOpt = registry.get().get(row.patternSprite());
+            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry();
+            Optional<Holder.Reference<BannerPattern>> entryOpt = registry.get(row.patternSprite());
             if (entryOpt.isEmpty()) return;
 
             Holder<BannerPattern> holder = entryOpt.get();
@@ -195,10 +192,10 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
         }
     }
 
-    private static void ensureFlag() {
+    private static void ensureFlag(Minecraft mc) {
         if (sharedFlag == null) {
             try {
-                ModelPart part = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
+                ModelPart part = mc.getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
                 sharedFlag = new BannerFlagModel(part);
             } catch (RuntimeException ignored) {
                 // Silently fail; preview just won't render this frame.

@@ -17,12 +17,15 @@ import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
  * Weaver for creative mode: instantly adds the result to the player's inventory.
  */
 public class CreativeWeaver extends Weaver {
+    public CreativeWeaver(Minecraft mc) {
+        super(mc);
+    }
+
     @Override
     public void weave(BannerRecipe banner) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null || mc.gameMode == null) return;
+        if (mc.gameMode == null) return;
 
-        ItemStack result = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), banner);
+        ItemStack result = BannerRecipeItemConverter.toItem(banner);
 
         // Apply recipe name as custom name if it's not the unnamed placeholder.
         if (banner.description() != null

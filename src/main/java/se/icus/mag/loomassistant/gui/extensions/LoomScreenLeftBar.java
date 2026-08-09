@@ -185,6 +185,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
             int currentRowIndex = progress >= 0 ? progress + 1 : -1;
             LoomRecipePanel.setBannerTooltip(
                     context,
+                    screen.minecraft,
                     manager.getEffectiveActiveBannerDisplayName(),
                     manager.getEffectiveActiveBanner(),
                     currentRowIndex,
@@ -259,7 +260,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
     private boolean isSurvivalNotWeavable() {
         LocalPlayer player = screen.minecraft.player;
-        return !manager.isEffectiveActiveBannerWeavable() && player != null && !player.hasInfiniteMaterials();
+        return !manager.isEffectiveActiveBannerWeavable() && !player.hasInfiniteMaterials();
     }
 
     private int getLeftStripButtonX() {
@@ -295,36 +296,32 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
     private void playActiveSlotSetSound() {
         Minecraft mc = screen.minecraft;
-        if (mc != null && mc.player != null) {
-            mc.player
-                    .level()
-                    .playLocalSound(
-                            mc.player.getX(),
-                            mc.player.getY(),
-                            mc.player.getZ(),
-                            ACTIVE_SLOT_SET_SOUND,
-                            SoundSource.PLAYERS,
-                            0.42F,
-                            1.0F,
-                            false);
-        }
+        mc.player
+                .level()
+                .playLocalSound(
+                        mc.player.getX(),
+                        mc.player.getY(),
+                        mc.player.getZ(),
+                        ACTIVE_SLOT_SET_SOUND,
+                        SoundSource.PLAYERS,
+                        0.42F,
+                        1.0F,
+                        false);
     }
 
     private void playActiveSlotClearSound() {
         Minecraft mc = screen.minecraft;
-        if (mc != null && mc.player != null) {
-            mc.player
-                    .level()
-                    .playLocalSound(
-                            mc.player.getX(),
-                            mc.player.getY(),
-                            mc.player.getZ(),
-                            ACTIVE_SLOT_CLEAR_SOUND,
-                            SoundSource.PLAYERS,
-                            0.42F,
-                            1.0F,
-                            false);
-        }
+        mc.player
+                .level()
+                .playLocalSound(
+                        mc.player.getX(),
+                        mc.player.getY(),
+                        mc.player.getZ(),
+                        ACTIVE_SLOT_CLEAR_SOUND,
+                        SoundSource.PLAYERS,
+                        0.42F,
+                        1.0F,
+                        false);
     }
 
     private class ReplaceColorButton extends Button.Plain {

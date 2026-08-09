@@ -22,13 +22,13 @@ public class BannerPackListWidget extends ObjectSelectionList<BannerPackListEntr
     private final boolean active;
 
     public BannerPackListWidget(
-            Minecraft minecraft,
+            Minecraft mc,
             BannerPackSelectionScreen screen,
             int width,
             int height,
             Component title,
             boolean active) {
-        super(minecraft, width, height, 33, ROW_HEIGHT);
+        super(mc, width, height, 33, ROW_HEIGHT);
         this.screen = screen;
         this.title = title;
         this.active = active;

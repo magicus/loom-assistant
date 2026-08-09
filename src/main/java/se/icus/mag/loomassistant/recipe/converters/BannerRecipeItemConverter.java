@@ -7,7 +7,6 @@ package se.icus.mag.loomassistant.recipe.converters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -26,9 +25,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> {
     @Override
     public ItemStack fromRecipe(BannerRecipe recipe) {
-        Minecraft client = Minecraft.getInstance();
-        return toItem(
-                LoomAssistantMod.getBannerPatternRegistry(client), recipe.getBaseBannerItem(), recipe.getLayers());
+        return toItem(LoomAssistantMod.getBannerPatternRegistry(), recipe.getBaseBannerItem(), recipe.getLayers());
     }
 
     @Override
@@ -45,16 +42,15 @@ public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> 
         return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
     }
 
-    public static ItemStack toItem(Minecraft client, BannerRecipe recipe) {
-        return toItem(
-                LoomAssistantMod.getBannerPatternRegistry(client), recipe.getBaseBannerItem(), recipe.getLayers());
+    public static ItemStack toItem(BannerRecipe recipe) {
+        return toItem(LoomAssistantMod.getBannerPatternRegistry(), recipe.getBaseBannerItem(), recipe.getLayers());
     }
 
     public static ItemStack toItem(
             Registry<BannerPattern> registry, Item baseBannerItem, List<BannerRecipeLayer> layers) {
         ItemStack stack = new ItemStack(baseBannerItem);
 
-        if (registry == null || layers.isEmpty()) return stack;
+        if (layers.isEmpty()) return stack;
 
         try {
             BannerPatternLayers.Builder builder = new BannerPatternLayers.Builder();

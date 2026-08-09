@@ -13,6 +13,12 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
  * Encapsulates how a banner recipe is woven; hides the creative/survival distinction.
  */
 public abstract class Weaver {
+    protected final Minecraft mc;
+
+    protected Weaver(Minecraft mc) {
+        this.mc = mc;
+    }
+
     /**
      * Weave the given banner recipe.
      */
@@ -43,10 +49,10 @@ public abstract class Weaver {
      */
     public static Weaver getWeaver(LoomMenu menu) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc != null && mc.player != null && mc.player.hasInfiniteMaterials()) {
-            return new CreativeWeaver();
+        if (mc.player.hasInfiniteMaterials()) {
+            return new CreativeWeaver(mc);
         } else {
-            return new SurvivalWeaver(menu);
+            return new SurvivalWeaver(menu, mc);
         }
     }
 }

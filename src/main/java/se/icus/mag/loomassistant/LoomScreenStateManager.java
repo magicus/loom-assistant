@@ -694,7 +694,7 @@ public class LoomScreenStateManager {
 
     private static boolean isInSurvivalMode() {
         Minecraft mc = Minecraft.getInstance();
-        return mc != null && mc.player != null && !mc.player.hasInfiniteMaterials();
+        return !mc.player.hasInfiniteMaterials();
     }
 
     private static BannerRecipe cloneBanner(BannerRecipe source) {
@@ -742,7 +742,6 @@ public class LoomScreenStateManager {
 
     private static String currentWorldKey() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc == null) return "unknown";
         IntegratedServer sp = mc.getSingleplayerServer();
         if (sp != null) {
             return localWorldKey(

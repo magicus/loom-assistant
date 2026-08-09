@@ -118,6 +118,7 @@ public class LoomRecipePanel implements ScreenExtension {
     private static final int PAGE_BTN_H = 17;
     private static final int PAGE_BTN_Y_OFFSET = 137; // relative to panel top, same as vanilla
 
+    private final Minecraft mc;
     private final LoomScreenStateManager manager;
     private final LoomMenu handler;
     private int x;
@@ -133,12 +134,13 @@ public class LoomRecipePanel implements ScreenExtension {
     private final ImageButton pageBackButton;
 
     public LoomRecipePanel(LoomScreenStateManager manager, LoomScreen screen, LoomMenu handler, int x, int y) {
+        this.mc = screen.minecraft;
         this.manager = manager;
         this.handler = handler;
         this.x = x;
         this.y = y;
         this.searchBox = new EditBox(
-                Minecraft.getInstance().font,
+                mc.font,
                 x + SEARCH_X,
                 y + SEARCH_Y,
                 SEARCH_W,
@@ -179,7 +181,7 @@ public class LoomRecipePanel implements ScreenExtension {
     @Override
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         refreshVisibleTabs();
-        Font font = Minecraft.getInstance().font;
+        Font font = mc.font;
 
         context.blit(
                 RenderPipelines.GUI_TEXTURED,
@@ -216,8 +218,7 @@ public class LoomRecipePanel implements ScreenExtension {
             button.extractContents(ctx, mouseX, mouseY, 0.0F);
             if (isIn(mouseX, mouseY, tx - 2, ty, RecipeBookTabButton.WIDTH, RecipeBookTabButton.HEIGHT)) {
                 ctx.requestCursor(CursorTypes.POINTING_HAND);
-                ctx.setTooltipForNextFrame(
-                        Minecraft.getInstance().font, List.of(tab.tooltip()), Optional.empty(), mouseX, mouseY);
+                ctx.setTooltipForNextFrame(mc.font, List.of(tab.tooltip()), Optional.empty(), mouseX, mouseY);
             }
         }
 
@@ -238,12 +239,7 @@ public class LoomRecipePanel implements ScreenExtension {
                     RenderPipelines.GUI_TEXTURED, upSprite, arrowX, upArrowY, TAB_SCROLL_ARROW_W, TAB_SCROLL_ARROW_H);
             if (upHover) {
                 ctx.requestCursor(CursorTypes.POINTING_HAND);
-                ctx.setTooltipForNextFrame(
-                        Minecraft.getInstance().font,
-                        List.of(CATEGORY_SCROLL_UP_TOOLTIP),
-                        Optional.empty(),
-                        mouseX,
-                        mouseY);
+                ctx.setTooltipForNextFrame(mc.font, List.of(CATEGORY_SCROLL_UP_TOOLTIP), Optional.empty(), mouseX, mouseY);
             }
         }
 
@@ -262,12 +258,7 @@ public class LoomRecipePanel implements ScreenExtension {
                     TAB_SCROLL_ARROW_H);
             if (downHover) {
                 ctx.requestCursor(CursorTypes.POINTING_HAND);
-                ctx.setTooltipForNextFrame(
-                        Minecraft.getInstance().font,
-                        List.of(CATEGORY_SCROLL_DOWN_TOOLTIP),
-                        Optional.empty(),
-                        mouseX,
-                        mouseY);
+                ctx.setTooltipForNextFrame(mc.font, List.of(CATEGORY_SCROLL_DOWN_TOOLTIP), Optional.empty(), mouseX, mouseY);
             }
         }
     }
@@ -305,8 +296,7 @@ public class LoomRecipePanel implements ScreenExtension {
         if (hov) {
             ctx.requestCursor(CursorTypes.POINTING_HAND);
             Component tooltip = craftableOnly ? ONLY_CRAFTABLES_TOOLTIP : ALL_RECIPES_TOOLTIP;
-            ctx.setTooltipForNextFrame(
-                    Minecraft.getInstance().font, List.of(tooltip), Optional.empty(), mouseX, mouseY);
+            ctx.setTooltipForNextFrame(mc.font, List.of(tooltip), Optional.empty(), mouseX, mouseY);
         }
     }
 
@@ -330,7 +320,7 @@ public class LoomRecipePanel implements ScreenExtension {
 
             if (mouseX >= bx && mouseX < bx + 16 && mouseY >= by && mouseY < by + 16) {
                 ctx.requestCursor(CursorTypes.POINTING_HAND);
-                setBannerTooltip(ctx, banner, mouseX, mouseY);
+                setBannerTooltip(ctx, mc, banner, mouseX, mouseY);
             }
         }
 
@@ -355,18 +345,18 @@ public class LoomRecipePanel implements ScreenExtension {
         }
     }
 
-    private static Optional<TooltipComponent> buildTooltipImage(BannerRecipe banner, int currentRowIndex) {
-        List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(banner);
+    private static Optional<TooltipComponent> buildTooltipImage(Minecraft mc, BannerRecipe banner, int currentRowIndex) {
+        List<BannerRecipeTooltipComponent.Row> rows = buildRecipeRows(mc, banner);
         if (rows.isEmpty()) return Optional.empty();
 
-        ItemStack previewStack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), banner);
+        ItemStack previewStack = BannerRecipeItemConverter.toItem(banner);
         BannerPatternLayers patterns = previewStack.get(DataComponents.BANNER_PATTERNS);
         DyeColor baseColor = banner.getBannerColorEnum();
         boolean notWeavable = !banner.isWeavable();
         return Optional.of(new BannerRecipeTooltipComponent(rows, baseColor, patterns, currentRowIndex, notWeavable));
     }
 
-    private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(BannerRecipe banner) {
+    private static List<BannerRecipeTooltipComponent.Row> buildRecipeRows(Minecraft mc, BannerRecipe banner) {
         List<BannerRecipeTooltipComponent.Row> rows = new ArrayList<>();
         String baseKey = "block.minecraft." + banner.getBaseColorEnum().getSerializedName() + "_banner";
         String baseName = Language.getInstance().getOrDefault(baseKey);
@@ -381,10 +371,10 @@ public class LoomRecipePanel implements ScreenExtension {
             if (patternId != null) {
                 rows.add(BannerRecipeTooltipComponent.Row.withPattern(dyeStack, patternId, stepText));
             } else {
-                ItemStack patternIcon = getPatternItem(layer.patternId());
+                ItemStack patternIcon = getPatternItem(mc, layer.patternId());
                 if (patternIcon.isEmpty()) {
                     patternIcon = BannerRecipeItemConverter.toItem(
-                            LoomAssistantMod.getBannerPatternRegistry(Minecraft.getInstance()),
+                            LoomAssistantMod.getBannerPatternRegistry(),
                             Items.BANNER.white(),
                             List.of(layer));
                 }
@@ -395,10 +385,7 @@ public class LoomRecipePanel implements ScreenExtension {
         return rows;
     }
 
-    private static ItemStack getPatternItem(String patternId) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return ItemStack.EMPTY;
-
+    private static ItemStack getPatternItem(Minecraft mc, String patternId) {
         Optional<Registry<Item>> itemRegistry = mc.level.registryAccess().lookup(Registries.ITEM);
         if (itemRegistry.isEmpty()) return ItemStack.EMPTY;
 
@@ -579,7 +566,7 @@ public class LoomRecipePanel implements ScreenExtension {
             if (nonEmptyCategoryIds.contains(category.id().toLowerCase(Locale.ROOT))) {
                 out.add(new TabDescriptor(
                         category.id(),
-                        Component.literal(BannerRecipeCategories.getLocalizedDescription(category.id())),
+                        Component.literal(BannerRecipeCategories.getLocalizedDescription(mc, category.id())),
                         category));
             }
         }
@@ -621,8 +608,8 @@ public class LoomRecipePanel implements ScreenExtension {
         int start = page * GRID_COLUMNS * GRID_ROWS;
         int end = Math.min(items.size(), start + GRID_COLUMNS * GRID_ROWS);
         boolean isShiftPressed =
-                InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
-                        || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT)
+                        || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
 
         for (int i = start; i < end; i++) {
             int local = i - start;
@@ -646,15 +633,13 @@ public class LoomRecipePanel implements ScreenExtension {
     }
 
     private void playUiClickSound() {
-        Minecraft mc = Minecraft.getInstance();
         if (mc.getSoundManager() == null) return;
 
         mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     public boolean keyPressed(KeyEvent event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (searchBox.canConsumeInput() && mc != null && mc.options != null && mc.options.keyInventory.matches(event)) {
+        if (searchBox.canConsumeInput() && mc.options != null && mc.options.keyInventory.matches(event)) {
             return true;
         }
 
@@ -762,18 +747,24 @@ public class LoomRecipePanel implements ScreenExtension {
         // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
         int progress = detectCraftingProgress();
         int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        setBannerTooltip(ctx, selectedBaseBanner.getDisplayName(), selectedBaseBanner, currentRowIndex, mouseX, mouseY);
-    }
-
-    public static void setBannerTooltip(GuiGraphicsExtractor ctx, BannerRecipe banner, int mouseX, int mouseY) {
-        setBannerTooltip(ctx, banner.getDisplayName(), banner, -1, mouseX, mouseY);
+        setBannerTooltip(ctx, mc, selectedBaseBanner.getDisplayName(), selectedBaseBanner, currentRowIndex, mouseX, mouseY);
     }
 
     public static void setBannerTooltip(
-            GuiGraphicsExtractor ctx, String title, BannerRecipe banner, int currentRowIndex, int mouseX, int mouseY) {
-        Optional<TooltipComponent> image = buildTooltipImage(banner, currentRowIndex);
-        ctx.setTooltipForNextFrame(
-                Minecraft.getInstance().font, List.of(Component.literal(title)), image, mouseX, mouseY);
+            GuiGraphicsExtractor ctx, Minecraft mc, BannerRecipe banner, int mouseX, int mouseY) {
+        setBannerTooltip(ctx, mc, banner.getDisplayName(), banner, -1, mouseX, mouseY);
+    }
+
+    public static void setBannerTooltip(
+            GuiGraphicsExtractor ctx,
+            Minecraft mc,
+            String title,
+            BannerRecipe banner,
+            int currentRowIndex,
+            int mouseX,
+            int mouseY) {
+        Optional<TooltipComponent> image = buildTooltipImage(mc, banner, currentRowIndex);
+        ctx.setTooltipForNextFrame(mc.font, List.of(Component.literal(title)), image, mouseX, mouseY);
     }
 
     public void craftSelectedBanner() {
@@ -873,26 +864,18 @@ public class LoomRecipePanel implements ScreenExtension {
     }
 
     private static String getPatternDisplayName(BannerRecipeLayer layer) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level != null) {
-            try {
-                Optional<Registry<BannerPattern>> regOpt =
-                        mc.level.registryAccess().lookup(Registries.BANNER_PATTERN);
-                if (regOpt.isPresent()) {
-                    Identifier id = Identifier.tryParse(layer.patternId());
-                    if (id != null) {
-                        Optional<Holder.Reference<BannerPattern>> entry =
-                                regOpt.get().get(id);
-                        if (entry.isPresent()) {
-                            BannerPattern pattern = entry.get().value();
-                            String key = pattern.translationKey() + "."
-                                    + layer.getDyeColorEnum().getName();
-                            return Component.translatable(key).getString();
-                        }
-                    }
+        try {
+            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry();
+            Identifier id = Identifier.tryParse(layer.patternId());
+            if (id != null) {
+                Optional<Holder.Reference<BannerPattern>> entry = registry.get(id);
+                if (entry.isPresent()) {
+                    BannerPattern pattern = entry.get().value();
+                    String key = pattern.translationKey() + "." + layer.getDyeColorEnum().getName();
+                    return Component.translatable(key).getString();
                 }
-            } catch (RuntimeException ignored) {
             }
+        } catch (RuntimeException ignored) {
         }
         return toTitle(layer.getDyeColorEnum().getSerializedName()) + " " + toTitle(layer.patternId());
     }
