@@ -175,7 +175,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
                 String badge = (progress + 1) + "/" + total;
                 int badgeWidth = screen.font.width(badge);
                 int badgeX = getLeftStripButtonX() + (20 - badgeWidth) / 2;
-                int badgeY = screen.topPos + LEFT_STRIP_RECIPE_Y + 22;
+                int badgeY = screen.topPos + LEFT_STRIP_ACTIVE_SLOT_Y - 12;
                 context.text(screen.font, badge, badgeX, badgeY, 0xFFFFFFFF, true);
             }
         }
