@@ -61,7 +61,6 @@ public class InstalledPackRegistry {
         try {
             Files.createDirectories(registryFile.getParent());
             RegistryData data = new RegistryData();
-            data.version = SCHEMA_VERSION;
             data.installedPacks = new ArrayList<>(entries.values());
             String json = GSON.toJson(data);
             Path tmp = registryFile.getParent().resolve(REGISTRY_FILE + ".tmp");
@@ -95,12 +94,7 @@ public class InstalledPackRegistry {
         }
     }
 
-    public List<InstalledPackState> getAllStates() {
-        return List.copyOf(entries.values());
-    }
-
     private static class RegistryData {
-        int version;
         List<InstalledPackState> installedPacks;
     }
 }

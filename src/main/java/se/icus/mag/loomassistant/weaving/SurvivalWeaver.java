@@ -34,7 +34,6 @@ public class SurvivalWeaver extends Weaver {
     private BannerRecipe targetBanner;
     private int currentLayerIndex = 0;
     private int ticksInState = 0;
-    private String errorMessage = null;
 
     private enum AutoCraftState {
         IDLE,
@@ -106,7 +105,6 @@ public class SurvivalWeaver extends Weaver {
         this.targetBanner = banner;
         this.currentLayerIndex = 0;
         this.ticksInState = 0;
-        this.errorMessage = null;
 
         String validationError = craftabilityModel.getValidationError(banner);
         if (validationError != null) {
@@ -259,7 +257,6 @@ public class SurvivalWeaver extends Weaver {
     }
 
     private void error(String message) {
-        this.errorMessage = message;
         this.state = AutoCraftState.ERROR;
         LoomAssistantMod.LOGGER.warn("Auto-craft error: {}", message);
     }

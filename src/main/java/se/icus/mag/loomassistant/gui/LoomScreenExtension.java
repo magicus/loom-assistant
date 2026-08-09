@@ -43,10 +43,6 @@ public class LoomScreenExtension implements ScreenExtension {
         this.widgets = List.of();
     }
 
-    public LoomRecipePanel getPanel() {
-        return panel;
-    }
-
     public void init() {
         manager.onLoomScreenOpened(screen.menu);
         this.screen.leftPos = manager.isPanelOpen() ? getOpenLeftPos() : getClosedLeftPos();

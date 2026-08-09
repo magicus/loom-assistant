@@ -58,21 +58,6 @@ public class ActionButtonListEntry extends TooltipListEntry<Void> {
         this.narratables = List.copyOf(narratableList);
     }
 
-    public ActionButtonListEntry(
-            Component fieldName,
-            Component buttonTextLeft,
-            Consumer<Screen> onPressLeft,
-            Component buttonTextRight,
-            Consumer<Screen> onPressRight) {
-        this(
-                fieldName,
-                buttonTextRight != null && onPressRight != null
-                        ? List.of(
-                                new ActionButtonSpec(buttonTextLeft, onPressLeft),
-                                new ActionButtonSpec(buttonTextRight, onPressRight))
-                        : List.of(new ActionButtonSpec(buttonTextLeft, onPressLeft)));
-    }
-
     @Override
     public void extractRenderState(
             GuiGraphicsExtractor graphics,

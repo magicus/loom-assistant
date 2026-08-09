@@ -105,27 +105,6 @@ public class ActivePacksConfig {
         }
     }
 
-    /**
-     * Checks if a pack is currently active.
-     */
-    public boolean isPackActive(String packId) {
-        return activePacks.contains(packId);
-    }
-
-    /**
-     * Moves a pack to a new position in the active list.
-     */
-    public void movePackToPosition(String packId, int newIndex) {
-        if (activePacks.remove(packId)) {
-            if (newIndex >= activePacks.size()) {
-                activePacks.add(packId);
-            } else {
-                activePacks.add(newIndex, packId);
-            }
-            save();
-        }
-    }
-
     private static class ConfigData {
         protected List<String> activePacks;
     }

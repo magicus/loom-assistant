@@ -8,12 +8,4 @@ public record BannerPackMetadata(String id, String description, String author, S
     public BannerPackMetadata(String id, String description) {
         this(id, description, null, null);
     }
-
-    public BannerPackMetadata withAuthor(String newAuthor) {
-        return new BannerPackMetadata(id, description, newAuthor, url);
-    }
-
-    public BannerPackMetadata withUrl(String newUrl) {
-        return new BannerPackMetadata(id, description, author, newUrl);
-    }
 }

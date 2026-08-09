@@ -96,10 +96,6 @@ public record BannerRecipe(
         return category;
     }
 
-    public String getBaseColor() {
-        return bannerColor;
-    }
-
     public DyeColor getBaseColorEnum() {
         return getBannerColorEnum();
     }

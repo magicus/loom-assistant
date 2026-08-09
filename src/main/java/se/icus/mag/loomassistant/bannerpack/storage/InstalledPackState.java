@@ -11,8 +11,6 @@ public final class InstalledPackState {
     private String sha256;
     private String installedAt;
 
-    public InstalledPackState() {}
-
     public InstalledPackState(String packId, String fileName, String sourceUrl, String sha256, String installedAt) {
         this.packId = packId;
         this.fileName = fileName;

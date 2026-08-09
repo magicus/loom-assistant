@@ -49,15 +49,6 @@ public class BannerCraftabilityModel {
         return getMissingMaterialsInCraftOrder(banner).isEmpty();
     }
 
-    public MissingMaterialType getMissingMaterialType(BannerRecipe banner) {
-        if (banner == null) return MissingMaterialType.NONE;
-
-        List<MissingMaterial> missingMaterials = getMissingMaterialsInCraftOrder(banner);
-        if (missingMaterials.isEmpty()) return MissingMaterialType.NONE;
-
-        return missingMaterials.getFirst().type();
-    }
-
     public List<String> getMissingMaterialDescriptions(BannerRecipe banner) {
         List<String> descriptions = new ArrayList<>();
         if (banner == null) return descriptions;

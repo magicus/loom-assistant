@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
-import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 
 public class DirectoryBannerPack extends BannerPack {
@@ -50,10 +49,6 @@ public class DirectoryBannerPack extends BannerPack {
     @Override
     public void removeBannerRecipe(String recipeId) throws IOException {
         deleteRecipeFile(recipeId);
-    }
-
-    public void addBannerCategory(String namespace, BannerRecipeCategory category) throws IOException {
-        writeCategoryFile(getPath().resolve(CATEGORIES_DIR), namespace, category);
     }
 
     public BannerRecipe moveRecipeTo(BannerPack target, String recipeId) throws IOException {

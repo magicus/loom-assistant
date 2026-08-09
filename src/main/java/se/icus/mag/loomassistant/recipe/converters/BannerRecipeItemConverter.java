@@ -43,10 +43,6 @@ public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> 
         return fromBannerPatterns(description, bannerItem.getColor(), stack.get(DataComponents.BANNER_PATTERNS));
     }
 
-    public static ItemStack toItem(BannerRecipe recipe) {
-        return toItem(Minecraft.getInstance(), recipe);
-    }
-
     public static ItemStack toItem(Minecraft mc, BannerRecipe recipe) {
         return toItem(LoomAssistantMod.getBannerPatternRegistry(mc), recipe.getBaseBannerItem(), recipe.getLayers());
     }

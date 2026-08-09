@@ -65,7 +65,6 @@ public class BannerColorSwitchScreen extends Screen {
     private static final int BG_COLOR = 0xFFC6C6C6;
     private static final int BG_DARK = 0xFF555555;
     private static final int BG_LIGHT = 0xFFFFFFFF;
-    private static final int INACTIVE_COLOR = 0xFF999999;
 
     private static final Identifier REPLACE_COLOR_ICON =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/change_color.png");

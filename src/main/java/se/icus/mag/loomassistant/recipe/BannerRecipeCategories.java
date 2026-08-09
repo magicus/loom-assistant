@@ -81,10 +81,6 @@ public final class BannerRecipeCategories {
         return List.copyOf(registry.values());
     }
 
-    public static BannerRecipeCategory get(String id) {
-        return registry.getOrDefault(id, BannerRecipeCategory.fallback(id));
-    }
-
     /**
      * Returns the category name localized for the current game language.
      * Falls back to description field, then the id itself.
