@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
+import se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen;
 import se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen;
 
 public class LoomAssistantModMenuIntegration implements ModMenuApi {
@@ -51,20 +52,33 @@ public class LoomAssistantModMenuIntegration implements ModMenuApi {
             me.shedaniel.autoconfig.gui.registry.api.GuiRegistryAccess registry) {
         ActionButtonListEntry entry = new ActionButtonListEntry(
                 Component.translatable("loom-assistant.config.manage_packs.row"),
-                Component.translatable("loom-assistant.config.manage_packs"),
-                configScreen -> {
-                    LoomAssistantMod.LOGGER.info("[Config] Manage Banner Packs button clicked");
-                    try {
-                        BannerStorage storage = BannerStorage.getInstance();
-                        storage.load();
-                        Minecraft.getInstance()
-                                .gui
-                                .setScreen(new BannerPackSelectionScreen(
-                                        storage.getRepository(), storage.getActivePacksConfig(), configScreen));
-                    } catch (RuntimeException e) {
-                        LoomAssistantMod.LOGGER.error("[Config] Failed to open Banner Pack Selection screen", e);
-                    }
-                });
+                Component.translatable("loom-assistant.screen.import_export.select_packs"),
+                LoomAssistantModMenuIntegration::openPackSelection,
+                Component.translatable("loom-assistant.screen.import_export.download_packs"),
+                LoomAssistantModMenuIntegration::openPackDownload);
         return List.of(entry);
+    }
+
+    private static void openPackSelection(net.minecraft.client.gui.screens.Screen configScreen) {
+        LoomAssistantMod.LOGGER.info("[Config] Select Banner Packs button clicked");
+        try {
+            BannerStorage storage = BannerStorage.getInstance();
+            storage.load();
+            Minecraft.getInstance()
+                    .gui
+                    .setScreen(new BannerPackSelectionScreen(
+                            storage.getRepository(), storage.getActivePacksConfig(), configScreen));
+        } catch (RuntimeException e) {
+            LoomAssistantMod.LOGGER.error("[Config] Failed to open Banner Pack Selection screen", e);
+        }
+    }
+
+    private static void openPackDownload(net.minecraft.client.gui.screens.Screen configScreen) {
+        LoomAssistantMod.LOGGER.info("[Config] Download Banner Packs button clicked");
+        try {
+            Minecraft.getInstance().gui.setScreen(new BannerPackDownloadManagementScreen(configScreen));
+        } catch (RuntimeException e) {
+            LoomAssistantMod.LOGGER.error("[Config] Failed to open Banner Pack Download screen", e);
+        }
     }
 }

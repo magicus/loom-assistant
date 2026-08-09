@@ -4,6 +4,7 @@
  */
 package se.icus.mag.loomassistant.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -21,18 +22,49 @@ import net.minecraft.network.chat.Component;
 @Environment(EnvType.CLIENT)
 public class ActionButtonListEntry extends TooltipListEntry<Void> {
     private static final int BUTTON_WIDTH = 170;
+    private static final int BUTTON_GAP = 4;
 
-    private final Button actionButton;
+    private final Button leftButton;
+    private final Button rightButton;
     private final List<GuiEventListener> children;
     private final List<NarratableEntry> narratables;
 
     public ActionButtonListEntry(Component fieldName, Component buttonText, Consumer<Screen> onPress) {
+        this(fieldName, buttonText, onPress, null, null);
+    }
+
+    public ActionButtonListEntry(
+            Component fieldName,
+            Component leftButtonText,
+            Consumer<Screen> leftOnPress,
+            Component rightButtonText,
+            Consumer<Screen> rightOnPress) {
         super(fieldName, null, false);
-        this.actionButton = Button.builder(buttonText, button -> onPress.accept(getConfigScreen()))
+        this.leftButton = Button.builder(leftButtonText, button -> leftOnPress.accept(getConfigScreen()))
                 .bounds(0, 0, BUTTON_WIDTH, 20)
                 .build();
-        this.children = List.of(this.actionButton);
-        this.narratables = List.of(this.actionButton);
+
+        if (rightButtonText != null && rightOnPress != null) {
+            this.rightButton = Button.builder(rightButtonText, button -> rightOnPress.accept(getConfigScreen()))
+                    .bounds(0, 0, BUTTON_WIDTH, 20)
+                    .build();
+        } else {
+            this.rightButton = null;
+        }
+
+        List<GuiEventListener> childList = new ArrayList<>();
+        childList.add(this.leftButton);
+        if (this.rightButton != null) {
+            childList.add(this.rightButton);
+        }
+        this.children = List.copyOf(childList);
+
+        List<NarratableEntry> narratableList = new ArrayList<>();
+        narratableList.add(this.leftButton);
+        if (this.rightButton != null) {
+            narratableList.add(this.rightButton);
+        }
+        this.narratables = List.copyOf(narratableList);
     }
 
     @Override
@@ -48,14 +80,28 @@ public class ActionButtonListEntry extends TooltipListEntry<Void> {
             boolean isHovered,
             float delta) {
         super.extractRenderState(graphics, index, y, x, entryWidth, entryHeight, mouseX, mouseY, isHovered, delta);
-        this.actionButton.active = isEnabled();
-        this.actionButton.setPosition(x + (entryWidth - this.actionButton.getWidth()) / 2, y);
-        this.actionButton.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.leftButton.active = isEnabled();
+        if (this.rightButton != null) {
+            this.rightButton.active = isEnabled();
+            int groupWidth = this.leftButton.getWidth() + BUTTON_GAP + this.rightButton.getWidth();
+            int leftX = x + (entryWidth - groupWidth) / 2;
+            this.leftButton.setPosition(leftX, y);
+            this.rightButton.setPosition(leftX + this.leftButton.getWidth() + BUTTON_GAP, y);
+            this.leftButton.extractRenderState(graphics, mouseX, mouseY, delta);
+            this.rightButton.extractRenderState(graphics, mouseX, mouseY, delta);
+        } else {
+            this.leftButton.setPosition(x + (entryWidth - this.leftButton.getWidth()) / 2, y);
+            this.leftButton.extractRenderState(graphics, mouseX, mouseY, delta);
+        }
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        return this.actionButton.mouseClicked(event, doubleClick) || super.mouseClicked(event, doubleClick);
+        boolean clicked = this.leftButton.mouseClicked(event, doubleClick);
+        if (this.rightButton != null) {
+            clicked = this.rightButton.mouseClicked(event, doubleClick) || clicked;
+        }
+        return clicked || super.mouseClicked(event, doubleClick);
     }
 
     @Override
