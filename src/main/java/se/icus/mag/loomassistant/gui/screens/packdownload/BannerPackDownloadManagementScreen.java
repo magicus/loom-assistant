@@ -70,7 +70,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
     private boolean activateAfterDownload;
 
     public BannerPackDownloadManagementScreen(Screen previousScreen) {
-        super(Component.literal("Download Banner Packs"));
+        super(Component.translatable("loom-assistant.screen.pack_download.title"));
         this.previousScreen = previousScreen;
         this.repoSettings = LoomAssistantMod.getConfig().getBannerPackRepo();
         this.activateAfterDownload = repoSettings.activateAfterDownload;
