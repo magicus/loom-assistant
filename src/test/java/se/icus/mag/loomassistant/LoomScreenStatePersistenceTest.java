@@ -31,7 +31,8 @@ class LoomScreenStatePersistenceTest {
         assertEquals("local:test-pack/banner", json.get("activeBannerRecipe").getAsString());
         assertTrue(json.getAsJsonObject("colorReplacements").has("light_blue"));
         assertEquals(
-                "lime", json.getAsJsonObject("colorReplacements").get("light_blue").getAsString());
+                "lime",
+                json.getAsJsonObject("colorReplacements").get("light_blue").getAsString());
         assertTrue(json.get("colorReplacementEnabled").getAsBoolean());
         assertFalse(json.has("activeBannerSourceId"));
         assertFalse(json.has("persistentDyeReplacementMap"));

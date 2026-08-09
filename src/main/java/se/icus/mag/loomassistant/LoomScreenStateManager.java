@@ -311,8 +311,7 @@ public class LoomScreenStateManager {
         if (persistent) {
             state.getColorReplacements().clear();
             state.getColorReplacements().putAll(normalized);
-            state.setColorReplacementEnabled(
-                    !state.getColorReplacements().isEmpty());
+            state.setColorReplacementEnabled(!state.getColorReplacements().isEmpty());
         }
 
         if (normalized.isEmpty()) return false;
@@ -440,8 +439,7 @@ public class LoomScreenStateManager {
         state.setActiveBannerRecipe(sourceId);
         state.setSelectedBannerId(sourceId);
 
-        if (state.isColorReplacementEnabled()
-                && !state.getColorReplacements().isEmpty()) {
+        if (state.isColorReplacementEnabled() && !state.getColorReplacements().isEmpty()) {
             BannerRecipe transformed =
                     applyDyeReplacementMap(state.getActiveBannerSource(), state.getColorReplacements());
             if (transformed != null && !bannersEquivalent(state.getActiveBannerSource(), transformed)) {
@@ -656,7 +654,9 @@ public class LoomScreenStateManager {
         if (mc == null) return "unknown";
         IntegratedServer sp = mc.getSingleplayerServer();
         if (sp != null) {
-            return localWorldKey(sp.getWorldPath(LevelResource.ROOT), FabricLoader.getInstance().getGameDir());
+            return localWorldKey(
+                    sp.getWorldPath(LevelResource.ROOT),
+                    FabricLoader.getInstance().getGameDir());
         }
         ServerData server = mc.getCurrentServer();
         if (server != null && server.ip != null && !server.ip.isBlank()) {

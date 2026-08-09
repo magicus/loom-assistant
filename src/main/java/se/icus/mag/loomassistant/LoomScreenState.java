@@ -83,7 +83,6 @@ public class LoomScreenState {
     }
 
     public void setColorReplacements(Map<DyeColor, DyeColor> colorReplacements) {
-        this.colorReplacements =
-                colorReplacements != null ? new HashMap<>(colorReplacements) : new HashMap<>();
+        this.colorReplacements = colorReplacements != null ? new HashMap<>(colorReplacements) : new HashMap<>();
     }
 }
