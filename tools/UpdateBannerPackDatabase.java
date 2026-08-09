@@ -1,6 +1,6 @@
 ///usr/bin/env java --source 21 "$0" "$@"; exit $?
 // Usage: run from the directory containing *.zip banner packs
-//   ./BannerPackIndexTool.java [--base-url <url>]
+//   ./UpdateBannerPackDatabase.java [--base-url <url>]
 //
 // Creates or updates bannerpack-index-v1.json.
 // Icon lookup order: {packId}-icon.png alongside the zip, then pack.png inside the zip.
@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 
-public class BannerPackIndexTool {
+public class UpdateBannerPackDatabase {
     static final String INDEX_FILE = "bannerpack-index-v1.json";
 
     public static void main(String[] args) throws Exception {

@@ -11,7 +11,7 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 
-@Config(name = LoomAssistantMod.MOD_ID + "/config")
+@Config(name = LoomAssistantMod.MOD_ID)
 public class LoomAssistantConfig implements ConfigData {
     public enum ColorSortOrder {
         RAINBOW,

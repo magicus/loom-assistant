@@ -5,7 +5,6 @@
 package se.icus.mag.loomassistant;
 
 import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -20,6 +19,7 @@ import se.icus.mag.loomassistant.bannerpack.repo.BannerPackRepoClient;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.bannerpack.storage.InstalledPackRegistry;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
+import se.icus.mag.loomassistant.config.NestedPathConfigSerializer;
 
 public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "loom-assistant";
@@ -53,7 +53,7 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
     @Override
     public void onInitialize() {
         LoomAssistantMod.LOGGER.info("Initializing LoomAssistantMod");
-        AutoConfig.register(LoomAssistantConfig.class, GsonConfigSerializer::new);
+        AutoConfig.register(LoomAssistantConfig.class, NestedPathConfigSerializer::new);
         BannerStorage.getInstance().load();
     }
 
