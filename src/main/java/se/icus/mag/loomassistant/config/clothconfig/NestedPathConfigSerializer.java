@@ -2,7 +2,7 @@
  * Copyright © Magnus Ihse Bursie 2026.
  * This file is released under MIT. See LICENSE for full license details.
  */
-package se.icus.mag.loomassistant.config;
+package se.icus.mag.loomassistant.config.clothconfig;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -15,6 +15,10 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.ConfigSerializer;
 import me.shedaniel.autoconfig.util.Utils;
 
+/**
+ * This is basically a copy of the default GsonConfigSerializer, but it uses a
+ * custom path for the config file.
+ */
 public class NestedPathConfigSerializer<T extends ConfigData> implements ConfigSerializer<T> {
     private final Config definition;
     private final Class<T> configClass;

@@ -19,7 +19,7 @@ import se.icus.mag.loomassistant.bannerpack.repo.BannerPackRepoClient;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.bannerpack.storage.InstalledPackRegistry;
 import se.icus.mag.loomassistant.config.LoomAssistantConfig;
-import se.icus.mag.loomassistant.config.NestedPathConfigSerializer;
+import se.icus.mag.loomassistant.config.clothconfig.NestedPathConfigSerializer;
 
 public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "loom-assistant";

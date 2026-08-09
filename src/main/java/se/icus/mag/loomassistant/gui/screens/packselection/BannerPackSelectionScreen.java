@@ -72,6 +72,22 @@ public class BannerPackSelectionScreen extends Screen {
     private EditBox search;
     private Button doneButton;
 
+    private record LoadedStorage(BannerPackRepository repository, ActivePacksConfig activeConfig) {}
+
+    private static LoadedStorage loadStorage() {
+        BannerStorage storage = BannerStorage.getInstance();
+        storage.load();
+        return new LoadedStorage(storage.getRepository(), storage.getActivePacksConfig());
+    }
+
+    public BannerPackSelectionScreen(Screen parentScreen) {
+        this(loadStorage(), parentScreen);
+    }
+
+    private BannerPackSelectionScreen(LoadedStorage loadedStorage, Screen parentScreen) {
+        this(loadedStorage.repository(), loadedStorage.activeConfig(), parentScreen);
+    }
+
     public BannerPackSelectionScreen(BannerPackRepository repository, ActivePacksConfig activeConfig) {
         this(repository, activeConfig, null);
     }

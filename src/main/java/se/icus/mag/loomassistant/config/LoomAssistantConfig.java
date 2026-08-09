@@ -10,6 +10,7 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import se.icus.mag.loomassistant.LoomAssistantMod;
+import se.icus.mag.loomassistant.config.clothconfig.ConfigButtons;
 
 @Config(name = LoomAssistantMod.MOD_ID)
 public class LoomAssistantConfig implements ConfigData {
@@ -39,6 +40,16 @@ public class LoomAssistantConfig implements ConfigData {
         @ConfigEntry.Gui.Tooltip(count = 1)
         public String autoInstallPackIds = "categories,numbers";
 
+        @ConfigButtons({
+            @ConfigButtons.ButtonAction(
+                    screenClass = "se.icus.mag.loomassistant.gui.screens.packselection.BannerPackSelectionScreen",
+                    buttonLabelKey = "loom-assistant.screen.import_export.select_packs"),
+            @ConfigButtons.ButtonAction(
+                    screenClass =
+                            "se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen",
+                    buttonLabelKey = "loom-assistant.screen.import_export.download_packs")
+        })
+        @ConfigEntry.Gui.Excluded
         public boolean activateAfterDownload = true;
 
         public List<String> getAutoInstallPackIdList() {
