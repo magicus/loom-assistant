@@ -182,7 +182,10 @@ public class BannerPackRepository {
     private static void writeDefaultCategories(Path categoriesDir) throws IOException {
         String ns = "loom-assistant";
         for (BannerRecipeCategory cat : new BannerRecipeCategory[] {
-            new BannerRecipeCategory("flags", "Flags", "minecraft:map"),
+            new BannerRecipeCategory(
+                    "flags",
+                    "Flags",
+                    "minecraft:blue_banner[banner_patterns=[{\"pattern\":\"straight_cross\",\"color\":\"yellow\"}]]"),
             new BannerRecipeCategory("letters", "Letters", "minecraft:book"),
             new BannerRecipeCategory("logos", "Logos", "minecraft:blaze_powder"),
             new BannerRecipeCategory("misc", "Misc", "minecraft:lava_bucket"),

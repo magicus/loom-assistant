@@ -4,16 +4,20 @@
  */
 package se.icus.mag.loomassistant.recipe;
 
+import com.mojang.brigadier.StringReader;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import se.icus.mag.loomassistant.LoomAssistantMod;
 
 /**
  * Dynamic registry for banner recipe categories.
@@ -110,12 +114,25 @@ public final class BannerRecipeCategories {
     }
 
     /**
-     * Resolves the tab icon for a category. Falls back to lava bucket on unknown item id.
+     * Resolves the tab icon for a category from iconItemId.
+     * Supports:
+     * - Simple item id: "minecraft:book"
+     * - Item with components: "minecraft:blue_banner[banner_patterns=[{\"pattern\":\"straight_cross\",\"color\":\"yellow\"}]]"
+     * Falls back to lava bucket on parse error or unknown item id.
      */
     public static ItemStack resolveIcon(BannerRecipeCategory category) {
-        Identifier itemId = Identifier.tryParse(category.iconItemId());
-        if (itemId != null && BuiltInRegistries.ITEM.containsKey(itemId))
-            return new ItemStack(BuiltInRegistries.ITEM.getValue(itemId));
+        String iconStr = category.iconItemId();
+        if (iconStr == null || iconStr.isBlank()) {
+            return new ItemStack(Items.LAVA_BUCKET);
+        }
+
+        try {
+            ItemParser itemParser = new ItemParser(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+            return itemParser.parse(new StringReader(iconStr)).createItemStack(1);
+        } catch (RuntimeException | com.mojang.brigadier.exceptions.CommandSyntaxException e) {
+            LoomAssistantMod.LOGGER.debug("Failed to parse category icon as vanilla item input: {}", iconStr, e);
+        }
+
         return new ItemStack(Items.LAVA_BUCKET);
     }
 
