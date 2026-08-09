@@ -49,8 +49,7 @@ public class LoomScreenStateManager {
             new TypeToken<LinkedHashMap<String, LoomScreenState>>() {}.getType();
     private static final Path PERSISTENCE_DIR =
             FabricLoader.getInstance().getConfigDir().resolve("loom-assistant");
-    private static final Path PERSISTENCE_FILE_PATH =
-            PERSISTENCE_DIR.resolve("states.json");
+    private static final Path PERSISTENCE_FILE_PATH = PERSISTENCE_DIR.resolve("states.json");
 
     private final LoomScreenState state;
     private final Map<String, LoomScreenState> persistedStates;
