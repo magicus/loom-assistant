@@ -127,6 +127,7 @@ public class WeavingGuide implements ScreenExtension {
             float v1 = v0 + vSpan * 40.0F / 64.0F;
             context.pose().pushMatrix();
             context.pose().translate(previewX + 6, previewY + 22);
+            context.fill(-1, -1, 8, 15, 0xFF9E9276);
             context.fill(0, 0, 7, 14, DyeColor.GRAY.getTextureDiffuseColor());
             context.blit(sprite.atlasLocation(), 0, 0, 7, 14, u0, u1, v0, v1);
             context.pose().popMatrix();
@@ -141,11 +142,11 @@ public class WeavingGuide implements ScreenExtension {
         if (result.isEmpty()) return;
 
         boolean correct = resultMatchesExpected(manager.getEffectiveActiveBannerStack(), result, progress);
-        int color = correct ? 0xFF44FF44 : 0xFFFF4444;
-        context.fill(resultX - 1, resultY - 1, resultX + 17, resultY, color);
-        context.fill(resultX - 1, resultY + 16, resultX + 17, resultY + 17, color);
-        context.fill(resultX - 1, resultY, resultX, resultY + 16, color);
-        context.fill(resultX + 16, resultY, resultX + 17, resultY + 16, color);
+        int color = correct ? 0xFF8CB757 : 0xFFA64534;
+        context.fill(resultX - 4, resultY - 4, resultX + 20, resultY - 3, color);
+        context.fill(resultX - 4, resultY + 19, resultX + 20, resultY + 20, color);
+        context.fill(resultX - 4, resultY - 3, resultX - 3, resultY + 19, color);
+        context.fill(resultX + 19, resultY - 3, resultX + 20, resultY + 19, color);
     }
 
     private static void drawWeaveWithSlash(GuiGraphicsExtractor context, int x, int y, int size) {
