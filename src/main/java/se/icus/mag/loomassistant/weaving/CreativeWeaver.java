@@ -25,7 +25,7 @@ public class CreativeWeaver extends Weaver {
     public void weave(BannerRecipe banner) {
         if (mc.gameMode == null) return;
 
-        ItemStack result = BannerRecipeItemConverter.toItem(banner);
+        ItemStack result = BannerRecipeItemConverter.toItem(mc, banner);
 
         // Apply recipe name as custom name if it's not the unnamed placeholder.
         if (banner.description() != null

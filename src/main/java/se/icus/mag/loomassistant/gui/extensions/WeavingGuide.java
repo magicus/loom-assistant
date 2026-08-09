@@ -49,7 +49,7 @@ public class WeavingGuide implements ScreenExtension {
             int progress = manager.detectCraftingProgress();
             if (progress >= 0) {
                 if (screen.menu.getResultSlot().getItem().isEmpty()) {
-                    renderNextStepHint(context, progress);
+                    renderNextStepHint(context, mc, progress);
                 }
                 renderOutputSlotBorder(context, progress);
             }
@@ -58,8 +58,8 @@ public class WeavingGuide implements ScreenExtension {
         }
     }
 
-    public static void renderBannerPreview(GuiGraphicsExtractor context, BannerRecipe banner, int x, int y) {
-        ItemStack bannerStack = BannerRecipeItemConverter.toItem(banner);
+    public static void renderBannerPreview(GuiGraphicsExtractor context, Minecraft mc, BannerRecipe banner, int x, int y) {
+        ItemStack bannerStack = BannerRecipeItemConverter.toItem(mc, banner);
         context.item(bannerStack, x, y);
     }
 
@@ -98,7 +98,7 @@ public class WeavingGuide implements ScreenExtension {
         drawWeaveWithSlash(context, previewX, previewY, iconSize);
     }
 
-    private void renderNextStepHint(GuiGraphicsExtractor context, int nextLayerIndex) {
+    private void renderNextStepHint(GuiGraphicsExtractor context, Minecraft mc, int nextLayerIndex) {
         BannerRecipe recipe = manager.getEffectiveActiveBanner();
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return;
 
@@ -113,7 +113,7 @@ public class WeavingGuide implements ScreenExtension {
             Identifier patternId = Identifier.tryParse(layer.patternId());
             if (patternId == null) return;
 
-            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry();
+            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry(mc);
             Optional<Holder.Reference<BannerPattern>> entry = registry.get(patternId);
             if (entry.isEmpty()) return;
 

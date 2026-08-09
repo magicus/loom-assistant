@@ -165,7 +165,7 @@ public class ClientBannerRecipeTooltipComponent implements ClientTooltipComponen
     private static void renderPatternSprite(
             GuiGraphicsExtractor graphics, Minecraft mc, BannerRecipeTooltipComponent.Row row, int x, int y) {
         try {
-            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry();
+            Registry<BannerPattern> registry = LoomAssistantMod.getBannerPatternRegistry(mc);
             Optional<Holder.Reference<BannerPattern>> entryOpt = registry.get(row.patternSprite());
             if (entryOpt.isEmpty()) return;
 

@@ -240,7 +240,8 @@ public class SurvivalWeaver extends Weaver {
                 }
                 mc.gameMode.handleContainerInput(handler.containerId, BANNER_SLOT, 0, ContainerInput.PICKUP, mc.player);
             } else {
-                mc.gameMode.handleContainerInput(handler.containerId, OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
+                mc.gameMode.handleContainerInput(
+                        handler.containerId, OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
                 returnPatternItemsToInventory();
             }
         }
@@ -307,7 +308,8 @@ public class SurvivalWeaver extends Weaver {
         if (mc.gameMode != null) {
             ItemStack patternSlot = handler.getSlot(PATTERN_SLOT).getItem();
             if (!patternSlot.isEmpty()) {
-                mc.gameMode.handleContainerInput(handler.containerId, PATTERN_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
+                mc.gameMode.handleContainerInput(
+                        handler.containerId, PATTERN_SLOT, 0, ContainerInput.QUICK_MOVE, mc.player);
             }
         }
     }

@@ -5,7 +5,6 @@
 package se.icus.mag.loomassistant.gui.screens;
 
 import java.net.URI;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -234,7 +233,7 @@ public class ManageBannerRecipesScreen extends Screen {
         BannerRecipe recipe = importParseResult.recipe();
         if (recipe == null) return;
 
-        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(this.minecraft, recipe);
         drawPreviewSlot(ctx, x, y);
         ctx.item(stack, x + 1, y + 1);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {
@@ -246,7 +245,7 @@ public class ManageBannerRecipesScreen extends Screen {
         BannerRecipe recipe = manager.getEffectiveActiveBanner();
         if (recipe == null) return;
 
-        ItemStack stack = BannerRecipeItemConverter.toItem(Minecraft.getInstance(), recipe);
+        ItemStack stack = BannerRecipeItemConverter.toItem(this.minecraft, recipe);
         drawPreviewSlot(ctx, x, y);
         ctx.item(stack, x + 1, y + 1);
         if (isIn(mouseX, mouseY, x, y, PREVIEW_BOX, PREVIEW_BOX)) {

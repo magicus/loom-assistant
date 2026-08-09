@@ -10,8 +10,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import org.slf4j.Logger;
@@ -38,9 +36,9 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
         return AutoConfig.getConfigHolder(LoomAssistantConfig.class).getConfig();
     }
 
-    public static Registry<BannerPattern> getBannerPatternRegistry() {
-        RegistryAccess registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-        Registry<BannerPattern> registry = registryAccess.lookup(Registries.BANNER_PATTERN).orElse(null);
+    public static Registry<BannerPattern> getBannerPatternRegistry(Minecraft mc) {
+        Registry<BannerPattern> registry =
+                mc.level.registryAccess().lookup(Registries.BANNER_PATTERN).orElse(null);
         if (registry == null) {
             LOGGER.error("BannerPattern registry is unavailable — this should never happen");
             throw new IllegalStateException("BannerPattern registry is unavailable");

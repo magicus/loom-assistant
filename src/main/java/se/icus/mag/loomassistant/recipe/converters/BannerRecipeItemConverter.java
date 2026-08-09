@@ -7,6 +7,7 @@ package se.icus.mag.loomassistant.recipe.converters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -25,7 +26,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> {
     @Override
     public ItemStack fromRecipe(BannerRecipe recipe) {
-        return toItem(LoomAssistantMod.getBannerPatternRegistry(), recipe.getBaseBannerItem(), recipe.getLayers());
+        return toItem(Minecraft.getInstance(), recipe);
     }
 
     @Override
@@ -43,7 +44,11 @@ public class BannerRecipeItemConverter extends BannerRecipeConverter<ItemStack> 
     }
 
     public static ItemStack toItem(BannerRecipe recipe) {
-        return toItem(LoomAssistantMod.getBannerPatternRegistry(), recipe.getBaseBannerItem(), recipe.getLayers());
+        return toItem(Minecraft.getInstance(), recipe);
+    }
+
+    public static ItemStack toItem(Minecraft mc, BannerRecipe recipe) {
+        return toItem(LoomAssistantMod.getBannerPatternRegistry(mc), recipe.getBaseBannerItem(), recipe.getLayers());
     }
 
     public static ItemStack toItem(

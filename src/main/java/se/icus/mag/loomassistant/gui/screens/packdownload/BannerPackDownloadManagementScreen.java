@@ -380,20 +380,23 @@ public class BannerPackDownloadManagementScreen extends Screen {
             this.clearEntries();
 
             if (operationError != null) {
-                this.addEntry(
-                        new StatusTextEntry(this.minecraft.font, Component.literal(operationError).withStyle(ChatFormatting.RED)));
+                this.addEntry(new StatusTextEntry(
+                        this.minecraft.font, Component.literal(operationError).withStyle(ChatFormatting.RED)));
             }
 
             if (fetching) {
                 this.addEntry(new StatusTextEntry(
                         this.minecraft.font,
-                        Component.translatable("loom-assistant.screen.pack_download.checking").withStyle(ChatFormatting.GRAY)));
+                        Component.translatable("loom-assistant.screen.pack_download.checking")
+                                .withStyle(ChatFormatting.GRAY)));
             } else if (fetchError != null) {
-                this.addEntry(new StatusTextEntry(this.minecraft.font, Component.literal(fetchError).withStyle(ChatFormatting.RED)));
+                this.addEntry(new StatusTextEntry(
+                        this.minecraft.font, Component.literal(fetchError).withStyle(ChatFormatting.RED)));
             } else if (statuses.isEmpty()) {
                 this.addEntry(new StatusTextEntry(
                         this.minecraft.font,
-                        Component.translatable("loom-assistant.screen.pack_download.no_packs").withStyle(ChatFormatting.GRAY)));
+                        Component.translatable("loom-assistant.screen.pack_download.no_packs")
+                                .withStyle(ChatFormatting.GRAY)));
             } else {
                 PackRowEntry toReselect = null;
                 for (PackUpdateStatus s : statuses) {
@@ -433,7 +436,8 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
         @Override
         public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-            graphics.centeredText(font, text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 4, 0xAAAAAA);
+            graphics.centeredText(
+                    font, text, this.getContentX() + this.getWidth() / 2, this.getContentYMiddle() - 4, 0xAAAAAA);
         }
     }
 
