@@ -126,7 +126,7 @@ public class WeavingGuide implements ScreenExtension {
             float v0 = sprite.getV0() + vSpan / 64.0F;
             float v1 = v0 + vSpan * 40.0F / 64.0F;
             context.pose().pushMatrix();
-            context.pose().translate(previewX + 3, previewY + 22);
+            context.pose().translate(previewX + 6, previewY + 22);
             context.fill(0, 0, 7, 14, DyeColor.GRAY.getTextureDiffuseColor());
             context.blit(sprite.atlasLocation(), 0, 0, 7, 14, u0, u1, v0, v1);
             context.pose().popMatrix();
