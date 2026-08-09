@@ -46,6 +46,15 @@ tasks.withType(JavaCompile).configureEach {
 test {
     useJUnitPlatform()
     systemProperty "fabric.side", "client"
+
+    // Run tests in build/test-run to avoid polluting the project root with test artifacts
+    def testRunDir = layout.buildDirectory.dir("test-run")
+    doFirst {
+        delete testRunDir
+        testRunDir.get().asFile.mkdirs()
+    }
+    workingDir = testRunDir
+
     testLogging {
         events "passed", "failed", "skipped", "standardOut", "standardError"
     }
