@@ -34,7 +34,7 @@ public final class SkinMcUrlParser extends UrlParser {
         String path = uri.getPath();
 
         if (path != null && !"/banner/editor".equals(path) && path.matches("^/banner/[^/]+$"))
-            throw new IllegalArgumentException("Please Use Edit design link");
+            throw new IllegalArgumentException("Please Use \"Edit design\" link instead");
 
         String query = uri.getQuery();
         if (query == null || query.isBlank()) return "";

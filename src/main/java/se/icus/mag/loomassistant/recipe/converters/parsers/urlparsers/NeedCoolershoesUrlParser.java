@@ -44,7 +44,7 @@ public final class NeedCoolershoesUrlParser extends UrlParser {
 
         String path = uri.getPath();
         if (path != null && PAGE_LINK_PATTERN.matcher(path).find())
-            throw new IllegalArgumentException("Please use Open in Editor link");
+            throw new IllegalArgumentException("Please use \"Open in Editor\" link instead");
 
         String queryCode = extractBannerCodeFromQuery(uri.getRawQuery());
         if (queryCode.isBlank()) throw new IllegalArgumentException("No banner code found in NeedCoolerShoes URL");

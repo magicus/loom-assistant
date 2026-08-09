@@ -93,7 +93,7 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
         String path = uri.getPath();
 
         if (path != null && path.startsWith("/banner/") && !path.equals("/banner/"))
-            throw new IllegalArgumentException("Please use Remix Banner link");
+            throw new IllegalArgumentException("Please use \"Remix Banner\" link instead");
 
         String query = uri.getQuery();
         if (query == null || query.isBlank())
