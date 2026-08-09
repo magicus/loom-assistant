@@ -8,6 +8,7 @@
     "AbstractContainerEventHandlerInputMixin",
     "AbstractContainerScreenKeyPressedMixin",
     "ClientTooltipComponentMixin",
+    "LoomMenuMixin",
     "LoomScreenMixin"
   ],
   "package": "se.icus.mag.loomassistant.mixin",

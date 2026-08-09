@@ -7,3 +7,5 @@
 * Committa aldrig åt mig, det gör jag själv efter granskning.
 
 * Källkoden för Minecraft är uppackad på /Users/ihse/hacking/minecraft-stuff/src/26.2
+
+* loomAssistant$ behövs inte som prefix i moderna fabric/sponge mixins.
