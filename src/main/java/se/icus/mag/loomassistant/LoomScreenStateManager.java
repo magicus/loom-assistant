@@ -206,6 +206,20 @@ public class LoomScreenStateManager {
         setActiveBannerFromSource(created, created.getId(), true);
     }
 
+    public void importBannerWithMetadata(BannerRecipe imported, String nameInput, String categoryInput) {
+        if (imported == null) return;
+
+        String name = nameInput == null || nameInput.isBlank() ? BannerRecipe.getUnnamedBanner() : nameInput.trim();
+        String category =
+                (categoryInput == null || categoryInput.isBlank()) ? BannerRecipe.DEFAULT_CATEGORY : categoryInput;
+
+        BannerRecipe toSave = cloneBanner(imported).withDescription(name).withCategory(category);
+        BannerRecipe created = BannerStorage.getInstance().addBanner(toSave);
+        if (created != null) {
+            setActiveBannerFromSource(created, created.getId(), true);
+        }
+    }
+
     public void clearActiveBanner() {
         state.setActiveBanner(null);
         state.setEffectiveActiveBanner(null);

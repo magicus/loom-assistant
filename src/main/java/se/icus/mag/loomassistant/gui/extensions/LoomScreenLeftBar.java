@@ -30,8 +30,8 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.ScreenExtension;
+import se.icus.mag.loomassistant.gui.screens.BannerDetailsScreen;
 import se.icus.mag.loomassistant.gui.screens.BannerRecipeImportExportScreen;
-import se.icus.mag.loomassistant.gui.screens.BannerSaveEditScreen;
 import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
 
 public class LoomScreenLeftBar implements ScreenExtension {
@@ -384,8 +384,22 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     Component.empty(),
                     button -> {
                         if (manager.hasActiveBanner()) {
-                            screen.minecraft.gui.setScreen(
-                                    new BannerSaveEditScreen(screen, manager, manager.isActiveBannerAlreadySaved()));
+                            BannerDetailsScreen.Mode mode;
+                            if (manager.isActiveBannerAlreadySaved()) {
+                                mode = manager.isActiveBannerFromReadOnlySource()
+                                        ? BannerDetailsScreen.Mode.EDIT_READONLY
+                                        : BannerDetailsScreen.Mode.EDIT;
+                            } else {
+                                mode = BannerDetailsScreen.Mode.SAVE;
+                            }
+
+                            boolean loadFromPersistedSource = mode == BannerDetailsScreen.Mode.EDIT
+                                    || mode == BannerDetailsScreen.Mode.EDIT_READONLY;
+                            String initialName = manager.getActiveBannerDialogName(loadFromPersistedSource);
+                            String initialCategory = manager.getActiveBannerDialogCategory(loadFromPersistedSource);
+
+                            screen.minecraft.gui.setScreen(new BannerDetailsScreen(
+                                    screen, mode, initialName, initialCategory, manager::applyActiveBannerMetadata));
                         }
                     },
                     Supplier::get);

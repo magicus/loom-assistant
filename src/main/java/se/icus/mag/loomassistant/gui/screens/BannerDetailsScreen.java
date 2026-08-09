@@ -13,42 +13,69 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
 
 /**
- * Simple modal for naming a banner and selecting category before save/edit.
+ * Modal for naming a banner and selecting category.
  */
-public class BannerSaveEditScreen extends Screen {
+public class BannerDetailsScreen extends Screen {
+    public enum Mode {
+        EDIT,
+        SAVE,
+        EDIT_READONLY,
+        IMPORT
+    }
+
+    @FunctionalInterface
+    public interface ConfirmAction {
+        void onConfirm(String name, String categoryId);
+    }
+
     private static final int PANEL_W = 250;
     private static final int PANEL_H_BASE = 130;
     private static final int NOTICE_EXTRA_H = 20;
 
     private final Screen previousScreen;
-    private final LoomScreenStateManager manager;
-    private final boolean editMode;
-    private final boolean readOnlySource;
+    private final Mode mode;
+    private final ConfirmAction onConfirm;
     private final List<BannerRecipeCategory> categories;
+    private final String initialName;
+    private final String initialCategoryId;
 
     private EditBox nameBox;
     private String selectedCategoryId;
 
-    public BannerSaveEditScreen(Screen previousScreen, LoomScreenStateManager manager, boolean editMode) {
-        super(Component.translatable(
-                editMode
-                        ? "loom-assistant.screen.save_edit.title_edit"
-                        : "loom-assistant.screen.save_edit.title_save"));
+    public BannerDetailsScreen(
+            Screen previousScreen, Mode mode, String initialName, String initialCategoryId, ConfirmAction onConfirm) {
+        super(Component.translatable(titleTranslationKeyForMode(mode)));
         this.previousScreen = previousScreen;
-        this.manager = manager;
-        this.editMode = editMode;
-        this.readOnlySource = editMode && manager.isActiveBannerFromReadOnlySource();
+        this.mode = mode;
+        this.initialName = initialName;
+        this.initialCategoryId = initialCategoryId;
+        this.onConfirm = onConfirm;
         this.categories = BannerRecipeCategories.getCategories();
     }
 
     private int panelH() {
-        return readOnlySource ? PANEL_H_BASE + NOTICE_EXTRA_H : PANEL_H_BASE;
+        return panelHeightForMode(mode);
+    }
+
+    static int panelHeightForMode(Mode mode) {
+        return mode == Mode.EDIT_READONLY ? PANEL_H_BASE + NOTICE_EXTRA_H : PANEL_H_BASE;
+    }
+
+    static String titleTranslationKeyForMode(Mode mode) {
+        return mode == Mode.EDIT || mode == Mode.EDIT_READONLY
+                ? "loom-assistant.screen.save_edit.title_edit"
+                : "loom-assistant.screen.save_edit.title_save";
+    }
+
+    static String confirmTranslationKeyForMode(Mode mode) {
+        return mode == Mode.EDIT || mode == Mode.EDIT_READONLY
+                ? "loom-assistant.tooltip.edit_recipe"
+                : "loom-assistant.tooltip.add_recipe";
     }
 
     @Override
@@ -56,8 +83,9 @@ public class BannerSaveEditScreen extends Screen {
         int x = (this.width - PANEL_W) / 2;
         int y = (this.height - panelH()) / 2;
 
-        String initialName = manager.getActiveBannerDialogName(editMode);
-        this.selectedCategoryId = normalizeCategory(manager.getActiveBannerDialogCategory(editMode));
+        String resolvedInitialName =
+                (initialName == null || initialName.isBlank()) ? BannerRecipe.getUnnamedBanner() : initialName;
+        this.selectedCategoryId = normalizeCategory(initialCategoryId);
 
         this.nameBox = this.addRenderableWidget(new EditBox(
                 this.font,
@@ -67,15 +95,15 @@ public class BannerSaveEditScreen extends Screen {
                 18,
                 Component.translatable("loom-assistant.screen.save_edit.name")));
         this.nameBox.setMaxLength(64);
-        this.nameBox.setValue(initialName);
+        this.nameBox.setValue(resolvedInitialName);
         this.nameBox.setFocused(true);
         this.setFocused(this.nameBox);
 
-        if (editMode) {
-            this.nameBox.setCursorPosition(initialName.length());
-            this.nameBox.setHighlightPos(initialName.length());
+        if (mode == Mode.EDIT || mode == Mode.EDIT_READONLY) {
+            this.nameBox.setCursorPosition(resolvedInitialName.length());
+            this.nameBox.setHighlightPos(resolvedInitialName.length());
         } else {
-            this.nameBox.setCursorPosition(initialName.length());
+            this.nameBox.setCursorPosition(resolvedInitialName.length());
             this.nameBox.setHighlightPos(0);
         }
 
@@ -87,12 +115,10 @@ public class BannerSaveEditScreen extends Screen {
                 .bounds(x + PANEL_W - 36, y + 74, 20, 18)
                 .build());
 
-        this.addRenderableWidget(Button.builder(
-                        Component.translatable(
-                                editMode ? "loom-assistant.tooltip.edit_recipe" : "loom-assistant.tooltip.add_recipe"),
-                        button -> applyAndClose())
-                .bounds(x + 16, y + 102, 104, 20)
-                .build());
+        this.addRenderableWidget(
+                Button.builder(Component.translatable(confirmTranslationKeyForMode(mode)), button -> applyAndClose())
+                        .bounds(x + 16, y + 102, 104, 20)
+                        .build());
 
         this.addRenderableWidget(
                 Button.builder(Component.translatable("loom-assistant.common.cancel"), button -> this.onClose())
@@ -130,7 +156,7 @@ public class BannerSaveEditScreen extends Screen {
         int categoryX = x + (PANEL_W - this.font.width(category)) / 2;
         graphics.text(this.font, category, categoryX, y + 79, 0xFFFFFFFF, false);
 
-        if (readOnlySource) {
+        if (mode == Mode.EDIT_READONLY) {
             graphics.text(
                     this.font,
                     Component.translatable("loom-assistant.screen.save_edit.read_only_notice"),
@@ -202,17 +228,23 @@ public class BannerSaveEditScreen extends Screen {
 
     private void applyAndClose() {
         String name = this.nameBox == null ? "" : this.nameBox.getValue();
-        manager.applyActiveBannerMetadata(name, selectedCategoryId);
-        this.minecraft.gui.setScreen(previousScreen);
+        onConfirm.onConfirm(name, selectedCategoryId);
+        closeToPreviousScreen();
     }
 
     @Override
     public void onClose() {
-        this.minecraft.gui.setScreen(previousScreen);
+        closeToPreviousScreen();
     }
 
     @Override
     public boolean shouldCloseOnEsc() {
         return true;
+    }
+
+    private void closeToPreviousScreen() {
+        if (this.minecraft != null && this.minecraft.gui != null) {
+            this.minecraft.gui.setScreen(previousScreen);
+        }
     }
 }

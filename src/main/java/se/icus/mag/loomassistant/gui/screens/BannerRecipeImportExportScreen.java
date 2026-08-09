@@ -308,8 +308,14 @@ public class BannerRecipeImportExportScreen extends Screen {
         BannerRecipe recipe = importParseResult.recipe();
         if (recipe == null || this.minecraft == null) return;
 
-        manager.loadImportedBanner(recipe);
-        this.minecraft.gui.setScreen(new BannerSaveEditScreen(previousScreen, manager, true));
+        String initialName = recipe.getName();
+        String initialCategory = recipe.getCategory();
+        this.minecraft.gui.setScreen(new BannerDetailsScreen(
+                previousScreen,
+                BannerDetailsScreen.Mode.IMPORT,
+                initialName,
+                initialCategory,
+                (name, category) -> manager.importBannerWithMetadata(recipe, name, category)));
     }
 
     private boolean hasExportTarget() {
