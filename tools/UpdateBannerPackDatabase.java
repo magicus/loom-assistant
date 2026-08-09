@@ -17,6 +17,14 @@ import java.util.zip.*;
 
 public class UpdateBannerPackDatabase {
     static final String INDEX_FILE = "bannerpack-index-v1.json";
+    static final String README_FILE = "README.md";
+    static final String DOCS_DIR = "docs";
+    static final String README_INTRO = """
+            This repository contains curated banner packs for Loom Assistant.
+            Each package is listed below with quick metadata, download link, and preview icon.
+
+            Update this text in UpdateBannerPackDatabase.java if you want a different intro.
+            """;
 
     public static void main(String[] args) throws Exception {
         Path dir = Path.of(".");
@@ -31,8 +39,9 @@ public class UpdateBannerPackDatabase {
         }
         String repoVersion = existing.getOrDefault("repoVersion", "1");
 
-        List<String> packEntries = new ArrayList<>();
-        List<String> foundIds = new ArrayList<>();
+        List<PackInfo> packs = new ArrayList<>();
+        Path docsDir = dir.resolve(DOCS_DIR);
+        Files.createDirectories(docsDir);
 
         try (var stream = Files.list(dir)) {
             var zips = stream
@@ -43,25 +52,29 @@ public class UpdateBannerPackDatabase {
                 String name = zip.getFileName().toString();
                 String packId = name.substring(0, name.length() - 4);
                 System.out.println("Processing: " + packId);
-                packEntries.add(buildPackEntry(zip, packId, baseUrl, dir));
-                foundIds.add(packId);
+                packs.add(buildPackInfo(zip, packId, baseUrl, dir, docsDir));
             }
         }
 
-        if (packEntries.isEmpty()) {
+        if (packs.isEmpty()) {
             System.err.println("No *.zip files found in " + dir.toAbsolutePath());
             System.exit(1);
         }
 
         String today = LocalDate.now().toString();
-        String json = buildIndex(repoVersion, today, baseUrl, packEntries);
+        String json = buildIndex(repoVersion, today, baseUrl, packs);
 
         Path indexPath = dir.resolve(INDEX_FILE);
         Files.writeString(indexPath, json, StandardCharsets.UTF_8);
         System.out.println("Written: " + indexPath.toAbsolutePath());
+
+        String readme = buildReadme(today, baseUrl, packs);
+        Path readmePath = dir.resolve(README_FILE);
+        Files.writeString(readmePath, readme, StandardCharsets.UTF_8);
+        System.out.println("Written: " + readmePath.toAbsolutePath());
     }
 
-    static String buildPackEntry(Path zipPath, String packId, String baseUrl, Path dir) throws Exception {
+    static PackInfo buildPackInfo(Path zipPath, String packId, String baseUrl, Path dir, Path docsDir) throws Exception {
         String sha256 = computeSha256(zipPath);
         long size = Files.size(zipPath);
         String publishedAt = Files.getLastModifiedTime(zipPath)
@@ -87,46 +100,68 @@ public class UpdateBannerPackDatabase {
         }
 
         // Icon: prefer {packId}-icon.png alongside zip, then pack.png inside zip
-        String iconData = null;
+        byte[] iconBytes = null;
         Path externalIcon = dir.resolve(packId + "-icon.png");
         if (Files.exists(externalIcon)) {
-            byte[] bytes = Files.readAllBytes(externalIcon);
-            iconData = Base64.getEncoder().encodeToString(bytes);
-            System.out.println("  icon: " + externalIcon.getFileName() + " (" + bytes.length + " bytes, base64 " + iconData.length() + " chars)");
+            iconBytes = Files.readAllBytes(externalIcon);
+            System.out.println("  icon: " + externalIcon.getFileName() + " (" + iconBytes.length + " bytes)");
         } else {
             try (ZipFile zf = new ZipFile(zipPath.toFile())) {
                 ZipEntry packPng = zf.getEntry("pack.png");
                 if (packPng != null) {
-                    byte[] bytes = zf.getInputStream(packPng).readAllBytes();
-                    iconData = Base64.getEncoder().encodeToString(bytes);
-                    System.out.println("  icon: pack.png from zip (" + bytes.length + " bytes, base64 " + iconData.length() + " chars)");
+                    iconBytes = zf.getInputStream(packPng).readAllBytes();
+                    System.out.println("  icon: pack.png from zip (" + iconBytes.length + " bytes)");
                 } else {
                     System.out.println("  icon: none (no " + packId + "-icon.png or pack.png in zip)");
                 }
             }
         }
 
+        String iconData = null;
+        String iconPath = null;
+        if (iconBytes != null) {
+            iconData = Base64.getEncoder().encodeToString(iconBytes);
+            Path iconOutput = docsDir.resolve(packId + ".png");
+            Files.write(iconOutput, iconBytes);
+            iconPath = DOCS_DIR + "/" + packId + ".png";
+            System.out.println("  icon-export: " + iconOutput.toAbsolutePath());
+        }
+
         String downloadUrl = baseUrl.endsWith("/") ? baseUrl + packId + ".zip" : baseUrl + "/" + packId + ".zip";
 
+        return new PackInfo(
+                packId,
+                title,
+                description,
+                author,
+                downloadUrl,
+                sha256,
+                size,
+                publishedAt,
+                iconData,
+                iconPath);
+    }
+
+    static String buildPackEntry(PackInfo pack) {
         StringBuilder sb = new StringBuilder();
         sb.append("    {\n");
-        sb.append("      \"id\": ").append(jsonStr(packId)).append(",\n");
-        sb.append("      \"title\": ").append(jsonStr(title)).append(",\n");
-        sb.append("      \"description\": ").append(jsonStr(description)).append(",\n");
-        sb.append("      \"author\": ").append(jsonStr(author)).append(",\n");
-        sb.append("      \"downloadUrl\": ").append(jsonStr(downloadUrl)).append(",\n");
-        sb.append("      \"sha256\": ").append(jsonStr(sha256)).append(",\n");
-        sb.append("      \"sizeBytes\": ").append(size).append(",\n");
-        sb.append("      \"publishedAt\": ").append(jsonStr(publishedAt));
-        if (iconData != null) {
-            sb.append(",\n      \"iconData\": ").append(jsonStr(iconData));
+        sb.append("      \"id\": ").append(jsonStr(pack.id)).append(",\n");
+        sb.append("      \"title\": ").append(jsonStr(pack.title)).append(",\n");
+        sb.append("      \"description\": ").append(jsonStr(pack.description)).append(",\n");
+        sb.append("      \"author\": ").append(jsonStr(pack.author)).append(",\n");
+        sb.append("      \"downloadUrl\": ").append(jsonStr(pack.downloadUrl)).append(",\n");
+        sb.append("      \"sha256\": ").append(jsonStr(pack.sha256)).append(",\n");
+        sb.append("      \"sizeBytes\": ").append(pack.sizeBytes).append(",\n");
+        sb.append("      \"publishedAt\": ").append(jsonStr(pack.publishedAt));
+        if (pack.iconData != null) {
+            sb.append(",\n      \"iconData\": ").append(jsonStr(pack.iconData));
         }
         sb.append("\n    }");
         return sb.toString();
     }
 
     static String buildIndex(
-            String repoVersion, String generatedAt, String baseUrl, List<String> packs) {
+            String repoVersion, String generatedAt, String baseUrl, List<PackInfo> packs) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append("  \"repoVersion\": ").append(repoVersion).append(",\n");
@@ -134,12 +169,57 @@ public class UpdateBannerPackDatabase {
         sb.append("  \"baseUrl\": ").append(jsonStr(baseUrl)).append(",\n");
         sb.append("  \"packs\": [\n");
         for (int i = 0; i < packs.size(); i++) {
-            sb.append(packs.get(i));
+            sb.append(buildPackEntry(packs.get(i)));
             if (i < packs.size() - 1) sb.append(",");
             sb.append("\n");
         }
         sb.append("  ]\n");
         sb.append("}\n");
+        return sb.toString();
+    }
+
+    static String buildReadme(String generatedAt, String baseUrl, List<PackInfo> packs) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Loom Assistant Banner Packs\n\n");
+        sb.append(README_INTRO.strip()).append("\n\n");
+        sb.append("> Generated: ").append(generatedAt).append("  \n");
+        sb.append("> Base URL: [").append(baseUrl).append("](").append(baseUrl).append(")  \n");
+        sb.append("> Total packs: ").append(packs.size()).append("\n\n");
+
+        sb.append("## Included Packs\n\n");
+        sb.append("| Icon | Pack | Author | Published | Download |\n");
+        sb.append("| :--: | --- | --- | :--: | :--: |\n");
+        for (PackInfo pack : packs) {
+            String iconCell = pack.iconPath != null
+                    ? "<img src=\"" + mdEscape(pack.iconPath) + "\" alt=\"" + mdEscape(pack.id) + "\" width=\"48\" />"
+                    : "-";
+            String packCell = "**" + mdEscape(nonBlank(pack.title, pack.id)) + "**<br/>"
+                    + "<sub><code>" + mdEscape(pack.id) + "</code></sub>";
+            if (!pack.description.isBlank()) {
+                packCell += "<br/>" + mdEscape(pack.description);
+            }
+            String authorCell = pack.author.isBlank() ? "-" : mdEscape(pack.author);
+            String downloadCell = "[ZIP](" + mdEscape(pack.downloadUrl) + ")";
+            sb.append("| ")
+                    .append(iconCell)
+                    .append(" | ")
+                    .append(packCell)
+                    .append(" | ")
+                    .append(authorCell)
+                    .append(" | ")
+                    .append(mdEscape(pack.publishedAt))
+                    .append(" | ")
+                    .append(downloadCell)
+                    .append(" |\n");
+        }
+
+        sb.append("\n## Integrity\n\n");
+        sb.append("Use the checksums below to verify downloaded files.\n\n");
+        sb.append("```text\n");
+        for (PackInfo pack : packs) {
+            sb.append(pack.sha256).append("  ").append(pack.id).append(".zip\n");
+        }
+        sb.append("```\n");
         return sb.toString();
     }
 
@@ -184,5 +264,51 @@ public class UpdateBannerPackDatabase {
                         .replace("\n", "\\n")
                         .replace("\r", "\\r")
                 + "\"";
+    }
+
+    static String mdEscape(String s) {
+        if (s == null) return "";
+        return s.replace("|", "\\|").replace("\n", " ").replace("\r", "").trim();
+    }
+
+    static String nonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) return preferred;
+        return fallback;
+    }
+
+    static class PackInfo {
+        final String id;
+        final String title;
+        final String description;
+        final String author;
+        final String downloadUrl;
+        final String sha256;
+        final long sizeBytes;
+        final String publishedAt;
+        final String iconData;
+        final String iconPath;
+
+        PackInfo(
+                String id,
+                String title,
+                String description,
+                String author,
+                String downloadUrl,
+                String sha256,
+                long sizeBytes,
+                String publishedAt,
+                String iconData,
+                String iconPath) {
+            this.id = id;
+            this.title = title;
+            this.description = description;
+            this.author = author;
+            this.downloadUrl = downloadUrl;
+            this.sha256 = sha256;
+            this.sizeBytes = sizeBytes;
+            this.publishedAt = publishedAt;
+            this.iconData = iconData;
+            this.iconPath = iconPath;
+        }
     }
 }
