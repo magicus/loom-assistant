@@ -38,7 +38,9 @@ public class CreativeWeaver extends Weaver {
 
         // Mirror what /give does: stack into an existing slot if possible, otherwise use free slot.
         int targetSlot = inventory.getSlotWithRemainingSpace(result);
-        if (targetSlot == -1) {
+        if (targetSlot != -1) {
+            inventory.getItem(targetSlot).grow(result.getCount());
+        } else {
             for (int i = 0; i < 9; i++) {
                 if (inventory.getItem(i).isEmpty()) {
                     targetSlot = i;
@@ -52,8 +54,6 @@ public class CreativeWeaver extends Weaver {
                 targetSlot = inventory.getSelectedSlot();
             }
             inventory.setItem(targetSlot, result.copy());
-        } else {
-            inventory.getItem(targetSlot).grow(result.getCount());
         }
 
         // Hotbar (0-8) maps to creative container slots 36-44; rest maps 1:1.

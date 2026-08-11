@@ -65,7 +65,6 @@ public class ManageBannerRecipesScreen extends Screen {
 
     private BannerRecipeCommandConverter.CommandParseResult importParseResult =
             new BannerRecipeCommandConverter.CommandParseResult(null, "Invalid syntax", null);
-    private boolean copiedFeedback;
 
     private String planetMcUrl;
     private String minecraftToolsUrl;
@@ -191,18 +190,7 @@ public class ManageBannerRecipesScreen extends Screen {
                 TEXT_COLOR,
                 false);
 
-        if (copiedFeedback && hasExportTarget()) {
-            String copied = Component.translatable("loom-assistant.screen.import_export.copied")
-                    .getString();
-            int copiedX = layout.exportCopyX() - this.font.width(copied) - BTN_GAP;
-            graphics.text(
-                    this.font,
-                    Component.translatable("loom-assistant.screen.import_export.copied"),
-                    copiedX,
-                    layout.exportLabelY(),
-                    OK_COLOR,
-                    false);
-        } else if (!hasExportTarget()) {
+        if (!hasExportTarget()) {
             int statusX = layout.contentX()
                     + this.font.width(Component.translatable("loom-assistant.screen.import_export.export_label")
                             .getString())
@@ -275,7 +263,6 @@ public class ManageBannerRecipesScreen extends Screen {
     }
 
     private void onImportTextChanged(String text) {
-        copiedFeedback = false;
         String trimmed = text == null ? "" : text.strip();
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
             String error = UrlParser.checkParseUrl(trimmed);
@@ -365,14 +352,12 @@ public class ManageBannerRecipesScreen extends Screen {
         if (this.minecraft == null || !hasExportTarget() || exportBox == null) return;
 
         this.minecraft.keyboardHandler.setClipboard(exportBox.getValue());
-        copiedFeedback = true;
     }
 
     private void openUrl(String url) {
         if (url == null || url.isBlank()) return;
 
         Util.getPlatform().openUri(URI.create(url));
-        copiedFeedback = false;
     }
 
     private boolean hasExportTarget() {
