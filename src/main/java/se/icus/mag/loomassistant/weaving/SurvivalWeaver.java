@@ -88,6 +88,7 @@ public class SurvivalWeaver extends Weaver {
 
     @Override
     public boolean canWeave(BannerRecipe banner) {
+        if (banner == null || !banner.isWeavable()) return false;
         return craftabilityModel.canCraft(banner);
     }
 
