@@ -73,18 +73,16 @@ public abstract class BannerPack {
         return categoryTranslations;
     }
 
-    public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
-        if (target.isReadOnly()) throw new IllegalArgumentException("cannot copy to read-only pack");
-
-        BannerRecipe recipe = getDesign(recipeId);
-        if (recipe == null) throw new IllegalArgumentException("recipe not found: " + recipeId);
-
-        return target.addBannerRecipe(recipe.withId(null));
-    }
-
     public abstract boolean isReadOnly();
 
     public abstract BannerRecipe addBannerRecipe(BannerRecipe recipe) throws IOException;
+
+    public BannerRecipe copyRecipeTo(BannerPack target, String recipeId) throws IOException {
+        if (target.isReadOnly()) throw new IllegalArgumentException("cannot copy to read-only pack");
+        BannerRecipe recipe = getDesign(recipeId);
+        if (recipe == null) throw new IllegalArgumentException("recipe not found: " + recipeId);
+        return target.addBannerRecipe(recipe.withId(null));
+    }
 
     public abstract void updateBannerRecipe(BannerRecipe recipe) throws IOException;
 
@@ -256,18 +254,6 @@ public abstract class BannerPack {
                     });
         }
         categoryTranslations = Map.copyOf(loaded);
-    }
-
-    public static void writeCategoryFile(Path categoriesDir, String namespace, BannerRecipeCategory category)
-            throws IOException {
-        Path nsDir = categoriesDir.resolve(namespace);
-        Files.createDirectories(nsDir);
-        JsonObject obj = new JsonObject();
-        obj.addProperty("description", category.description());
-        obj.addProperty("icon", category.iconItemId());
-        try (Writer writer = Files.newBufferedWriter(nsDir.resolve(category.id() + ".json"))) {
-            PRETTY_GSON.toJson(obj, writer);
-        }
     }
 
     protected final void loadRecipesFromPath(Path bannersPath) throws IOException {

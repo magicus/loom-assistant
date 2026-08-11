@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
@@ -673,18 +672,6 @@ public class LoomRecipePanel implements ScreenExtension {
         return false;
     }
 
-    public void tick() {
-        manager.tick();
-    }
-
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.searchBox.setPosition(x + SEARCH_X, y + SEARCH_Y);
-        this.pageForwardButton.setPosition(x + 93, y + PAGE_BTN_Y_OFFSET);
-        this.pageBackButton.setPosition(x + 38, y + PAGE_BTN_Y_OFFSET);
-    }
-
     // -------------------------------------------------------------------------
     // Data helpers
     // -------------------------------------------------------------------------
@@ -709,43 +696,6 @@ public class LoomRecipePanel implements ScreenExtension {
         return Weaver.getWeaver(handler).canWeave(banner);
     }
 
-    /**
-     * Checks the loom's banner slot against the active recipe.
-     * Returns the index of the NEXT layer to craft (0 = blank banner is in, start first layer),
-     * or -1 if the slot is empty, wrong color, or layers don't match the recipe so far.
-     */
-    public int getActiveBannerLayerCount() {
-        return manager.getActiveBannerLayerCount();
-    }
-
-    public int detectCraftingProgress() {
-        return manager.detectCraftingProgress();
-    }
-
-    private BannerRecipe getSelectedBaseBanner() {
-        return manager.getActiveBanner();
-    }
-
-    public ItemStack getActiveBannerStack() {
-        return manager.getActiveBannerStack();
-    }
-
-    public BannerRecipe getActiveBanner() {
-        return manager.getActiveBanner();
-    }
-
-    public void setActiveBannerTooltip(GuiGraphicsExtractor ctx, int mouseX, int mouseY) {
-        BannerRecipe selectedBaseBanner = getSelectedBaseBanner();
-        if (selectedBaseBanner == null) return;
-
-        // currentRowIndex: row 0 = base banner (always "done" when banner is in slot)
-        // row n+1 = layer n; nextLayerIndex = progress -> currentRowIndex = progress + 1
-        int progress = detectCraftingProgress();
-        int currentRowIndex = progress >= 0 ? progress + 1 : -1;
-        setBannerTooltip(
-                ctx, mc, selectedBaseBanner.getDisplayName(), selectedBaseBanner, currentRowIndex, mouseX, mouseY);
-    }
-
     public static void setBannerTooltip(
             GuiGraphicsExtractor ctx, Minecraft mc, BannerRecipe banner, int mouseX, int mouseY) {
         setBannerTooltip(ctx, mc, banner.getDisplayName(), banner, -1, mouseX, mouseY);
@@ -765,98 +715,6 @@ public class LoomRecipePanel implements ScreenExtension {
 
     public void craftSelectedBanner() {
         manager.craftActiveBanner();
-    }
-
-    public boolean isActiveBannerCraftable() {
-        return manager.isActiveBannerCraftable();
-    }
-
-    public String getActiveBannerMissingMaterialMessage() {
-        return manager.getActiveBannerMissingMaterialMessage();
-    }
-
-    public boolean isActiveBannerWeavable() {
-        return manager.isActiveBannerWeavable();
-    }
-
-    public void clearSelectedBanner() {
-        manager.clearActiveBanner();
-    }
-
-    public boolean setActiveBannerFromItemStack(ItemStack stack) {
-        return manager.setActiveBannerFromItemStack(stack);
-    }
-
-    public boolean hasActiveBanner() {
-        return manager.hasActiveBanner();
-    }
-
-    public boolean isActiveBannerSavable() {
-        return manager.isActiveBannerSavable();
-    }
-
-    public boolean isActiveBannerAlreadySaved() {
-        return manager.isActiveBannerAlreadySaved();
-    }
-
-    public boolean isActiveBannerFromReadOnlySource() {
-        return manager.isActiveBannerFromReadOnlySource();
-    }
-
-    public String getActiveBannerDialogName(boolean editMode) {
-        return manager.getActiveBannerDialogName(editMode);
-    }
-
-    public String getActiveBannerDialogCategory(boolean editMode) {
-        return manager.getActiveBannerDialogCategory(editMode);
-    }
-
-    public void applyActiveBannerMetadata(String nameInput, String categoryInput) {
-        manager.applyActiveBannerMetadata(nameInput, categoryInput);
-    }
-
-    public boolean saveActiveBanner() {
-        if (!manager.hasActiveBanner() || !manager.isActiveBannerSavable()) return false;
-        BannerRecipe activeBanner = manager.getActiveBanner();
-        String baseName = activeBanner != null ? activeBanner.getDisplayName() : BannerRecipe.getUnnamedBanner();
-        manager.applyActiveBannerMetadata(baseName, getActiveBannerDialogCategory(false));
-        return manager.isActiveBannerAlreadySaved();
-    }
-
-    public void loadImportedBanner(BannerRecipe imported) {
-        manager.loadImportedBanner(imported);
-    }
-
-    public boolean isPersistentDyeSwitchEnabled() {
-        return manager.isPersistentDyeSwitchEnabled();
-    }
-
-    public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
-        return manager.getPersistentDyeReplacementMapCopy();
-    }
-
-    public void restorePersistentDyeSwitchState(boolean enabled, Map<DyeColor, DyeColor> replacements) {
-        if (!enabled) {
-            manager.disablePersistentDyeSwitchAndReload();
-            return;
-        }
-        manager.applyDyeSwitch(replacements, true);
-    }
-
-    public List<DyeColor> getActiveBannerUsedColors() {
-        return manager.getActiveBannerUsedColors();
-    }
-
-    public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
-        return manager.getInitialDyeReplacementTargets(sourceColors);
-    }
-
-    public boolean applyDyeSwitch(Map<DyeColor, DyeColor> replacements, boolean persistent) {
-        return manager.applyDyeSwitch(replacements, persistent);
-    }
-
-    public void disablePersistentDyeSwitchAndReload() {
-        manager.disablePersistentDyeSwitchAndReload();
     }
 
     private static String getPatternDisplayName(Minecraft mc, BannerRecipeLayer layer) {
@@ -900,28 +758,5 @@ public class LoomRecipePanel implements ScreenExtension {
         int ty = y + TAB_Y_START;
         int h = getVisibleTabCount() * RecipeBookTabButton.HEIGHT;
         return isIn(mx, my, tx - 2, ty, RecipeBookTabButton.WIDTH, h);
-    }
-
-    public static boolean saveBannerFromOutput(LoomMenu handler) {
-        ItemStack dyeStack = handler.getSlot(1).getItem();
-        ItemStack patternStack = handler.getSlot(2).getItem();
-        if (dyeStack.isEmpty() && patternStack.isEmpty()) {
-            ItemStack bannerStack = handler.getSlot(0).getItem();
-            if (bannerStack.isEmpty()) return false;
-            BannerRecipe banner = BannerRecipeItemConverter.fromItem(bannerStack);
-            if (banner != null) {
-                BannerStorage.getInstance().addBanner(banner);
-                return true;
-            }
-        } else {
-            ItemStack outputStack = handler.getSlot(3).getItem();
-            if (outputStack.isEmpty()) return false;
-            BannerRecipe banner = BannerRecipeItemConverter.fromItem(outputStack);
-            if (banner != null) {
-                BannerStorage.getInstance().addBanner(banner);
-                return true;
-            }
-        }
-        return false;
     }
 }

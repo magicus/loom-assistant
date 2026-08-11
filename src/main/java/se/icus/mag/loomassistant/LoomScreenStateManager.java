@@ -188,10 +188,7 @@ public class LoomScreenStateManager {
         BannerRecipe banner = converter.toRecipe(stack);
         if (banner == null) return false;
 
-        BannerRecipe created = saveBannerToLocalPack(banner);
-        if (created == null) return false;
-
-        setActiveBannerFromSource(created, created.getId(), true);
+        setActiveBannerFromSource(banner, null, false);
         return true;
     }
 
@@ -447,7 +444,28 @@ public class LoomScreenStateManager {
     }
 
     public boolean isActiveBannerAlreadySaved() {
-        return isActiveBannerFromWritableSource();
+        return findExistingRecipeMatchingEffectiveBanner() != null;
+    }
+
+    public BannerRecipe findExistingRecipeMatchingEffectiveBanner() {
+        BannerRecipe effective = state.getEffectiveActiveBanner();
+        if (effective == null) return null;
+        // Fast path: source exists and dye switch hasn't changed the banner
+        String sourceId = state.getActiveBannerRecipe();
+        if (sourceId != null && bannersEquivalent(state.getActiveBanner(), effective)) {
+            BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
+            if (source != null) return source;
+        }
+        // Full scan: handles dye switch modifications and inventory banners
+        return BannerStorage.getInstance().findBannerByPattern(effective.getBaseColorEnum(), effective.getLayers());
+    }
+
+    public void prepareEffectiveBannerForSave() {
+        BannerRecipe effective = state.getEffectiveActiveBanner();
+        if (effective == null) return;
+        state.setColorReplacementEnabled(false);
+        state.getColorReplacements().clear();
+        setActiveBannerFromSource(effective, null, false);
     }
 
     public boolean isActiveBannerFromReadOnlySource() {
@@ -496,6 +514,18 @@ public class LoomScreenStateManager {
             BannerRecipe updated = BannerStorage.getInstance().getBannerById(state.getActiveBannerRecipe());
             if (updated != null) {
                 setActiveBannerFromSource(updated, updated.getId(), true);
+            }
+            return;
+        }
+
+        if (isActiveBannerFromReadOnlySource()) {
+            BannerRecipe copied = BannerStorage.getInstance().copyBannerToLocalPack(state.getActiveBannerRecipe());
+            if (copied != null) {
+                BannerStorage.getInstance().updateBannerMetadata(copied.getId(), name, category);
+                BannerRecipe updated = BannerStorage.getInstance().getBannerById(copied.getId());
+                if (updated != null) {
+                    setActiveBannerFromSource(updated, updated.getId(), true);
+                }
             }
             return;
         }

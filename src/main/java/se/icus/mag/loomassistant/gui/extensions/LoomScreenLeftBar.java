@@ -33,6 +33,7 @@ import se.icus.mag.loomassistant.gui.ScreenExtension;
 import se.icus.mag.loomassistant.gui.screens.BannerDetailsScreen;
 import se.icus.mag.loomassistant.gui.screens.ManageBannerRecipesScreen;
 import se.icus.mag.loomassistant.gui.screens.colorswitch.BannerColorSwitchScreen;
+import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 public class LoomScreenLeftBar implements ScreenExtension {
     private static final int BG_LEFT_PADDING = 19;
@@ -394,13 +395,16 @@ public class LoomScreenLeftBar implements ScreenExtension {
                     Component.empty(),
                     button -> {
                         if (manager.hasActiveBanner()) {
+                            BannerRecipe match = manager.findExistingRecipeMatchingEffectiveBanner();
                             BannerDetailsScreen.Mode mode;
-                            if (manager.isActiveBannerAlreadySaved()) {
+                            if (match != null) {
+                                manager.setActiveBannerFromRecipe(match, match.getId());
                                 mode = manager.isActiveBannerFromReadOnlySource()
                                         ? BannerDetailsScreen.Mode.EDIT_READONLY
                                         : BannerDetailsScreen.Mode.EDIT;
                             } else {
                                 mode = BannerDetailsScreen.Mode.SAVE;
+                                manager.prepareEffectiveBannerForSave();
                             }
 
                             boolean loadFromPersistedSource = mode == BannerDetailsScreen.Mode.EDIT
@@ -418,7 +422,8 @@ public class LoomScreenLeftBar implements ScreenExtension {
         @Override
         public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
             this.extractDefaultSprite(graphics);
-            Identifier icon = manager.isActiveBannerAlreadySaved() ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
+            boolean isEditMode = manager.findExistingRecipeMatchingEffectiveBanner() != null;
+            Identifier icon = isEditMode ? RECIPE_EDIT_ICON : RECIPE_ADD_ICON;
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED, icon, this.getX() + 2, this.getY() + 2, 0.0F, 0.0F, 16, 16, 16, 16);
         }

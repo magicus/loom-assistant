@@ -17,11 +17,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.world.item.DyeColor;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.bannerpack.BannerPack;
 import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategory;
+import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeCommandConverter;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 
@@ -117,6 +119,16 @@ public final class BannerStorage {
         }
     }
 
+    public BannerRecipe copyBannerToLocalPack(String sourceId) {
+        ensureRepositoryLoaded();
+        String packId = repository.getBannerRecipePackId(sourceId);
+        if (packId == null) return null;
+        BannerRecipe copied = repository.copyBannerRecipe(packId, BannerPackRepository.LOCAL_PACK_ID, sourceId);
+        LoomAssistantMod.LOGGER.debug("Copied banner {} from {} to local", sourceId, packId);
+        refreshBannerCache();
+        return copied;
+    }
+
     public void removeBanner(String id) {
         ensureRepositoryLoaded();
         String packId = repository.getBannerRecipePackId(id);
@@ -133,6 +145,13 @@ public final class BannerStorage {
 
     public List<BannerRecipe> getBanners() {
         return Collections.unmodifiableList(banners);
+    }
+
+    public BannerRecipe findBannerByPattern(DyeColor baseColor, List<BannerRecipeLayer> layers) {
+        return banners.stream()
+                .filter(r -> r.getBaseColorEnum() == baseColor && r.getLayers().equals(layers))
+                .findFirst()
+                .orElse(null);
     }
 
     public BannerRecipe getBannerById(String id) {
