@@ -4,7 +4,6 @@
  */
 package se.icus.mag.loomassistant.gui;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -12,7 +11,6 @@ import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.resources.Identifier;
 import se.icus.mag.loomassistant.LoomAssistantMod;
 import se.icus.mag.loomassistant.LoomScreenStateManager;
 import se.icus.mag.loomassistant.gui.extensions.LoomRecipePanel;
@@ -23,11 +21,6 @@ public class LoomScreenExtension implements ScreenExtension {
     private static final int CONTENT_X_SHIFT = 3;
     private static final int BG_LEFT_PADDING = 19;
     private static final int PANEL_TAB_LEFT_OVERHANG = 32;
-    private static final int CUSTOM_BG_WIDTH = 278;
-    private static final int CUSTOM_BG_HEIGHT = 256;
-
-    private static final Identifier BG_LOCATION =
-            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/loom-gui.png");
 
     private final LoomScreen screen;
     private final LoomScreenStateManager manager;
@@ -123,31 +116,6 @@ public class LoomScreenExtension implements ScreenExtension {
             }
         }
         return false;
-    }
-
-    public void drawCustomBackground(
-            GuiGraphicsExtractor graphics,
-            RenderPipeline renderPipeline,
-            Identifier originalTexture,
-            int x,
-            int y,
-            float u,
-            float v,
-            int width,
-            int height,
-            int textureWidth,
-            int textureHeight) {
-        graphics.blit(
-                renderPipeline,
-                BG_LOCATION,
-                x - BG_LEFT_PADDING - CONTENT_X_SHIFT,
-                y,
-                u,
-                v,
-                width + BG_LEFT_PADDING + CONTENT_X_SHIFT,
-                height,
-                CUSTOM_BG_WIDTH,
-                CUSTOM_BG_HEIGHT);
     }
 
     private void onPanelVisibilityChanged() {

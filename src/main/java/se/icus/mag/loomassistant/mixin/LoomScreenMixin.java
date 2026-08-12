@@ -4,15 +4,12 @@
  */
 package se.icus.mag.loomassistant.mixin;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import se.icus.mag.loomassistant.LoomAssistantMod;
@@ -28,32 +25,6 @@ public abstract class LoomScreenMixin {
         if (extension == null) return;
 
         extension.init();
-    }
-
-    @Redirect(
-            method = "extractBackground",
-            at =
-                    @At(
-                            value = "INVOKE",
-                            target =
-                                    "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
-    private void drawCustomLoomBackground(
-            GuiGraphicsExtractor graphics,
-            RenderPipeline renderPipeline,
-            Identifier texture,
-            int x,
-            int y,
-            float u,
-            float v,
-            int width,
-            int height,
-            int textureWidth,
-            int textureHeight) {
-        ScreenExtension extension = LoomAssistantMod.getLoomManager().getExtension();
-        if (extension == null) return;
-
-        extension.drawCustomBackground(
-                graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
     }
 
     @Inject(method = "extractBackground", at = @At("TAIL"))

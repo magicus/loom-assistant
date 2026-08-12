@@ -4,12 +4,10 @@
  */
 package se.icus.mag.loomassistant.gui;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.resources.Identifier;
 
 public interface ScreenExtension {
     default void init() {}
@@ -17,19 +15,6 @@ public interface ScreenExtension {
     default void removed() {}
 
     void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta);
-
-    default void drawCustomBackground(
-            GuiGraphicsExtractor graphics,
-            RenderPipeline renderPipeline,
-            Identifier originalTexture,
-            int x,
-            int y,
-            float u,
-            float v,
-            int width,
-            int height,
-            int textureWidth,
-            int textureHeight) {}
 
     default boolean mouseClicked(MouseButtonEvent event) {
         return false;

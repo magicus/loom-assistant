@@ -37,6 +37,9 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 
 public class LoomScreenLeftBar implements ScreenExtension {
     private static final int BG_LEFT_PADDING = 19;
+    private static final int SIDEBAR_WIDTH = 28;
+    private static final int SIDEBAR_HEIGHT = 175;
+    private static final int SIDEBAR_OVERLAP = 6;
     private static final int LEFT_STRIP_BUTTON_X = 3;
     private static final int LEFT_STRIP_RECIPE_Y = 5;
     private static final int LEFT_STRIP_ACTIVE_SLOT_Y = LEFT_STRIP_RECIPE_Y + 42;
@@ -46,6 +49,9 @@ public class LoomScreenLeftBar implements ScreenExtension {
     private static final int LEFT_STRIP_IMPORT_EXPORT_BOTTOM_MARGIN = 6;
     private static final int ACTIVE_SLOT_W = 20;
     private static final int ACTIVE_SLOT_H = 18;
+
+    private static final Identifier SIDEBAR_LOCATION =
+            Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/sidebar-gui.png");
 
     private static final Identifier RECIPE_WEAVE_ICON =
             Identifier.fromNamespaceAndPath("loom-assistant", "textures/gui/recipe-weave.png");
@@ -131,6 +137,18 @@ public class LoomScreenLeftBar implements ScreenExtension {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        context.blit(
+                RenderPipelines.GUI_TEXTURED,
+                SIDEBAR_LOCATION,
+                screen.leftPos - (SIDEBAR_WIDTH - SIDEBAR_OVERLAP),
+                screen.topPos,
+                0.0F,
+                0.0F,
+                SIDEBAR_WIDTH,
+                SIDEBAR_HEIGHT,
+                SIDEBAR_WIDTH,
+                SIDEBAR_HEIGHT);
+
         boolean hasActiveBanner = manager.hasActiveBanner();
         boolean canCraftEffectiveActiveBanner = hasActiveBanner && manager.isEffectiveActiveBannerCraftable();
         String craftDisabledMessage = hasActiveBanner && !canCraftEffectiveActiveBanner
