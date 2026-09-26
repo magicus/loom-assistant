@@ -22,7 +22,7 @@
   "loom-assistant.screen.import_export.export_to_minecraft_tools": "Exportera till minecraft.tools",
   "loom-assistant.screen.import_export.export_to_needcoolershoes": "Exportera till NeedCoolerShoes",
   "loom-assistant.screen.import_export.export_to_planetmc": "Exportera till PlanetMC",
-  "loom-assistant.screen.import_export.export_to_skimmc": "Exportera till SkimMC",
+  "loom-assistant.screen.import_export.export_to_skinmc": "Exportera till SkinMC",
   "loom-assistant.screen.import_export.import": "Importera",
   "loom-assistant.screen.import_export.import_command_label": "Klistra in ett /give-kommando nedan",
   "loom-assistant.screen.import_export.import_label": "Importera",

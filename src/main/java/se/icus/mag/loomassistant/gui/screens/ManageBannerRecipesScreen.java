@@ -60,7 +60,7 @@ public class ManageBannerRecipesScreen extends Screen {
     private Button copyButton;
     private Button exportPlanetMcButton;
     private Button exportMinecraftToolsButton;
-    private Button exportSkimMcButton;
+    private Button exportSkinMcButton;
     private Button exportNeedCoolerShoesButton;
 
     private BannerRecipeCommandConverter.CommandParseResult importParseResult =
@@ -68,7 +68,7 @@ public class ManageBannerRecipesScreen extends Screen {
 
     private String planetMcUrl;
     private String minecraftToolsUrl;
-    private String skimMcUrl;
+    private String skinMcUrl;
     private String needCoolerShoesUrl;
 
     public ManageBannerRecipesScreen(Screen previousScreen, LoomScreenStateManager manager) {
@@ -121,9 +121,9 @@ public class ManageBannerRecipesScreen extends Screen {
                 .bounds(layout.exportTopRightX(), layout.exportTopLinksY(), layout.halfButtonW(), BTN_H)
                 .build());
 
-        this.exportSkimMcButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("loom-assistant.screen.import_export.export_to_skimmc"),
-                        b -> openUrl(skimMcUrl))
+        this.exportSkinMcButton = this.addRenderableWidget(Button.builder(
+                        Component.translatable("loom-assistant.screen.import_export.export_to_skinmc"),
+                        b -> openUrl(skinMcUrl))
                 .bounds(layout.exportBottomLeftX(), layout.exportBottomLinksY(), layout.halfButtonW(), BTN_H)
                 .build());
 
@@ -284,19 +284,19 @@ public class ManageBannerRecipesScreen extends Screen {
         if (recipe == null) {
             planetMcUrl = null;
             minecraftToolsUrl = null;
-            skimMcUrl = null;
+            skinMcUrl = null;
             needCoolerShoesUrl = null;
         } else {
             planetMcUrl = UrlExport.toPlanetMinecraft(recipe);
             minecraftToolsUrl = UrlExport.toMinecraftTools(recipe);
-            skimMcUrl = UrlExport.toSkimMc(recipe);
+            skinMcUrl = UrlExport.toSkinMc(recipe);
             needCoolerShoesUrl = UrlExport.toNeedCoolerShoes(recipe);
         }
 
         if (copyButton != null) copyButton.active = recipe != null;
         if (exportPlanetMcButton != null) exportPlanetMcButton.active = planetMcUrl != null;
         if (exportMinecraftToolsButton != null) exportMinecraftToolsButton.active = minecraftToolsUrl != null;
-        if (exportSkimMcButton != null) exportSkimMcButton.active = skimMcUrl != null;
+        if (exportSkinMcButton != null) exportSkinMcButton.active = skinMcUrl != null;
         if (exportNeedCoolerShoesButton != null) exportNeedCoolerShoesButton.active = needCoolerShoesUrl != null;
     }
 

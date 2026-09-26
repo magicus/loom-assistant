@@ -22,7 +22,7 @@
   "loom-assistant.screen.import_export.export_to_minecraft_tools": "Export to minecraft.tools",
   "loom-assistant.screen.import_export.export_to_needcoolershoes": "Export to NeedCoolerShoes",
   "loom-assistant.screen.import_export.export_to_planetmc": "Export to PlanetMC",
-  "loom-assistant.screen.import_export.export_to_skimmc": "Export to SkimMC",
+  "loom-assistant.screen.import_export.export_to_skinmc": "Export to SkinMC",
   "loom-assistant.screen.import_export.import": "Import",
   "loom-assistant.screen.import_export.import_command_label": "Paste a /give command below",
   "loom-assistant.screen.import_export.import_label": "Import",

@@ -125,7 +125,7 @@ public final class UrlExport {
         return url.toString();
     }
 
-    public static String toSkimMc(BannerRecipe recipe) {
+    public static String toSkinMc(BannerRecipe recipe) {
         String code = buildSkinMcCode(recipe);
         return code == null ? null : "https://skinmc.net/banner/editor?=" + code;
     }
