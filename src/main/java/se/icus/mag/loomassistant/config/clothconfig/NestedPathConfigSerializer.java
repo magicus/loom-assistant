@@ -28,13 +28,13 @@ public class NestedPathConfigSerializer<T extends ConfigData> implements ConfigS
         this(definition, configClass, new GsonBuilder().setPrettyPrinting().create());
     }
 
-    NestedPathConfigSerializer(Config definition, Class<T> configClass, Gson gson) {
+    private NestedPathConfigSerializer(Config definition, Class<T> configClass, Gson gson) {
         this.definition = definition;
         this.configClass = configClass;
         this.gson = gson;
     }
 
-    protected Path getConfigPath() {
+    private Path getConfigPath() {
         return Utils.getConfigFolder().resolve(definition.name()).resolve("config.json");
     }
 

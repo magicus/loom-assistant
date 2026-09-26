@@ -45,6 +45,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeCategories;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 import se.icus.mag.loomassistant.recipe.converters.BannerRecipeItemConverter;
+import se.icus.mag.loomassistant.util.StringUtils;
 import se.icus.mag.loomassistant.weaving.Weaver;
 
 public class LoomScreenStateManager {
@@ -119,10 +120,9 @@ public class LoomScreenStateManager {
         return state.isPanelOpen();
     }
 
-    public boolean togglePanelOpen() {
+    public void togglePanelOpen() {
         state.setPanelOpen(!state.isPanelOpen());
         persistCurrentWorldState();
-        return state.isPanelOpen();
     }
 
     // ── Active banner reads ───────────────────────────────────────────────────
@@ -133,19 +133,6 @@ public class LoomScreenStateManager {
 
     public BannerRecipe getActiveBanner() {
         return state.getActiveBanner();
-    }
-
-    public ItemStack getActiveBannerStack() {
-        BannerRecipe banner = state.getActiveBanner();
-        if (banner == null) return ItemStack.EMPTY;
-
-        BannerRecipeItemConverter converter = new BannerRecipeItemConverter();
-        return converter.fromRecipe(banner);
-    }
-
-    public int getActiveBannerLayerCount() {
-        BannerRecipe banner = state.getActiveBanner();
-        return banner != null ? banner.getLayers().size() : 0;
     }
 
     public BannerRecipe getEffectiveActiveBanner() {
@@ -194,13 +181,6 @@ public class LoomScreenStateManager {
 
     public void setActiveBannerFromRecipe(BannerRecipe banner, String sourceId) {
         setActiveBannerFromSource(banner, sourceId, true);
-    }
-
-    public void loadImportedBanner(BannerRecipe imported) {
-        BannerRecipe created = saveBannerToLocalPack(imported);
-        if (created == null) return;
-
-        setActiveBannerFromSource(created, created.getId(), true);
     }
 
     public void importBannerWithMetadata(BannerRecipe imported, String nameInput, String categoryInput) {
@@ -273,52 +253,13 @@ public class LoomScreenStateManager {
                 && currentWeaver.canWeave(state.getEffectiveActiveBanner());
     }
 
-    public boolean isActiveBannerCraftable() {
-        return currentWeaver != null
-                && state.getActiveBanner() != null
-                && currentWeaver.canWeave(state.getActiveBanner());
-    }
-
     public boolean isEffectiveActiveBannerWeavable() {
         BannerRecipe banner = state.getEffectiveActiveBanner();
         return banner == null || banner.isWeavable();
     }
 
-    public boolean isActiveBannerWeavable() {
-        BannerRecipe banner = state.getActiveBanner();
-        return banner == null || banner.isWeavable();
-    }
-
     public String getEffectiveActiveBannerMissingMaterialMessage() {
         BannerRecipe banner = state.getEffectiveActiveBanner();
-        if (banner == null) {
-            return Component.translatable("loom-assistant.active.select_banner").getString();
-        }
-
-        boolean survivalTooManySteps = !banner.isWeavable() && isInSurvivalMode();
-        List<String> missingMaterials =
-                currentWeaver != null ? currentWeaver.getMissingMaterialDescriptions(banner) : List.of();
-        if (missingMaterials.isEmpty() && !survivalTooManySteps) return null;
-
-        StringBuilder message = new StringBuilder();
-        if (survivalTooManySteps) {
-            message.append(Component.translatable("loom-assistant.active.too_many_steps")
-                    .getString());
-        }
-        if (!missingMaterials.isEmpty()) {
-            if (!message.isEmpty()) {
-                message.append("\n");
-            }
-            message.append(Component.translatable("loom-assistant.active.missing_header")
-                            .getString())
-                    .append("\n")
-                    .append(String.join("\n", missingMaterials));
-        }
-        return message.toString();
-    }
-
-    public String getActiveBannerMissingMaterialMessage() {
-        BannerRecipe banner = state.getActiveBanner();
         if (banner == null) {
             return Component.translatable("loom-assistant.active.select_banner").getString();
         }
@@ -351,10 +292,6 @@ public class LoomScreenStateManager {
         return state.isColorReplacementEnabled();
     }
 
-    public Map<DyeColor, DyeColor> getPersistentDyeReplacementMapCopy() {
-        return Map.copyOf(state.getColorReplacements());
-    }
-
     public Map<DyeColor, DyeColor> getInitialDyeReplacementTargets(List<DyeColor> sourceColors) {
         Map<DyeColor, DyeColor> targets = new LinkedHashMap<>();
         for (DyeColor source : sourceColors) {
@@ -369,7 +306,7 @@ public class LoomScreenStateManager {
 
         BannerRecipe sourceForTransform;
         if (persistent) {
-            String sourceId = blankToNull(state.getActiveBannerRecipe());
+            String sourceId = StringUtils.blankToNull(state.getActiveBannerRecipe());
             if (sourceId == null) return false;
 
             BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
@@ -417,20 +354,19 @@ public class LoomScreenStateManager {
         return !state.getColorReplacements().isEmpty();
     }
 
-    public boolean reenablePersistentDyeSwitch() {
-        if (state.isColorReplacementEnabled() || state.getColorReplacements().isEmpty()) return false;
-        String sourceId = blankToNull(state.getActiveBannerRecipe());
-        if (sourceId == null) return false;
+    public void reenablePersistentDyeSwitch() {
+        if (state.isColorReplacementEnabled() || state.getColorReplacements().isEmpty()) return;
+        String sourceId = StringUtils.blankToNull(state.getActiveBannerRecipe());
+        if (sourceId == null) return;
         BannerRecipe source = BannerStorage.getInstance().getBannerById(sourceId);
-        if (source == null) return false;
+        if (source == null) return;
 
         BannerRecipe transformed = applyDyeReplacementMap(cloneBanner(source), state.getColorReplacements());
-        if (transformed == null) return false;
+        if (transformed == null) return;
 
         state.setColorReplacementEnabled(true);
         state.setEffectiveActiveBanner(transformed);
         persistCurrentWorldState();
-        return true;
     }
 
     public void clearColorReplacements() {
@@ -438,10 +374,6 @@ public class LoomScreenStateManager {
     }
 
     // ── Banner storage / metadata ─────────────────────────────────────────────
-
-    public boolean isActiveBannerSavable() {
-        return !isActiveBannerFromWritableSource();
-    }
 
     public boolean isActiveBannerAlreadySaved() {
         return findExistingRecipeMatchingEffectiveBanner() != null;
@@ -567,7 +499,7 @@ public class LoomScreenStateManager {
             return;
         }
 
-        state.setActiveBannerRecipe(blankToNull(sourceId));
+        state.setActiveBannerRecipe(StringUtils.blankToNull(sourceId));
 
         BannerRecipe source = cloneBanner(sourceBanner);
         state.setActiveBanner(source);
@@ -583,23 +515,6 @@ public class LoomScreenStateManager {
 
         state.setEffectiveActiveBanner(cloneBanner(source));
         if (persist) persistCurrentWorldState();
-    }
-
-    private BannerRecipe saveBannerToLocalPack(BannerRecipe banner) {
-        if (banner == null) return null;
-
-        String name = banner.getName();
-        if (name == null || name.isBlank()) {
-            name = BannerRecipe.getUnnamedBanner();
-        }
-
-        String category = banner.getCategory();
-        if (category == null || category.isBlank()) {
-            category = defaultSaveCategory();
-        }
-
-        BannerRecipe toSave = cloneBanner(banner).withDescription(name).withCategory(category);
-        return BannerStorage.getInstance().addBanner(toSave);
     }
 
     private boolean isActiveBannerFromWritableSource() {
@@ -676,8 +591,8 @@ public class LoomScreenStateManager {
         }
 
         state.setPanelOpen(persistedWorldState.isPanelOpen());
-        state.setActiveBannerRecipe(blankToNull(persistedWorldState.getActiveBannerRecipe()));
-        state.setSelectedCategory(blankToNull(persistedWorldState.getSelectedCategory()));
+        state.setActiveBannerRecipe(StringUtils.blankToNull(persistedWorldState.getActiveBannerRecipe()));
+        state.setSelectedCategory(StringUtils.blankToNull(persistedWorldState.getSelectedCategory()));
         state.setColorReplacements(persistedWorldState.getColorReplacements());
         state.setColorReplacementEnabled(state.getActiveBannerRecipe() != null
                 && persistedWorldState.isColorReplacementEnabled()
@@ -698,8 +613,8 @@ public class LoomScreenStateManager {
 
         LoomScreenState snapshot = snapshotPersistedState();
         if (snapshot.isPanelOpen()
-                || blankToNull(snapshot.getSelectedCategory()) != null
-                || blankToNull(snapshot.getActiveBannerRecipe()) != null
+                || StringUtils.blankToNull(snapshot.getSelectedCategory()) != null
+                || StringUtils.blankToNull(snapshot.getActiveBannerRecipe()) != null
                 || snapshot.isColorReplacementEnabled()
                 || !snapshot.getColorReplacements().isEmpty()) {
             persistedStates.put(loadedWorldKey, snapshot);
@@ -713,8 +628,8 @@ public class LoomScreenStateManager {
     private LoomScreenState snapshotPersistedState() {
         LoomScreenState snapshot = new LoomScreenState();
         snapshot.setPanelOpen(state.isPanelOpen());
-        snapshot.setSelectedCategory(blankToNull(state.getSelectedCategory()));
-        snapshot.setActiveBannerRecipe(blankToNull(state.getActiveBannerRecipe()));
+        snapshot.setSelectedCategory(StringUtils.blankToNull(state.getSelectedCategory()));
+        snapshot.setActiveBannerRecipe(StringUtils.blankToNull(state.getActiveBannerRecipe()));
 
         boolean persistableBanner = snapshot.getActiveBannerRecipe() != null;
         boolean persistentDyeEnabled = persistableBanner
@@ -729,7 +644,7 @@ public class LoomScreenStateManager {
     }
 
     private void restoreActiveBannerFromPersistedState() {
-        String sourceId = blankToNull(state.getActiveBannerRecipe());
+        String sourceId = StringUtils.blankToNull(state.getActiveBannerRecipe());
         if (sourceId == null) {
             state.setActiveBanner(null);
             state.setEffectiveActiveBanner(null);
@@ -806,7 +721,7 @@ public class LoomScreenStateManager {
         }
         ServerData server = mc.getCurrentServer();
         if (server != null && server.ip != null && !server.ip.isBlank()) {
-            return MULTIPLAYER_WORLD_KEY_PREFIX + server.ip.toLowerCase();
+            return MULTIPLAYER_WORLD_KEY_PREFIX + server.ip.toLowerCase(Locale.ROOT);
         }
         return "unknown";
     }
@@ -817,29 +732,14 @@ public class LoomScreenStateManager {
         Path normalizedSavesDir = normalizedGameDir.resolve("saves").normalize();
 
         if (normalizedWorldRoot.startsWith(normalizedSavesDir)) {
-            return LOCAL_WORLD_KEY_PREFIX + pathKeySuffix(normalizedSavesDir.relativize(normalizedWorldRoot));
+            return LOCAL_WORLD_KEY_PREFIX + StringUtils.pathKeySuffix(normalizedSavesDir.relativize(normalizedWorldRoot));
         }
         if (normalizedWorldRoot.startsWith(normalizedGameDir)) {
-            return LOCAL_WORLD_KEY_PREFIX + pathKeySuffix(normalizedGameDir.relativize(normalizedWorldRoot));
+            return LOCAL_WORLD_KEY_PREFIX + StringUtils.pathKeySuffix(normalizedGameDir.relativize(normalizedWorldRoot));
         }
 
         Path fileName = normalizedWorldRoot.getFileName();
         return LOCAL_WORLD_KEY_PREFIX + (fileName != null ? fileName : normalizedWorldRoot);
-    }
-
-    private static String pathKeySuffix(Path path) {
-        StringBuilder builder = new StringBuilder();
-        for (Path part : path) {
-            if (builder.length() > 0) {
-                builder.append('/');
-            }
-            builder.append(part);
-        }
-        return builder.toString();
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     static Gson createPersistenceGson() {
@@ -850,7 +750,7 @@ public class LoomScreenStateManager {
                 .create();
     }
 
-    static final class DyeColorAdapter extends TypeAdapter<DyeColor> {
+    private static final class DyeColorAdapter extends TypeAdapter<DyeColor> {
         @Override
         public void write(JsonWriter out, DyeColor value) throws IOException {
             if (value == null) {

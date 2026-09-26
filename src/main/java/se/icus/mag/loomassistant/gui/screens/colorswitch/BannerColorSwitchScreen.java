@@ -101,7 +101,7 @@ public class BannerColorSwitchScreen extends Screen {
 
     @Override
     protected void init() {
-        pickerColors = DyeColorSorting.sorted(LoomAssistantMod.getConfig().getColorSortOrder());
+        pickerColors = DyeColorSorting.sorted(LoomAssistantMod.getConfig().colorSortOrder);
 
         Map<DyeColor, DyeColor> initialTargets = manager.getInitialDyeReplacementTargets(sourceColors);
         for (DyeColor source : sourceColors) {
@@ -391,8 +391,4 @@ public class BannerColorSwitchScreen extends Screen {
         this.minecraft.gui.setScreen(previousScreen);
     }
 
-    @Override
-    public boolean shouldCloseOnEsc() {
-        return true;
-    }
 }

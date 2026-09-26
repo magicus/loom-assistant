@@ -22,25 +22,24 @@ public class LoomAssistantConfig implements ConfigData {
     }
 
     @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
-    ColorSortOrder colorSortOrder = ColorSortOrder.RAINBOW;
+    public final ColorSortOrder colorSortOrder = ColorSortOrder.RAINBOW;
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
-    public BannerPackRepoSettings bannerPackRepo = new BannerPackRepoSettings();
-
-    public ColorSortOrder getColorSortOrder() {
-        return colorSortOrder;
-    }
-
-    public BannerPackRepoSettings getBannerPackRepo() {
-        return bannerPackRepo;
-    }
+    public final BannerPackRepoSettings bannerPackRepo = new BannerPackRepoSettings();
 
     public static class BannerPackRepoSettings {
         public String repoIndexUrl =
                 "https://raw.githubusercontent.com/magicus/banner-recipe-database/refs/heads/main/bannerpack-index-v1.json";
 
-        @ConfigEntry.Gui.Tooltip(count = 1)
-        public String autoInstallPackIds = "categories,numbers";
+        @ConfigEntry.Gui.Tooltip()
+        private String autoInstallPackIds = "categories,numbers";
+
+        public List<String> getAutoInstallPackIdList() {
+            return Arrays.stream(autoInstallPackIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+        }
 
         @ConfigButtons({
             @ConfigButtons.ButtonAction(
@@ -52,12 +51,5 @@ public class LoomAssistantConfig implements ConfigData {
         })
         @ConfigEntry.Gui.Excluded
         public boolean activateAfterDownload = true;
-
-        public List<String> getAutoInstallPackIdList() {
-            return Arrays.stream(autoInstallPackIds.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .toList();
-        }
     }
 }

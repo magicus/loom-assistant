@@ -404,8 +404,7 @@ public class ManageBannerRecipesScreen extends Screen {
         int importStatusY = y;
         y += STATUS_H + LINE_GAP;
         int importActionsY = y;
-        int importPreviewY = importActionsY;
-        y += BTN_H + SECTION_GAP;
+		y += BTN_H + SECTION_GAP;
         int importSeparatorY = y;
 
         y += 1 + SECTION_GAP;
@@ -414,8 +413,7 @@ public class ManageBannerRecipesScreen extends Screen {
         int exportInputY = y;
         y += INPUT_H + LINE_GAP;
         int exportActionsY = y;
-        int exportPreviewY = exportActionsY;
-        y += BTN_H + LINE_GAP;
+		y += BTN_H + LINE_GAP;
         int exportTopLinksY = y;
         y += BTN_H + LINE_GAP;
         int exportBottomLinksY = y;
@@ -429,13 +427,12 @@ public class ManageBannerRecipesScreen extends Screen {
         y += BTN_H + DONE_TOP_GAP;
         int doneButtonY = y;
 
-        int previewX = contentX;
-        int importSubmitW = Math.min(IMPORT_BTN_W, Math.max(72, contentW / 3));
+		int importSubmitW = Math.clamp(contentW / 3, 72, IMPORT_BTN_W);
         int importSubmitX = contentX + contentW - importSubmitW;
-        int importPasteX = previewX + PREVIEW_BOX + BTN_GAP;
-        int importPasteW = Math.min(COPY_BTN_W, Math.max(64, contentW / 4));
+        int importPasteX = contentX + PREVIEW_BOX + BTN_GAP;
+        int importPasteW = Math.clamp(contentW / 4, 64, COPY_BTN_W);
 
-        int exportCopyW = Math.min(COPY_BTN_W, Math.max(64, contentW / 4));
+        int exportCopyW = Math.clamp(contentW / 4, 64, COPY_BTN_W);
         int exportCopyX = contentX + PREVIEW_BOX + BTN_GAP;
 
         return new Layout(
@@ -449,7 +446,7 @@ public class ManageBannerRecipesScreen extends Screen {
                 importInputY,
                 importStatusY,
                 importActionsY,
-                importPreviewY,
+				importActionsY,
                 importPasteX,
                 importPasteW,
                 importSubmitX,
@@ -458,7 +455,7 @@ public class ManageBannerRecipesScreen extends Screen {
                 exportLabelY,
                 exportInputY,
                 exportActionsY,
-                exportPreviewY,
+				exportActionsY,
                 exportCopyX,
                 exportCopyW,
                 exportTopLinksY,
@@ -468,7 +465,7 @@ public class ManageBannerRecipesScreen extends Screen {
                 manageButtonsY,
                 doneButtonY,
                 halfButtonW,
-                previewX);
+				contentX);
     }
 
     private static int layoutContentHeight() {
@@ -510,12 +507,7 @@ public class ManageBannerRecipesScreen extends Screen {
         this.minecraft.gui.setScreen(previousScreen);
     }
 
-    @Override
-    public boolean shouldCloseOnEsc() {
-        return true;
-    }
-
-    private record Layout(
+	private record Layout(
             int panelX,
             int panelY,
             int panelW,

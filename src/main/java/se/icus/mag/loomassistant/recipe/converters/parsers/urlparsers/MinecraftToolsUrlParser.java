@@ -44,7 +44,7 @@ public final class MinecraftToolsUrlParser extends UrlParser {
             this.uri = new URI(url);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new IllegalArgumentException("Invalid minecraft.tools URL: " + url, e);
         }
     }

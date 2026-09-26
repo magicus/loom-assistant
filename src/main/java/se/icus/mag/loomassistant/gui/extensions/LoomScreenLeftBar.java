@@ -195,10 +195,10 @@ public class LoomScreenLeftBar implements ScreenExtension {
         }
     }
 
-    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent) {
-        if (mouseButtonEvent.button() == 1 && isShiftHeld()) {
-            int mouseX = (int) mouseButtonEvent.x();
-            int mouseY = (int) mouseButtonEvent.y();
+    public boolean mouseClicked(MouseButtonEvent event) {
+        if (event.button() == 1 && isShiftHeld()) {
+            int mouseX = (int) event.x();
+            int mouseY = (int) event.y();
             int leftPos = screen.leftPos;
             int topPos = screen.topPos;
 
@@ -219,7 +219,7 @@ public class LoomScreenLeftBar implements ScreenExtension {
             }
         }
 
-        if (!isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())) {
+        if (!isInActiveSlot((int) event.x(), (int) event.y())) {
             return false;
         }
 
@@ -238,9 +238,9 @@ public class LoomScreenLeftBar implements ScreenExtension {
         return false;
     }
 
-    public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
-        return mouseButtonEvent.button() == 0
-                && isInActiveSlot((int) mouseButtonEvent.x(), (int) mouseButtonEvent.y())
+    public boolean mouseReleased(MouseButtonEvent event) {
+        return event.button() == 0
+                && isInActiveSlot((int) event.x(), (int) event.y())
                 && !screen.menu.getCarried().isEmpty();
     }
 

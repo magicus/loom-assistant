@@ -64,7 +64,7 @@ public class WeavingGuide implements ScreenExtension {
         context.item(bannerStack, x, y);
     }
 
-    public static boolean resultMatchesExpected(ItemStack activeBannerStack, ItemStack result, int nextLayerIndex) {
+    private static boolean resultMatchesExpected(ItemStack activeBannerStack, ItemStack result, int nextLayerIndex) {
         if (!(result.getItem() instanceof BannerItem bannerItem)) return false;
         BannerRecipe recipe = BannerRecipeItemConverter.fromItem(activeBannerStack);
         if (recipe == null || nextLayerIndex >= recipe.getLayers().size()) return false;

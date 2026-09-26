@@ -55,14 +55,12 @@ public class LoomAssistantMod implements ModInitializer, ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
-            mc.execute(() -> scheduleAutoInstall(mc));
-        });
+        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> mc.execute(() -> scheduleAutoInstall(mc)));
     }
 
     private void scheduleAutoInstall(Minecraft mc) {
         LoomAssistantConfig.BannerPackRepoSettings repoSettings =
-                LoomAssistantMod.getConfig().getBannerPackRepo();
+                LoomAssistantMod.getConfig().bannerPackRepo;
         if (repoSettings.getAutoInstallPackIdList().isEmpty()) return;
 
         BannerStorage storage = BannerStorage.getInstance();

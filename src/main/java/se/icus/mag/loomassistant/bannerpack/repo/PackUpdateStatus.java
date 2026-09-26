@@ -4,7 +4,7 @@
  */
 package se.icus.mag.loomassistant.bannerpack.repo;
 
-public class PackUpdateStatus {
+public record PackUpdateStatus(RemotePackEntry remoteEntry, InstallStatus status) {
     public enum InstallStatus {
         NOT_INSTALLED,
         INSTALLED_UP_TO_DATE,
@@ -12,19 +12,4 @@ public class PackUpdateStatus {
         CONFLICT_UNMANAGED
     }
 
-    private final RemotePackEntry remoteEntry;
-    private final InstallStatus status;
-
-    public PackUpdateStatus(RemotePackEntry remoteEntry, InstallStatus status) {
-        this.remoteEntry = remoteEntry;
-        this.status = status;
-    }
-
-    public RemotePackEntry remoteEntry() {
-        return remoteEntry;
-    }
-
-    public InstallStatus status() {
-        return status;
-    }
 }

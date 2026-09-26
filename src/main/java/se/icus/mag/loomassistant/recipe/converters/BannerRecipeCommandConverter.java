@@ -69,7 +69,7 @@ public class BannerRecipeCommandConverter extends BannerRecipeConverter<String> 
         return new CommandParseResult(null, "Invalid syntax", null);
     }
 
-    public static BannerRecipe fromCommand(String input) {
+    private static BannerRecipe fromCommand(String input) {
         return parseCommandDetailed(input).recipe();
     }
 
@@ -341,7 +341,7 @@ public class BannerRecipeCommandConverter extends BannerRecipeConverter<String> 
                 parsedLayers);
     }
 
-    static DyeColor parseBannerColor(String itemId) {
+    private static DyeColor parseBannerColor(String itemId) {
         if (itemId == null || itemId.isBlank()) return null;
 
         String stripped = stripMinecraftNamespace(itemId);
@@ -394,7 +394,7 @@ public class BannerRecipeCommandConverter extends BannerRecipeConverter<String> 
         return fromCommand(source);
     }
 
-    public static final class CommandFormat {
+    protected static final class CommandFormat {
         private static String buildCommand(BannerRecipe recipe) {
             String itemName = recipe.getBannerColorEnum().getName() + "_banner";
             StringBuilder builder = new StringBuilder("/give @p {id:").append(itemName);

@@ -31,7 +31,6 @@ public class BannerCraftabilityModel {
     private final LoomMenu handler;
 
     public enum MissingMaterialType {
-        NONE,
         BANNER,
         DYE,
         PATTERN_TEMPLATE

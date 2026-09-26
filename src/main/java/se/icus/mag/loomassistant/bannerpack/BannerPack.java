@@ -30,7 +30,7 @@ import se.icus.mag.loomassistant.recipe.converters.BannerRecipeJsonConverter;
 public abstract class BannerPack {
     public static final String MCMETA_FILE = "bannerpack.mcmeta";
     public static final String BANNERS_DIR = "banners";
-    public static final String CATEGORIES_DIR = "categories";
+    private static final String CATEGORIES_DIR = "categories";
     private static final Gson GSON = new GsonBuilder().create();
     private static final Gson PRETTY_GSON =
             new GsonBuilder().setPrettyPrinting().create();
@@ -270,8 +270,7 @@ public abstract class BannerPack {
                                 try (Reader reader = Files.newBufferedReader(path)) {
                                     BannerRecipeJsonConverter converter = new BannerRecipeJsonConverter();
                                     BannerRecipe recipe = converter.toRecipe(readAll(reader));
-                                    ;
-                                    if (recipe != null) {
+									if (recipe != null) {
                                         String fileName = path.getFileName().toString();
                                         String baseName = fileName.substring(0, fileName.length() - ".json".length());
                                         includeRecipe(recipe.withId(namespace + ":" + baseName));

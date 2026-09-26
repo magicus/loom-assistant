@@ -4,7 +4,6 @@
  */
 package se.icus.mag.loomassistant.gui.screens.packselection;
 
-import com.google.common.hash.Hashing;
 import com.mojang.blaze3d.platform.NativeImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +42,7 @@ import se.icus.mag.loomassistant.bannerpack.storage.BannerPackModelEntry;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerPackRepository;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.gui.screens.packdownload.BannerPackDownloadManagementScreen;
+import se.icus.mag.loomassistant.util.StringUtils;
 
 @Environment(EnvType.CLIENT)
 public class BannerPackSelectionScreen extends Screen {
@@ -58,8 +58,6 @@ public class BannerPackSelectionScreen extends Screen {
     private static final int HEADER_ELEMENT_SPACING = 4;
     private static final int SEARCH_BOX_HEIGHT = 15;
     private static final Identifier DEFAULT_ICON = Identifier.withDefaultNamespace("textures/misc/unknown_pack.png");
-    private static final Identifier SELECT_SPRITE = Identifier.withDefaultNamespace("transferable_list/select");
-    private static final Identifier UNSELECT_SPRITE = Identifier.withDefaultNamespace("transferable_list/unselect");
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this);
     private final BannerPackRepository repository;
@@ -347,11 +345,8 @@ public class BannerPackSelectionScreen extends Screen {
         if (!Files.exists(iconPath)) return DEFAULT_ICON;
 
         String id = pack.getMetadata().id();
-        @SuppressWarnings("deprecation")
-        Identifier location = Identifier.withDefaultNamespace("pack/"
-                + Util.sanitizeName(id, Identifier::validPathChar)
-                + "/"
-                + Hashing.sha1().hashUnencodedChars(id)
+		Identifier location = Identifier.withDefaultNamespace("pack/"
+                + StringUtils.getIdPath(id)
                 + "/icon");
         try (InputStream stream = Files.newInputStream(iconPath)) {
             NativeImage iconImage = NativeImage.read(stream);
