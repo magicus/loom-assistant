@@ -132,15 +132,14 @@ public class BannerPackDownloadService {
             BannerStorage.getInstance().getActivePacksConfig().enablePack(entry.id());
         }
 
-        boolean wasUpdate = isManaged;
-        return wasUpdate ? InstallResult.SUCCESS_UPDATED : InstallResult.SUCCESS_NEW;
+		return isManaged ? InstallResult.SUCCESS_UPDATED : InstallResult.SUCCESS_NEW;
     }
 
     /**
      * Deletes a managed pack from disk and the registry. Returns false if not managed.
      */
-    public boolean delete(String packId) {
-        if (!registry.isManaged(packId)) return false;
+    public void delete(String packId) {
+        if (!registry.isManaged(packId)) return;
 
         InstalledPackState state = registry.getState(packId);
         String fileName = state != null ? state.fileName() : packId + ".zip";
@@ -162,7 +161,6 @@ public class BannerPackDownloadService {
         }
 
         registry.remove(packId);
-        return true;
     }
 
     /**

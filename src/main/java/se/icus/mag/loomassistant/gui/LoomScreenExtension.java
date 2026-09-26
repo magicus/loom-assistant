@@ -64,18 +64,18 @@ public class LoomScreenExtension implements ScreenExtension {
         }
     }
 
-    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent) {
+    public boolean mouseClicked(MouseButtonEvent event) {
         for (ScreenExtension widget : widgets) {
-            if (widget.mouseClicked(mouseButtonEvent)) {
+            if (widget.mouseClicked(event)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         for (ScreenExtension widget : widgets) {
-            if (widget.mouseReleased(mouseButtonEvent)) {
+            if (widget.mouseReleased(event)) {
                 return true;
             }
         }

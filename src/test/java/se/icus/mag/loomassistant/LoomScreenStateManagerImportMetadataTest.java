@@ -70,7 +70,9 @@ class LoomScreenStateManagerImportMetadataTest {
             Field field = LoomScreenStateManager.class.getDeclaredField("state");
             field.setAccessible(true);
             return (LoomScreenState) field.get(manager);
-        } catch (ReflectiveOperationException e) {
+        } catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		} catch (ReflectiveOperationException e) {
             throw new AssertionError("Failed to access LoomScreenStateManager.state", e);
         }
     }

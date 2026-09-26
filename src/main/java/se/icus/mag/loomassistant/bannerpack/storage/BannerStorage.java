@@ -101,11 +101,6 @@ public final class BannerStorage {
         BannerRecipeCategories.setTranslations(mergedTranslations);
     }
 
-    public void save() {
-        // Persistence is done on each write operation by BannerPackRepository.
-        refreshBannerCache();
-    }
-
     public BannerRecipe addBanner(BannerRecipe banner) {
         ensureRepositoryLoaded();
         BannerPack localPack = requirePack(BannerPackRepository.LOCAL_PACK_ID);
@@ -127,20 +122,6 @@ public final class BannerStorage {
         LoomAssistantMod.LOGGER.debug("Copied banner {} from {} to local", sourceId, packId);
         refreshBannerCache();
         return copied;
-    }
-
-    public void removeBanner(String id) {
-        ensureRepositoryLoaded();
-        String packId = repository.getBannerRecipePackId(id);
-        if (packId == null) return;
-
-        BannerPack pack = requirePack(packId);
-        try {
-            pack.removeBannerRecipe(id);
-            refreshBannerCache();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to remove banner " + id, e);
-        }
     }
 
     public List<BannerRecipe> getBanners() {
@@ -174,23 +155,6 @@ public final class BannerStorage {
     public ActivePacksConfig getActivePacksConfig() {
         ensureRepositoryLoaded();
         return activePacksConfig;
-    }
-
-    public void renameBanner(String id, String newName) {
-        ensureRepositoryLoaded();
-        String packId = repository.getBannerRecipePackId(id);
-        if (packId == null) return;
-
-        BannerRecipe existing = repository.getBannerRecipeById(id);
-        if (existing == null) return;
-
-        BannerPack pack = requirePack(packId);
-        try {
-            pack.updateBannerRecipe(existing.withDescription(newName));
-            refreshBannerCache();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to rename banner " + id, e);
-        }
     }
 
     public void updateBannerMetadata(String id, String newName, String newCategory) {
@@ -286,7 +250,7 @@ public final class BannerStorage {
             return last;
         } catch (JsonSyntaxException e) {
             throw new RuntimeException(e);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             LoomAssistantMod.LOGGER.error("Failed to import banner array", e);
             return null;
         }

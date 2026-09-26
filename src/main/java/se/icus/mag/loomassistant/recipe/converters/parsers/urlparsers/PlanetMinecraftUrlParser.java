@@ -83,7 +83,7 @@ public final class PlanetMinecraftUrlParser extends UrlParser {
             this.uri = new URI(url);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new IllegalArgumentException("Invalid PlanetMinecraft URL: " + url, e);
         }
     }

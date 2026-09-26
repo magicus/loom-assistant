@@ -130,8 +130,7 @@ class BannerPackRepositoryTest {
                 + "{pattern:triangle_top,color:yellow}],custom_name:\"Letter C\"},count:16}";
         BannerRecipeCommandConverter converter = new BannerRecipeCommandConverter();
         BannerRecipe fromGive = converter.toRecipe("/give @p " + complexBanner);
-        ;
-        assertNotNull(fromGive);
+		assertNotNull(fromGive);
         assertEquals("Letter C", fromGive.description());
         assertEquals("light_blue", fromGive.bannerColor());
         assertEquals(3, fromGive.layers().size());

@@ -14,7 +14,7 @@ import se.icus.mag.loomassistant.recipe.BannerRecipe;
 import se.icus.mag.loomassistant.recipe.BannerRecipeLayer;
 
 public class BannerRecipeJsonConverter extends BannerRecipeConverter<String> {
-    public static final Codec<BannerRecipe> CODEC;
+    private static final Codec<BannerRecipe> CODEC;
 
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(

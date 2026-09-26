@@ -5,6 +5,7 @@
 package se.icus.mag.loomassistant.gui.screens.packdownload;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import se.icus.mag.loomassistant.bannerpack.repo.BannerPackDownloadService;
 import se.icus.mag.loomassistant.bannerpack.repo.BannerPackRepoClient;
 import se.icus.mag.loomassistant.bannerpack.repo.InstallResult;
 import se.icus.mag.loomassistant.bannerpack.repo.PackUpdateStatus;
+import se.icus.mag.loomassistant.bannerpack.repo.RemotePackEntry;
 import se.icus.mag.loomassistant.bannerpack.repo.RemoteRepoIndex;
 import se.icus.mag.loomassistant.bannerpack.storage.BannerStorage;
 import se.icus.mag.loomassistant.bannerpack.storage.InstalledPackRegistry;
@@ -72,7 +74,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
     public BannerPackDownloadManagementScreen(Screen previousScreen) {
         super(Component.translatable("loom-assistant.screen.pack_download.title"));
         this.previousScreen = previousScreen;
-        this.repoSettings = LoomAssistantMod.getConfig().getBannerPackRepo();
+        this.repoSettings = LoomAssistantMod.getConfig().bannerPackRepo;
         this.activateAfterDownload = repoSettings.activateAfterDownload;
         LoomAssistantMod.LOGGER.info("[PackDownload] screen created, repo URL: {}", repoSettings.repoIndexUrl);
         InstalledPackRegistry registry = new InstalledPackRegistry();
@@ -186,7 +188,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
                                 LoomAssistantMod.LOGGER.info(
                                         "[PackDownload] fetched {} pack(s): {}",
                                         index.packs().size(),
-                                        index.packs().stream().map(p -> p.id()).toList());
+                                        index.packs().stream().map(RemotePackEntry::id).toList());
                                 cachedIndex = index;
                                 packStatuses = service.getPackStatuses(index);
                                 loadIconsFromData(packStatuses);
@@ -291,7 +293,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
         updateActionButtons(getSelectedStatus());
     }
 
-    void onEntrySelected(PackUpdateStatus status) {
+    private void onEntrySelected(PackUpdateStatus status) {
         updateActionButtons(status);
     }
 
@@ -347,7 +349,9 @@ public class BannerPackDownloadManagementScreen extends Screen {
                         "pack-download/icon/" + Util.sanitizeName(packId, Identifier::validPathChar));
                 minecraft.getTextureManager().register(loc, new DynamicTexture(loc::toString, image));
                 iconCache.put(packId, loc);
-            } catch (Exception e) {
+            } catch (IOException e) {
+				throw new RuntimeException(e);
+			} catch (Exception e) {
                 LoomAssistantMod.LOGGER.debug("[PackDownload] could not load icon for pack {}", packId, e);
             }
         }
@@ -356,7 +360,7 @@ public class BannerPackDownloadManagementScreen extends Screen {
     // --- Inner list widget ---
 
     @Environment(EnvType.CLIENT)
-    class PackListWidget extends ObjectSelectionList<PackListEntry> {
+    private class PackListWidget extends ObjectSelectionList<PackListEntry> {
         PackListWidget(Minecraft mc, int width, int height, int x, int y) {
             super(mc, width, height, y, ROW_HEIGHT);
             this.centerListVertically = false;
@@ -435,12 +439,12 @@ public class BannerPackDownloadManagementScreen extends Screen {
 
     // --- Abstract base for list entries ---
 
-    abstract static class PackListEntry extends ObjectSelectionList.Entry<PackListEntry> {}
+    private abstract static class PackListEntry extends ObjectSelectionList.Entry<PackListEntry> {}
 
     // --- Status text entry (loading / error / no packs) ---
 
     @Environment(EnvType.CLIENT)
-    static class StatusTextEntry extends PackListEntry {
+    private static class StatusTextEntry extends PackListEntry {
         private final Font font;
         private final Component text;
 
@@ -464,10 +468,10 @@ public class BannerPackDownloadManagementScreen extends Screen {
     // --- Pack row entry ---
 
     @Environment(EnvType.CLIENT)
-    static class PackRowEntry extends PackListEntry {
+    private static class PackRowEntry extends PackListEntry {
         private static final int PADDING = 4;
         private final BannerPackDownloadManagementScreen screen;
-        final PackUpdateStatus status;
+        private final PackUpdateStatus status;
 
         PackRowEntry(BannerPackDownloadManagementScreen screen, PackUpdateStatus status) {
             this.screen = screen;

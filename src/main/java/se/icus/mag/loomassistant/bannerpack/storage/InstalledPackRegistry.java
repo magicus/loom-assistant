@@ -57,7 +57,7 @@ public class InstalledPackRegistry {
         }
     }
 
-    public void save() {
+    private void save() {
         try {
             Files.createDirectories(registryFile.getParent());
             RegistryData data = new RegistryData();

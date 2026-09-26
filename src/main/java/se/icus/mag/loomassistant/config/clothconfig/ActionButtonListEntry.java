@@ -49,12 +49,10 @@ public class ActionButtonListEntry extends TooltipListEntry<Void> {
         }
         this.buttons = List.copyOf(createdButtons);
 
-        List<GuiEventListener> childList = new ArrayList<>();
-        childList.addAll(this.buttons);
+		List<GuiEventListener> childList = new ArrayList<>(this.buttons);
         this.children = List.copyOf(childList);
 
-        List<NarratableEntry> narratableList = new ArrayList<>();
-        narratableList.addAll(this.buttons);
+		List<NarratableEntry> narratableList = new ArrayList<>(this.buttons);
         this.narratables = List.copyOf(narratableList);
     }
 

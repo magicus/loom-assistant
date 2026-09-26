@@ -120,8 +120,8 @@ public class LoomRecipePanel implements ScreenExtension {
     private final Minecraft mc;
     private final LoomScreenStateManager manager;
     private final LoomMenu handler;
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
     private final EditBox searchBox;
     private final List<BannerRecipeCategory> categoryTabs;
     private List<TabDescriptor> tabs;
@@ -656,14 +656,14 @@ public class LoomRecipePanel implements ScreenExtension {
         return searchBox.mouseDragged(event, dx, dy);
     }
 
-    public boolean mouseScrolled(double mx, double my, double hAmt, double vAmt) {
-        if (hasScrollableTabs() && isMouseOverTabs((int) mx, (int) my)) {
-            if (vAmt > 0 && canScrollTabsUp()) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (hasScrollableTabs() && isMouseOverTabs((int) mouseX, (int) mouseY)) {
+            if (verticalAmount > 0 && canScrollTabsUp()) {
                 scrollTabs(-1);
                 playUiClickSound();
                 return true;
             }
-            if (vAmt < 0 && canScrollTabsDown()) {
+            if (verticalAmount < 0 && canScrollTabsDown()) {
                 scrollTabs(1);
                 playUiClickSound();
                 return true;
@@ -696,8 +696,8 @@ public class LoomRecipePanel implements ScreenExtension {
         return Weaver.getWeaver(handler).canWeave(banner);
     }
 
-    public static void setBannerTooltip(
-            GuiGraphicsExtractor ctx, Minecraft mc, BannerRecipe banner, int mouseX, int mouseY) {
+    private static void setBannerTooltip(
+			GuiGraphicsExtractor ctx, Minecraft mc, BannerRecipe banner, int mouseX, int mouseY) {
         setBannerTooltip(ctx, mc, banner.getDisplayName(), banner, -1, mouseX, mouseY);
     }
 
@@ -713,7 +713,7 @@ public class LoomRecipePanel implements ScreenExtension {
         ctx.setTooltipForNextFrame(mc.font, List.of(Component.literal(title)), image, mouseX, mouseY);
     }
 
-    public void craftSelectedBanner() {
+    private void craftSelectedBanner() {
         manager.craftActiveBanner();
     }
 

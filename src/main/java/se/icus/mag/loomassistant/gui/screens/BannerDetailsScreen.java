@@ -238,12 +238,7 @@ public class BannerDetailsScreen extends Screen {
         closeToPreviousScreen();
     }
 
-    @Override
-    public boolean shouldCloseOnEsc() {
-        return true;
-    }
-
-    private void closeToPreviousScreen() {
+	private void closeToPreviousScreen() {
         if (this.minecraft != null && this.minecraft.gui != null) {
             this.minecraft.gui.setScreen(previousScreen);
         }

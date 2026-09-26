@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import se.icus.mag.loomassistant.LoomAssistantMod;
@@ -36,12 +35,6 @@ public final class BannerRecipeCategories {
      */
     public static final BannerRecipeCategory MISC =
             new BannerRecipeCategory(BannerRecipe.DEFAULT_CATEGORY, "Misc", "minecraft:lava_bucket");
-
-    /**
-     * @deprecated Use {@link BannerRecipeCategory} directly.
-     */
-    @Deprecated
-    public record Category(String id, Identifier itemId, String name) {}
 
     private static final Map<String, BannerRecipeCategory> registry = new LinkedHashMap<>();
     /**
@@ -135,24 +128,4 @@ public final class BannerRecipeCategories {
     // Legacy compat for code that still uses the old Category record
     // -------------------------------------------------------------------------
 
-    /**
-     * @deprecated Use {@link #getCategories()} returning {@link BannerRecipeCategory}.
-     */
-    @Deprecated
-    public static List<Category> getLegacyCategories() {
-        return getCategories().stream()
-                .map(c -> new Category(c.id(), Identifier.tryParse(c.iconItemId()), c.description()))
-                .toList();
-    }
-
-    /**
-     * @deprecated Use {@link #resolveIcon(BannerRecipeCategory)}.
-     */
-    @Deprecated
-    public static ItemStack resolveIcon(Category category) {
-        if (category.itemId() != null && BuiltInRegistries.ITEM.containsKey(category.itemId())) {
-            return new ItemStack(BuiltInRegistries.ITEM.getValue(category.itemId()));
-        }
-        return new ItemStack(Items.LAVA_BUCKET);
-    }
 }
